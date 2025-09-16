@@ -1,0 +1,1028 @@
+/**
+ * Vortex360 Lite - Admin Styles
+ * 
+ * CSS styles for WordPress admin interface
+ */
+
+/* ==========================================================================
+   Admin Layout & General Styles
+   ========================================================================== */
+
+.vx-admin-wrap {
+    margin: 20px 0;
+}
+
+.vx-admin-header {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+    margin: 0 0 20px;
+    padding: 20px;
+}
+
+.vx-admin-header h1 {
+    margin: 0 0 10px;
+    font-size: 24px;
+    font-weight: 400;
+    line-height: 1.3;
+}
+
+.vx-admin-header p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.vx-admin-content {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+    padding: 20px;
+}
+
+/* ==========================================================================
+   Navigation Tabs
+   ========================================================================== */
+
+.vx-tab-nav {
+    border-bottom: 1px solid #ccd0d4;
+    margin: 0 0 20px;
+    padding: 0;
+}
+
+.vx-tab-nav a {
+    background: #f1f1f1;
+    border: 1px solid #ccd0d4;
+    border-bottom: none;
+    color: #0073aa;
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    margin: 0 5px -1px 0;
+    padding: 10px 15px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.vx-tab-nav a:hover {
+    background: #fff;
+    color: #0073aa;
+}
+
+.vx-tab-nav a.nav-tab-active {
+    background: #fff;
+    border-bottom: 1px solid #fff;
+    color: #000;
+}
+
+.vx-tab-content {
+    display: none;
+}
+
+.vx-tab-content.active {
+    display: block;
+}
+
+/* ==========================================================================
+   Tour Management
+   ========================================================================== */
+
+.vx-tours-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.vx-tour-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+}
+
+.vx-tour-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.vx-tour-card-header {
+    background: #f9f9f9;
+    border-bottom: 1px solid #ddd;
+    padding: 15px;
+}
+
+.vx-tour-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 5px;
+}
+
+.vx-tour-card-meta {
+    color: #666;
+    font-size: 12px;
+    margin: 0;
+}
+
+.vx-tour-card-body {
+    padding: 15px;
+}
+
+.vx-tour-card-description {
+    color: #666;
+    font-size: 14px;
+    line-height: 1.4;
+    margin: 0 0 15px;
+}
+
+.vx-tour-card-stats {
+    display: flex;
+    gap: 15px;
+    margin: 0 0 15px;
+}
+
+.vx-tour-stat {
+    color: #666;
+    font-size: 12px;
+}
+
+.vx-tour-stat strong {
+    color: #000;
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.vx-tour-card-actions {
+    border-top: 1px solid #eee;
+    display: flex;
+    gap: 10px;
+    padding: 10px 15px;
+}
+
+.vx-tour-card-actions .button {
+    font-size: 12px;
+    height: auto;
+    padding: 5px 10px;
+}
+
+/* ==========================================================================
+   Scene Management
+   ========================================================================== */
+
+.vx-scenes-list {
+    margin: 20px 0;
+}
+
+.vx-scene-item {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin: 0 0 15px;
+    overflow: hidden;
+}
+
+.vx-scene-header {
+    align-items: center;
+    background: #f9f9f9;
+    border-bottom: 1px solid #ddd;
+    cursor: move;
+    display: flex;
+    padding: 15px;
+}
+
+.vx-scene-handle {
+    color: #666;
+    cursor: move;
+    font-size: 16px;
+    margin-right: 10px;
+}
+
+.vx-scene-thumbnail {
+    border-radius: 4px;
+    height: 60px;
+    margin-right: 15px;
+    object-fit: cover;
+    width: 80px;
+}
+
+.vx-scene-info {
+    flex: 1;
+}
+
+.vx-scene-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 5px;
+}
+
+.vx-scene-meta {
+    color: #666;
+    font-size: 12px;
+    margin: 0;
+}
+
+.vx-scene-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.vx-scene-actions .button {
+    font-size: 12px;
+    height: auto;
+    padding: 5px 10px;
+}
+
+.vx-scene-body {
+    display: none;
+    padding: 15px;
+}
+
+.vx-scene-item.expanded .vx-scene-body {
+    display: block;
+}
+
+/* ==========================================================================
+   Hotspot Management
+   ========================================================================== */
+
+.vx-hotspots-list {
+    margin: 15px 0;
+}
+
+.vx-hotspot-item {
+    align-items: center;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    display: flex;
+    margin: 0 0 10px;
+    padding: 10px 15px;
+}
+
+.vx-hotspot-icon {
+    background: #0073aa;
+    border-radius: 50%;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px;
+    margin-right: 15px;
+    width: 30px;
+}
+
+.vx-hotspot-info {
+    flex: 1;
+}
+
+.vx-hotspot-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 2px;
+}
+
+.vx-hotspot-type {
+    background: #666;
+    border-radius: 2px;
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 6px;
+    text-transform: uppercase;
+}
+
+.vx-hotspot-type.info {
+    background: #0073aa;
+}
+
+.vx-hotspot-type.scene {
+    background: #00a32a;
+}
+
+.vx-hotspot-type.link {
+    background: #d63638;
+}
+
+.vx-hotspot-type.media {
+    background: #f56e28;
+}
+
+.vx-hotspot-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.vx-hotspot-actions .button {
+    font-size: 11px;
+    height: auto;
+    padding: 3px 8px;
+}
+
+/* ==========================================================================
+   Forms
+   ========================================================================== */
+
+.vx-form {
+    margin: 0;
+}
+
+.vx-form .form-table {
+    margin: 0;
+}
+
+.vx-form .form-table th {
+    padding: 15px 10px 15px 0;
+    vertical-align: top;
+    width: 200px;
+}
+
+.vx-form .form-table td {
+    padding: 15px 0;
+}
+
+.vx-form .regular-text {
+    width: 100%;
+    max-width: 400px;
+}
+
+.vx-form .large-text {
+    width: 100%;
+    max-width: 500px;
+}
+
+.vx-form .small-text {
+    width: 100px;
+}
+
+.vx-form-row {
+    display: flex;
+    gap: 20px;
+    margin: 0 0 20px;
+}
+
+.vx-form-col {
+    flex: 1;
+}
+
+.vx-form-group {
+    margin: 0 0 20px;
+}
+
+.vx-form-group label {
+    display: block;
+    font-weight: 600;
+    margin: 0 0 5px;
+}
+
+.vx-form-group .description {
+    color: #666;
+    font-size: 13px;
+    font-style: italic;
+    margin: 5px 0 0;
+}
+
+.vx-error {
+    border-color: #d63638 !important;
+    box-shadow: 0 0 2px rgba(214, 54, 56, 0.8);
+}
+
+.vx-error-message {
+    color: #d63638;
+    display: block;
+    font-size: 12px;
+    margin: 5px 0 0;
+}
+
+/* ==========================================================================
+   Modals
+   ========================================================================== */
+
+.vx-modal {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    left: 0;
+    opacity: 0;
+    position: fixed;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 100000;
+    transition: opacity 0.3s ease;
+}
+
+.vx-modal.open {
+    opacity: 1;
+}
+
+.vx-modal-overlay {
+    background: rgba(0, 0, 0, 0.7);
+    left: 0;
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 100%;
+}
+
+.vx-modal-content {
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    max-height: 90vh;
+    max-width: 90vw;
+    overflow: hidden;
+    position: relative;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+    width: 600px;
+}
+
+.vx-modal.open .vx-modal-content {
+    transform: scale(1);
+}
+
+.vx-modal-medium .vx-modal-content {
+    width: 600px;
+}
+
+.vx-modal-large .vx-modal-content {
+    width: 800px;
+}
+
+.vx-modal-header {
+    align-items: center;
+    background: #f9f9f9;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 20px;
+}
+
+.vx-modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.vx-modal-close {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 24px;
+    line-height: 1;
+    padding: 0;
+    transition: color 0.2s ease;
+}
+
+.vx-modal-close:hover {
+    color: #000;
+}
+
+.vx-modal-body {
+    max-height: calc(90vh - 120px);
+    overflow-y: auto;
+    padding: 20px;
+}
+
+/* ==========================================================================
+   Import/Export
+   ========================================================================== */
+
+.vx-import-export-tabs {
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    margin: 0 0 20px;
+}
+
+.vx-import-export-tabs button {
+    background: #f1f1f1;
+    border: 1px solid #ddd;
+    border-bottom: none;
+    cursor: pointer;
+    font-size: 14px;
+    margin-right: 5px;
+    padding: 10px 20px;
+    transition: background 0.2s ease;
+}
+
+.vx-import-export-tabs button:hover {
+    background: #fff;
+}
+
+.vx-import-export-tabs button.active {
+    background: #fff;
+    border-bottom: 1px solid #fff;
+    margin-bottom: -1px;
+}
+
+.vx-tab-panel {
+    display: none;
+}
+
+.vx-tab-panel.active {
+    display: block;
+}
+
+.vx-drop-zone {
+    background: #f9f9f9;
+    border: 2px dashed #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 40px 20px;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.vx-drop-zone:hover,
+.vx-drop-zone.dragover {
+    background: #f0f8ff;
+    border-color: #0073aa;
+}
+
+.vx-drop-zone-icon {
+    color: #666;
+    font-size: 48px;
+    margin: 0 0 15px;
+}
+
+.vx-drop-zone-text {
+    color: #666;
+    font-size: 16px;
+    margin: 0 0 10px;
+}
+
+.vx-drop-zone-hint {
+    color: #999;
+    font-size: 12px;
+    margin: 0;
+}
+
+.vx-import-preview {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    display: none;
+    margin: 20px 0;
+    padding: 15px;
+}
+
+.vx-import-preview h4 {
+    margin: 0 0 10px;
+}
+
+.vx-import-preview ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+/* ==========================================================================
+   Settings
+   ========================================================================== */
+
+.vx-settings-section {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin: 0 0 20px;
+    overflow: hidden;
+}
+
+.vx-settings-section-header {
+    background: #f9f9f9;
+    border-bottom: 1px solid #ddd;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 15px 20px;
+}
+
+.vx-settings-section-body {
+    padding: 20px;
+}
+
+.vx-setting-row {
+    align-items: flex-start;
+    display: flex;
+    margin: 0 0 20px;
+    gap: 20px;
+}
+
+.vx-setting-row:last-child {
+    margin-bottom: 0;
+}
+
+.vx-setting-label {
+    flex: 0 0 200px;
+    font-weight: 600;
+    padding-top: 5px;
+}
+
+.vx-setting-control {
+    flex: 1;
+}
+
+.vx-setting-description {
+    color: #666;
+    font-size: 13px;
+    margin: 5px 0 0;
+}
+
+/* ==========================================================================
+   Pro Upgrade Notices
+   ========================================================================== */
+
+.vx-pro-notice {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    margin: 20px 0;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.vx-pro-notice::before {
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2"/></svg>') repeat;
+    content: '';
+    left: 0;
+    opacity: 0.1;
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 100%;
+}
+
+.vx-pro-notice-content {
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.vx-pro-notice h3 {
+    color: #fff;
+    font-size: 20px;
+    margin: 0 0 10px;
+}
+
+.vx-pro-notice p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 0 0 15px;
+}
+
+.vx-pro-notice-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.vx-pro-feature {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+}
+
+.vx-pro-feature-icon {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    width: 24px;
+}
+
+.vx-pro-feature-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+}
+
+.vx-pro-notice-actions {
+    display: flex;
+    gap: 15px;
+    margin: 20px 0 0;
+}
+
+.vx-pro-button {
+    background: #fff;
+    border: none;
+    border-radius: 4px;
+    color: #667eea;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 20px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.vx-pro-button:hover {
+    background: rgba(255, 255, 255, 0.9);
+    color: #667eea;
+    transform: translateY(-1px);
+}
+
+.vx-pro-button-secondary {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+}
+
+.vx-pro-button-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.vx-pro-pricing {
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
+    padding: 15px;
+}
+
+.vx-pro-price {
+    color: #fff;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.vx-pro-price-period {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+}
+
+.vx-pro-discount {
+    background: #00a32a;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 8px;
+    text-transform: uppercase;
+}
+
+/* ==========================================================================
+   Lite Version Limitations
+   ========================================================================== */
+
+.vx-lite-limit {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 4px;
+    color: #856404;
+    margin: 10px 0;
+    padding: 10px 15px;
+}
+
+.vx-lite-limit-icon {
+    color: #f39c12;
+    margin-right: 8px;
+}
+
+.vx-lite-limit strong {
+    color: #856404;
+}
+
+.vx-lite-limit a {
+    color: #0073aa;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.vx-lite-limit a:hover {
+    text-decoration: underline;
+}
+
+/* ==========================================================================
+   Loading & Feedback
+   ========================================================================== */
+
+.vx-loader {
+    align-items: center;
+    background: rgba(255, 255, 255, 0.9);
+    display: none;
+    justify-content: center;
+    left: 0;
+    position: fixed;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 999999;
+}
+
+.vx-spinner {
+    animation: vx-spin 1s linear infinite;
+    border: 3px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 3px solid #0073aa;
+    height: 40px;
+    width: 40px;
+}
+
+@keyframes vx-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.vx-admin-notice {
+    margin: 5px 0 15px;
+}
+
+.vx-autosave-indicator {
+    color: #666;
+    font-size: 12px;
+    font-style: italic;
+    margin: 10px 0;
+}
+
+/* ==========================================================================
+   Tooltips
+   ========================================================================== */
+
+.vx-tooltip {
+    border-bottom: 1px dotted #666;
+    cursor: help;
+}
+
+.vx-help-icon {
+    color: #666;
+    cursor: help;
+    font-size: 14px;
+    margin-left: 5px;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media (max-width: 1200px) {
+    .vx-tours-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .vx-tours-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+    
+    .vx-modal-content {
+        margin: 20px;
+        width: auto;
+    }
+    
+    .vx-form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .vx-setting-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .vx-setting-label {
+        flex: none;
+    }
+}
+
+@media (max-width: 600px) {
+    .vx-tours-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .vx-scene-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .vx-scene-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    
+    .vx-hotspot-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .vx-hotspot-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    
+    .vx-pro-notice-features {
+        grid-template-columns: 1fr;
+    }
+    
+    .vx-pro-notice-actions {
+        flex-direction: column;
+    }
+}
+
+/* ==========================================================================
+   Dark Mode Support (WordPress 5.7+)
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+    .auto-fold #adminmenu,
+    .auto-fold #adminmenu li.menu-top,
+    #adminmenu,
+    #adminmenu .wp-submenu,
+    #adminmenu a.wp-has-current-submenu:after,
+    #adminmenu li.current a.menu-top,
+    #adminmenu li.wp-has-current-submenu a.wp-has-current-submenu,
+    #adminmenu .wp-has-current-submenu .wp-submenu .wp-submenu-head,
+    #adminmenu .wp-menu-arrow,
+    #adminmenu .wp-menu-arrow div,
+    #adminmenu li.current .wp-menu-arrow:before {
+        /* Inherit WordPress dark mode styles */
+    }
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+
+@media print {
+    .vx-modal,
+    .vx-loader,
+    .vx-pro-notice,
+    .button,
+    .vx-tour-card-actions,
+    .vx-scene-actions,
+    .vx-hotspot-actions {
+        display: none !important;
+    }
+    
+    .vx-admin-content,
+    .vx-tour-card,
+    .vx-scene-item,
+    .vx-settings-section {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+}
+
+/* ==========================================================================
+   Accessibility Improvements
+   ========================================================================== */
+
+.vx-sr-only {
+    border: 0;
+    clip: rect(1px, 1px, 1px, 1px);
+    clip-path: inset(50%);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+    word-wrap: normal;
+}
+
+.vx-focus-visible:focus {
+    box-shadow: 0 0 0 2px #0073aa;
+    outline: none;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .vx-tour-card,
+    .vx-scene-item,
+    .vx-hotspot-item,
+    .vx-modal-content {
+        border-width: 2px;
+    }
+    
+    .vx-pro-notice {
+        background: #000;
+        border: 2px solid #fff;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .vx-spinner {
+        animation: none;
+        border: 3px solid #0073aa;
+    }
+}

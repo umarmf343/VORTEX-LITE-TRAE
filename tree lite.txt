@@ -1,0 +1,123 @@
+Awesome — I studied both competitor plugin trees end-to-end and kept every earlier feature/limit decision in mind. Below is a **lean, production-ready plugin tree for the FREE edition: Vortex360 Lite**, engineered to make upgrading to **Vortex360 Pro** seamless (shared handles, Pro bridge, gated features). Structure and naming borrow proven patterns from iPanorama’s `assets/gutenberg/includes` layout and WPVR’s `admin/public/includes/lib/pannellum` split, refined for maintainability. &#x20;
+
+```
+vortex360-lite/
+├─ vortex360-lite.php                 // Main bootstrap: constants, autoload, init hooks
+├─ uninstall.php                      // Clean removal (CPT, options, caps)
+├─ readme.txt                         // WP.org metadata
+├─ LICENSE.txt
+├─ index.php
+
+├─ includes/
+│  ├─ class-vx-loader.php             // Registers actions/filters for admin & public
+│  ├─ class-vx.php                    // Core orchestrator (singleton)
+│  ├─ class-vx-i18n.php               // Textdomain loader
+│  ├─ class-vx-cpt.php                // Registers CPT: vortex_tour (+ caps)
+│  ├─ class-vx-limits-lite.php        // Enforce Lite caps: 5 scenes/tour, 5 hotspots/scene
+│  ├─ class-vx-scenes.php             // Scene model, validation, sanitization
+│  ├─ class-vx-hotspots.php           // Hotspot model (text/image/link only in Lite)
+│  ├─ class-vx-shortcode.php          // [vortex360 id="123"]
+│  ├─ class-vx-rest.php               // Minimal REST (fetch tour JSON, ping interactions)
+│  ├─ class-vx-import-export.php      // JSON import/export (Lite scope)
+│  ├─ class-vx-duplicate.php          // One-click duplicate tour
+│  ├─ class-vx-capabilities.php       // Role/cap mapping (admin/editor/author)
+│  ├─ class-vx-upgrade-bridge.php     // Detect Pro, expose hooks, soft upsell nudges
+│  ├─ helpers/
+│  │  ├─ vx-utils.php                 // Options, nonces, template loader, safe SVG
+│  │  ├─ vx-validators.php            // Strong input validation helpers
+│  │  └─ vx-upsell.php                // Reusable Pro CTA helpers (non-intrusive)
+│  └─ index.php
+
+├─ admin/
+│  ├─ class-vx-admin.php              // Menus, assets, notices, pointers
+│  ├─ classes/
+│  │  ├─ class-vx-admin-pages.php     // Tours list enhancements + Settings page
+│  │  ├─ class-vx-settings.php        // Lite settings (logo, UI toggles, autoplay)
+│  │  ├─ class-vx-metabox-tour.php    // Tour builder (scenes + hotspots) with Lite limits
+│  │  ├─ class-vx-preview.php         // Admin live preview frame
+│  │  └─ class-vx-ajax.php            // Sort scenes, icon pickers (Lite subset)
+│  ├─ views/
+│  │  ├─ page-settings.php
+│  │  ├─ page-tours.php
+│  │  ├─ modal-import-export.php
+│  │  ├─ modal-icons-lite.php         // Lite icon subset
+│  │  └─ notice-upsell.php            // Contextual Pro notices (floorplan, video, analytics)
+│  ├─ css/
+│  │  ├─ admin.css
+│  │  └─ builder.css
+│  ├─ js/
+│  │  ├─ admin.js                     // Metabox logic, limit checks, warnings
+│  │  ├─ builder.js                   // Scene/hotspot editors, thumbnail sorter
+│  │  └─ preview.js                   // Bootstraps admin preview
+│  └─ index.php
+
+├─ public/
+│  ├─ class-vx-public.php             // Enqueue front assets, render shortcode/block
+│  ├─ classes/
+│  │  └─ class-vx-render.php          // Build viewer config from CPT meta
+│  ├─ css/
+│  │  ├─ vortex360.css                // Viewer UI (thumbnails row, basic tooltip)
+│  │  └─ thumbnails.css
+│  ├─ js/
+│  │  ├─ viewer.js                    // Init viewer (Pannellum), basic fade/zoom transitions
+│  │  ├─ controls.js                  // Zoom, fullscreen, arrows, mouse/keyboard
+│  │  └─ lazyload.js                  // IntersectionObserver for pano lazy-load
+│  ├─ lib/
+│  │  └─ pannellum/                   // Bundled viewer library (css/js/img)
+│  │     ├─ css/                      // pannellum.css (+ sprites, compass)
+│  │     └─ js/                       // libpannellum.js, pannellum.js
+│  ├─ templates/
+│  │  └─ tour.php                     // Overridable via theme filter
+│  └─ index.php
+
+├─ blocks/                             // Gutenberg block (tour embed)
+│  ├─ tour/
+│  │  ├─ block.json
+│  │  ├─ edit.js
+│  │  ├─ save.js
+│  │  └─ style.css
+│  ├─ build/
+│  │  ├─ index.js
+│  │  └─ index.css
+│  └─ index.php
+
+├─ elementor/                          // Basic Elementor widget only (Pro adds more builders)
+│  ├─ elementor.php
+│  └─ widgets/
+│     └─ class-vx-widget-tour.php
+
+├─ assets/
+│  ├─ icons/
+│  │  ├─ fullscreen-on.svg
+│  │  ├─ fullscreen-off.svg
+│  │  ├─ compass.svg
+│  │  ├─ zoom-in.svg
+│  │  └─ zoom-out.svg
+│  ├─ img/
+│  │  └─ splash-placeholder.jpg
+│  └─ index.php
+
+├─ languages/
+│  ├─ vortex360-lite.pot
+│  └─ index.php
+
+├─ sample/
+│  └─ sample_tour.zip                 // 1–2 scenes, basic hotspots (for 1-click import)
+
+└─ upgrade/
+   ├─ class-vx-upgrade-notices.php    // Gentle in-context upsell: floorplan, audio, analytics
+   ├─ partials/
+   │  ├─ card-feature-floorplan.php
+   │  ├─ card-feature-video.php
+   │  └─ card-feature-analytics.php
+   └─ index.php
+```
+
+### Why this layout (fast upgrade path, clean separation)
+
+* **Admin/public/includes tri-layer** for clarity and performance; viewer lib lives under `public/lib/pannellum/`, mirroring WPVR’s proven bundling of Pannellum.&#x20;
+* **Gutenberg block + Elementor widget** ship in Lite; additional builders (Divi, Oxygen, Bricks, VC) remain Pro-only, just like competitors split editor integrations. &#x20;
+* **Limits enforcement** isolated in `class-vx-limits-lite.php` so Pro can disable it cleanly when active.
+* **Import/Export, Duplicate, Lazy-load, Preview** included in Lite to maximize adoption; advanced analytics/floorplan/video reserved for Pro via upgrade notices.
+* **Upgrade bridge** detects Pro plugin/constants and hands over feature flags without code churn.
+

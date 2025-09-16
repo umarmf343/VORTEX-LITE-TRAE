@@ -1,0 +1,891 @@
+/**
+ * Admin Metabox Styles
+ *
+ * Styles for the Vortex360 Lite admin metabox interface.
+ *
+ * @package    Vortex360_Lite
+ * @subpackage Vortex360_Lite/admin/css
+ * @since      1.0.0
+ */
+
+/* ==========================================================================
+   Container Styles
+   ========================================================================== */
+
+.vx-admin-container {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    line-height: 1.5;
+}
+
+.vx-admin-container * {
+    box-sizing: border-box;
+}
+
+/* ==========================================================================
+   Lite Version Notice
+   ========================================================================== */
+
+.vx-lite-notice {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.vx-lite-notice::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    transform: rotate(45deg);
+    pointer-events: none;
+}
+
+.vx-lite-notice h4 {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.vx-lite-notice p {
+    margin: 0 0 15px 0;
+    opacity: 0.9;
+}
+
+.vx-lite-notice .button-primary {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    text-shadow: none;
+    box-shadow: none;
+    transition: all 0.3s ease;
+}
+
+.vx-lite-notice .button-primary:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   Scenes Container
+   ========================================================================== */
+
+.vx-scenes-container {
+    background: #fff;
+    border: 1px solid #e1e1e1;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.vx-scenes-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 15px 20px;
+    border-bottom: 1px solid #e1e1e1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.vx-scenes-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+#vx-add-scene {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+}
+
+#vx-add-scene:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+#vx-add-scene .dashicons {
+    margin-right: 5px;
+    font-size: 16px;
+    line-height: 1;
+}
+
+.vx-scenes-list {
+    padding: 0;
+}
+
+.vx-no-scenes {
+    padding: 40px 20px;
+    text-align: center;
+    color: #6c757d;
+    background: #f8f9fa;
+}
+
+.vx-no-scenes p {
+    margin: 0;
+    font-style: italic;
+}
+
+/* ==========================================================================
+   Scene Items
+   ========================================================================== */
+
+.vx-scene-item {
+    border-bottom: 1px solid #e1e1e1;
+    transition: all 0.3s ease;
+}
+
+.vx-scene-item:last-child {
+    border-bottom: none;
+}
+
+.vx-scene-item:hover {
+    background: #f8f9fa;
+}
+
+.vx-scene-header {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.vx-scene-header:hover {
+    background: #f8f9fa;
+}
+
+.vx-scene-drag-handle {
+    margin-right: 10px;
+    color: #6c757d;
+    cursor: move;
+}
+
+.vx-scene-drag-handle:hover {
+    color: #495057;
+}
+
+.vx-scene-title-container {
+    flex: 1;
+    margin-right: 15px;
+}
+
+.vx-scene-title {
+    width: 100%;
+    border: 1px solid transparent;
+    background: transparent;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.vx-scene-title:focus {
+    border-color: #007cba;
+    background: #fff;
+    box-shadow: 0 0 0 1px #007cba;
+    outline: none;
+}
+
+.vx-scene-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.vx-scene-actions .button {
+    padding: 6px 8px;
+    min-height: auto;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.vx-scene-toggle {
+    background: #f8f9fa;
+    border-color: #dee2e6;
+}
+
+.vx-scene-toggle:hover {
+    background: #e9ecef;
+    transform: translateY(-1px);
+}
+
+.vx-scene-duplicate {
+    background: #17a2b8;
+    border-color: #17a2b8;
+    color: white;
+}
+
+.vx-scene-duplicate:hover {
+    background: #138496;
+    border-color: #117a8b;
+    transform: translateY(-1px);
+}
+
+.vx-scene-delete {
+    background: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+.vx-scene-delete:hover {
+    background: #c82333;
+    border-color: #bd2130;
+    transform: translateY(-1px);
+}
+
+.vx-scene-content {
+    padding: 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #e1e1e1;
+    display: none;
+}
+
+.vx-scene-item.expanded .vx-scene-content {
+    display: block;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 1000px;
+    }
+}
+
+/* ==========================================================================
+   Image Upload Section
+   ========================================================================== */
+
+.vx-scene-image-section {
+    margin-bottom: 25px;
+}
+
+.vx-scene-image-section label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.vx-image-upload {
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+    background: #fff;
+}
+
+.vx-image-upload:hover {
+    border-color: #007cba;
+    background: #f8f9fa;
+}
+
+.vx-image-preview {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 15px;
+}
+
+.vx-image-preview img {
+    max-width: 200px;
+    max-height: 120px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.vx-remove-image {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.vx-remove-image:hover {
+    background: #c82333;
+    transform: scale(1.1);
+}
+
+.vx-select-image {
+    background: linear-gradient(135deg, #007cba 0%, #005a87 100%);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 124, 186, 0.2);
+}
+
+.vx-select-image:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 124, 186, 0.3);
+}
+
+/* ==========================================================================
+   Settings Grid
+   ========================================================================== */
+
+.vx-scene-settings h4,
+.vx-hotspots-section h4 {
+    margin: 0 0 15px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #2c3e50;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 8px;
+}
+
+.vx-settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.vx-setting-item {
+    background: #fff;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #e1e1e1;
+    transition: all 0.3s ease;
+}
+
+.vx-setting-item:hover {
+    border-color: #007cba;
+    box-shadow: 0 2px 4px rgba(0, 124, 186, 0.1);
+}
+
+.vx-setting-item label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #495057;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.vx-setting-item input[type="number"] {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.vx-setting-item input[type="number"]:focus {
+    border-color: #007cba;
+    box-shadow: 0 0 0 1px #007cba;
+    outline: none;
+}
+
+/* ==========================================================================
+   Hotspots Section
+   ========================================================================== */
+
+.vx-hotspots-section {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid #e1e1e1;
+}
+
+.vx-hotspots-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.vx-add-hotspot {
+    background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(111, 66, 193, 0.2);
+}
+
+.vx-add-hotspot:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(111, 66, 193, 0.3);
+}
+
+.vx-hotspots-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* ==========================================================================
+   Hotspot Items
+   ========================================================================== */
+
+.vx-hotspot-item {
+    background: #f8f9fa;
+    border: 1px solid #e1e1e1;
+    border-radius: 6px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.vx-hotspot-item:hover {
+    border-color: #007cba;
+    box-shadow: 0 2px 4px rgba(0, 124, 186, 0.1);
+}
+
+.vx-hotspot-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.vx-hotspot-icon {
+    margin-right: 10px;
+    color: #6f42c1;
+}
+
+.vx-hotspot-title-container {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.vx-hotspot-title {
+    width: 100%;
+    border: 1px solid transparent;
+    background: transparent;
+    padding: 6px 8px;
+    font-size: 13px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.vx-hotspot-title:focus {
+    border-color: #007cba;
+    background: #f8f9fa;
+    box-shadow: 0 0 0 1px #007cba;
+    outline: none;
+}
+
+.vx-hotspot-type {
+    margin-right: 10px;
+}
+
+.vx-hotspot-type-select {
+    padding: 4px 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 12px;
+    background: #fff;
+}
+
+.vx-hotspot-actions {
+    display: flex;
+    gap: 3px;
+}
+
+.vx-hotspot-actions .button {
+    padding: 4px 6px;
+    min-height: auto;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+.vx-hotspot-content {
+    padding: 15px;
+    background: #f8f9fa;
+    border-top: 1px solid #e1e1e1;
+    display: none;
+}
+
+.vx-hotspot-item.expanded .vx-hotspot-content {
+    display: block;
+    animation: slideDown 0.3s ease;
+}
+
+.vx-hotspot-position {
+    margin-bottom: 15px;
+}
+
+.vx-hotspot-position h5 {
+    margin: 0 0 10px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.vx-position-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.vx-position-item {
+    background: #fff;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #e1e1e1;
+}
+
+.vx-position-item label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #495057;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.vx-position-item input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #ced4da;
+    border-radius: 3px;
+    font-size: 13px;
+}
+
+/* ==========================================================================
+   Hotspot Settings
+   ========================================================================== */
+
+.vx-hotspot-settings {
+    background: #fff;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #e1e1e1;
+}
+
+.vx-hotspot-info-settings textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 13px;
+    resize: vertical;
+    min-height: 80px;
+}
+
+.vx-hotspot-link-settings .vx-setting-item {
+    margin-bottom: 10px;
+}
+
+.vx-hotspot-link-settings .vx-setting-item:last-child {
+    margin-bottom: 0;
+}
+
+.vx-hotspot-link-settings input[type="url"] {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.vx-hotspot-link-settings label {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.vx-hotspot-link-settings input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.vx-hotspot-scene-settings select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 13px;
+    background: #fff;
+}
+
+/* ==========================================================================
+   Tour Settings Sidebar
+   ========================================================================== */
+
+.vx-tour-settings {
+    font-size: 13px;
+}
+
+.vx-setting-group {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e1e1e1;
+}
+
+.vx-setting-group:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.vx-setting-group h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.vx-setting-group label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    cursor: pointer;
+    padding: 5px 0;
+    transition: all 0.3s ease;
+}
+
+.vx-setting-group label:hover {
+    color: #007cba;
+}
+
+.vx-setting-group input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+/* ==========================================================================
+   Tour Preview
+   ========================================================================== */
+
+.vx-tour-preview {
+    text-align: center;
+}
+
+#vx-preview-container {
+    border-radius: 6px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+#vx-preview-container:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.vx-preview-actions {
+    text-align: center;
+}
+
+#vx-refresh-preview {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+#vx-refresh-preview:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(108, 117, 125, 0.3);
+}
+
+/* ==========================================================================
+   Shortcode Box
+   ========================================================================== */
+
+.vx-shortcode-box {
+    text-align: center;
+}
+
+.vx-shortcode-box input[type="text"] {
+    font-family: 'Courier New', monospace;
+    background: #f8f9fa;
+    border: 1px solid #e1e1e1;
+    padding: 10px;
+    text-align: center;
+    font-size: 13px;
+    border-radius: 4px;
+    margin: 10px 0;
+}
+
+.vx-shortcode-box input[type="text"]:focus {
+    background: #fff;
+    border-color: #007cba;
+    box-shadow: 0 0 0 1px #007cba;
+}
+
+.vx-shortcode-box .description {
+    font-size: 12px;
+    color: #6c757d;
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    .vx-scenes-header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .vx-scene-header {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .vx-scene-title-container {
+        flex: 1 1 100%;
+        margin-right: 0;
+    }
+    
+    .vx-settings-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .vx-position-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .vx-hotspot-header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .vx-hotspot-title-container {
+        flex: 1 1 100%;
+        margin-right: 0;
+    }
+}
+
+/* ==========================================================================
+   Loading States
+   ========================================================================== */
+
+.vx-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: #6c757d;
+}
+
+.vx-loading::before {
+    content: '';
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e1e1e1;
+    border-top: 2px solid #007cba;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ==========================================================================
+   Error States
+   ========================================================================== */
+
+.vx-error {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 15px;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    margin: 10px 0;
+}
+
+.vx-error p {
+    margin: 0;
+}
+
+/* ==========================================================================
+   Animations
+   ========================================================================== */
+
+.vx-fade-in {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.vx-slide-up {
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==========================================================================
+   Utility Classes
+   ========================================================================== */
+
+.vx-hidden {
+    display: none !important;
+}
+
+.vx-text-center {
+    text-align: center;
+}
+
+.vx-text-muted {
+    color: #6c757d;
+}
+
+.vx-mb-0 {
+    margin-bottom: 0 !important;
+}
+
+.vx-mt-15 {
+    margin-top: 15px;
+}
+
+.vx-p-15 {
+    padding: 15px;
+}

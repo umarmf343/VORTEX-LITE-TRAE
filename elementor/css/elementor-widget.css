@@ -1,0 +1,401 @@
+/**
+ * Vortex360 Lite - Elementor Widget Frontend Styles
+ * 
+ * Styles for the Elementor widget frontend display
+ */
+
+/* Widget Container */
+.elementor-widget-vortex360-tour-viewer {
+    position: relative;
+    overflow: hidden;
+}
+
+.elementor-widget-vortex360-tour-viewer .elementor-widget-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+/* Tour Viewer Integration */
+.elementor-widget-vortex360-tour-viewer .vx-tour-viewer {
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    overflow: hidden;
+}
+
+.elementor-widget-vortex360-tour-viewer .vx-tour-viewer canvas {
+    border-radius: inherit;
+}
+
+/* Loading State */
+.elementor-widget-vortex360-tour-viewer .vx-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.elementor-widget-vortex360-tour-viewer .vx-loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #007cba;
+    border-radius: 50%;
+    animation: vx-elementor-spin 1s linear infinite;
+    margin: 0 auto 10px;
+}
+
+@keyframes vx-elementor-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.elementor-widget-vortex360-tour-viewer .vx-loading-text {
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+}
+
+/* Error State */
+.elementor-widget-vortex360-tour-viewer .vx-error {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    padding: 30px;
+    background: #fff;
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    max-width: 300px;
+    width: 90%;
+}
+
+.elementor-widget-vortex360-tour-viewer .vx-error-icon {
+    font-size: 48px;
+    color: #dc3232;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.elementor-widget-vortex360-tour-viewer .vx-error-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 10px;
+}
+
+.elementor-widget-vortex360-tour-viewer .vx-error-message {
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Controls Integration */
+.elementor-widget-vortex360-tour-viewer .vx-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 25px;
+    padding: 8px 16px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.elementor-widget-vortex360-tour-viewer .vx-control-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 16px;
+    padding: 8px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.elementor-widget-vortex360-tour-viewer .vx-control-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.elementor-widget-vortex360-tour-viewer .vx-control-btn.active {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Fullscreen Mode */
+.elementor-widget-vortex360-tour-viewer.vx-fullscreen {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 999999 !important;
+    background: #000;
+}
+
+.elementor-widget-vortex360-tour-viewer.vx-fullscreen .elementor-widget-container {
+    width: 100vw;
+    height: 100vh;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .elementor-widget-vortex360-tour-viewer .vx-controls {
+        bottom: 10px;
+        padding: 6px 12px;
+        gap: 8px;
+    }
+    
+    .elementor-widget-vortex360-tour-viewer .vx-control-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+    
+    .elementor-widget-vortex360-tour-viewer .vx-loading {
+        padding: 15px;
+    }
+    
+    .elementor-widget-vortex360-tour-viewer .vx-loading-spinner {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .elementor-widget-vortex360-tour-viewer .vx-error {
+        padding: 20px;
+        max-width: 280px;
+    }
+    
+    .elementor-widget-vortex360-tour-viewer .vx-error-icon {
+        font-size: 36px;
+    }
+    
+    .elementor-widget-vortex360-tour-viewer .vx-error-title {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .elementor-widget-vortex360-tour-viewer .vx-controls {
+        bottom: 5px;
+        padding: 4px 8px;
+        gap: 6px;
+    }
+    
+    .elementor-widget-vortex360-tour-viewer .vx-control-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .elementor-widget-vortex360-tour-viewer .vx-control-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+    }
+    
+    .elementor-widget-vortex360-tour-viewer .vx-controls {
+        padding: 10px 18px;
+        gap: 12px;
+    }
+}
+
+/* High DPI Displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .elementor-widget-vortex360-tour-viewer .vx-loading-spinner {
+        border-width: 2px;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .elementor-widget-vortex360-tour-viewer .vx-loading {
+        background: rgba(30, 30, 30, 0.95);
+        color: #fff;
+    }
+    
+    .elementor-widget-vortex360-tour-viewer .vx-loading-text {
+        color: #ccc;
+    }
+    
+    .elementor-widget-vortex360-tour-viewer .vx-error {
+        background: #2a2a2a;
+        border-color: #444;
+        color: #fff;
+    }
+    
+    .elementor-widget-vortex360-tour-viewer .vx-error-title {
+        color: #fff;
+    }
+    
+    .elementor-widget-vortex360-tour-viewer .vx-error-message {
+        color: #ccc;
+    }
+}
+
+/* Animation Classes */
+.elementor-widget-vortex360-tour-viewer.vx-fade-in {
+    animation: vx-elementor-fade-in 0.5s ease-out;
+}
+
+@keyframes vx-elementor-fade-in {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.elementor-widget-vortex360-tour-viewer.vx-slide-up {
+    animation: vx-elementor-slide-up 0.6s ease-out;
+}
+
+@keyframes vx-elementor-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Elementor Editor Compatibility */
+.elementor-editor-active .elementor-widget-vortex360-tour-viewer {
+    min-height: 200px;
+}
+
+.elementor-editor-active .elementor-widget-vortex360-tour-viewer .vx-tour-viewer {
+    pointer-events: none;
+}
+
+/* Widget Spacing */
+.elementor-widget-vortex360-tour-viewer + .elementor-widget {
+    margin-top: 20px;
+}
+
+.elementor-widget + .elementor-widget-vortex360-tour-viewer {
+    margin-top: 20px;
+}
+
+/* Print Styles */
+@media print {
+    .elementor-widget-vortex360-tour-viewer {
+        display: none !important;
+    }
+}
+
+/* Accessibility */
+.elementor-widget-vortex360-tour-viewer:focus-within {
+    outline: 2px solid #007cba;
+    outline-offset: 2px;
+}
+
+.elementor-widget-vortex360-tour-viewer .vx-control-btn:focus {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+}
+
+/* Performance Optimizations */
+.elementor-widget-vortex360-tour-viewer .vx-tour-viewer {
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+.elementor-widget-vortex360-tour-viewer .vx-controls {
+    will-change: opacity, transform;
+}
+
+/* Lite Version Branding */
+.elementor-widget-vortex360-tour-viewer .vx-lite-branding {
+    position: absolute;
+    bottom: 5px;
+    right: 10px;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.6);
+    z-index: 15;
+    pointer-events: none;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Widget Hover Effects */
+.elementor-widget-vortex360-tour-viewer:hover .vx-controls {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.elementor-widget-vortex360-tour-viewer .vx-controls {
+    opacity: 0.8;
+    transform: translateX(-50%) translateY(5px);
+    transition: all 0.3s ease;
+}
+
+/* Custom Elementor Animations Support */
+.elementor-invisible .elementor-widget-vortex360-tour-viewer {
+    opacity: 0;
+}
+
+.elementor-animation-fade-in .elementor-widget-vortex360-tour-viewer {
+    animation-duration: 0.6s;
+}
+
+.elementor-animation-slide-up .elementor-widget-vortex360-tour-viewer {
+    animation-duration: 0.6s;
+}
+
+/* RTL Support */
+.rtl .elementor-widget-vortex360-tour-viewer .vx-lite-branding {
+    right: auto;
+    left: 10px;
+}
+
+.rtl .elementor-widget-vortex360-tour-viewer .vx-controls {
+    direction: rtl;
+}
+
+/* Container Queries Support (Future) */
+@container (max-width: 400px) {
+    .elementor-widget-vortex360-tour-viewer .vx-controls {
+        scale: 0.9;
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    .elementor-widget-vortex360-tour-viewer * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .elementor-widget-vortex360-tour-viewer .vx-loading-spinner {
+        animation: none;
+        border-top-color: transparent;
+    }
+}

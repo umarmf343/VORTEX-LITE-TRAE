@@ -1,0 +1,865 @@
+/**
+ * Vortex360 Lite - Tour Viewer Styles
+ * 
+ * Main stylesheet for 360° tour viewer interface
+ */
+
+/* Reset and Base Styles */
+.vx-tour-viewer *, 
+.vx-tour-viewer *::before, 
+.vx-tour-viewer *::after {
+    box-sizing: border-box;
+}
+
+.vx-tour-viewer {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #333;
+    background: #000;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+/* Loading Screen */
+.vx-loading-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    transition: opacity 0.5s ease;
+}
+
+.vx-loading-content {
+    text-align: center;
+    color: #fff;
+    max-width: 300px;
+    padding: 20px;
+}
+
+.vx-loading-spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid #fff;
+    border-radius: 50%;
+    animation: vx-spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes vx-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.vx-loading-text h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.vx-loading-text p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 14px;
+}
+
+.vx-loading-progress {
+    width: 200px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    margin: 15px auto 0;
+    overflow: hidden;
+}
+
+.vx-loading-progress-bar {
+    height: 100%;
+    background: #fff;
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+/* Pannellum Container */
+.vx-pannellum-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+/* Controls Overlay */
+.vx-controls-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 100;
+}
+
+/* Top Controls Bar */
+.vx-top-controls {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    pointer-events: none;
+    z-index: 110;
+}
+
+.vx-top-left, .vx-top-right {
+    display: flex;
+    gap: 10px;
+    pointer-events: auto;
+}
+
+/* Control Groups */
+.vx-control-group {
+    display: flex;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 8px;
+    padding: 4px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.vx-control-group.vertical {
+    flex-direction: column;
+}
+
+/* Control Buttons */
+.vx-control-btn {
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    transition: all 0.2s ease;
+    position: relative;
+    margin: 2px;
+}
+
+.vx-control-btn:hover {
+    background: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.vx-control-btn:active {
+    transform: translateY(0);
+}
+
+.vx-control-btn.active {
+    background: #007cba;
+    color: #fff;
+}
+
+.vx-control-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.vx-control-btn .vx-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+/* Tooltips */
+.vx-control-btn::after {
+    content: attr(title);
+    position: absolute;
+    bottom: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 1000;
+}
+
+.vx-control-btn:hover::after {
+    opacity: 1;
+}
+
+/* Scene Navigation */
+.vx-scene-nav {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.vx-scene-info {
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    min-width: 60px;
+    justify-content: center;
+}
+
+.vx-scene-title {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+/* Bottom Controls */
+.vx-bottom-controls {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    right: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    pointer-events: none;
+    z-index: 110;
+}
+
+.vx-bottom-left, .vx-bottom-right {
+    display: flex;
+    gap: 10px;
+    pointer-events: auto;
+}
+
+/* Scene Thumbnails */
+.vx-scene-thumbnails {
+    display: flex;
+    gap: 8px;
+    max-width: 400px;
+    overflow-x: auto;
+    padding: 4px;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+}
+
+.vx-scene-thumbnails::-webkit-scrollbar {
+    height: 4px;
+}
+
+.vx-scene-thumbnails::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+}
+
+.vx-scene-thumbnails::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+}
+
+.vx-scene-thumbnail {
+    width: 60px;
+    height: 40px;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.vx-scene-thumbnail:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: scale(1.05);
+}
+
+.vx-scene-thumbnail.active {
+    border-color: #007cba;
+    box-shadow: 0 0 10px rgba(0, 124, 186, 0.5);
+}
+
+.vx-scene-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.vx-scene-thumbnail-title {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+    color: #fff;
+    font-size: 10px;
+    padding: 8px 4px 4px;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Info Panel */
+.vx-info-panel {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    width: 300px;
+    max-height: 400px;
+    background: rgba(0, 0, 0, 0.9);
+    color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    transform: translateX(-320px);
+    transition: transform 0.3s ease;
+    z-index: 120;
+    overflow-y: auto;
+}
+
+.vx-info-panel.open {
+    transform: translateX(0);
+}
+
+.vx-info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 12px;
+}
+
+.vx-info-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.vx-info-close {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.vx-info-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.vx-info-content p {
+    margin: 0 0 15px;
+    line-height: 1.5;
+    opacity: 0.9;
+}
+
+.vx-tour-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin: 15px 0;
+}
+
+.vx-stat-item {
+    text-align: center;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+}
+
+.vx-stat-number {
+    font-size: 24px;
+    font-weight: 700;
+    color: #007cba;
+    display: block;
+}
+
+.vx-stat-label {
+    font-size: 12px;
+    opacity: 0.8;
+    margin-top: 4px;
+}
+
+/* Hotspots */
+.vx-hotspot {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #007cba;
+    border: 3px solid #fff;
+    cursor: pointer;
+    transform: translate(-50%, -50%);
+    transition: all 0.3s ease;
+    z-index: 50;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.vx-hotspot:hover {
+    transform: translate(-50%, -50%) scale(1.2);
+    box-shadow: 0 4px 20px rgba(0, 124, 186, 0.5);
+}
+
+.vx-hotspot.pulse {
+    animation: vx-pulse 2s infinite;
+}
+
+@keyframes vx-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 124, 186, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(0, 124, 186, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 124, 186, 0);
+    }
+}
+
+.vx-hotspot.glow {
+    animation: vx-glow 3s ease-in-out infinite alternate;
+}
+
+@keyframes vx-glow {
+    from {
+        box-shadow: 0 0 5px #007cba, 0 0 10px #007cba, 0 0 15px #007cba;
+    }
+    to {
+        box-shadow: 0 0 10px #007cba, 0 0 20px #007cba, 0 0 30px #007cba;
+    }
+}
+
+/* Hotspot Types */
+.vx-hotspot.info {
+    background: #17a2b8;
+}
+
+.vx-hotspot.link {
+    background: #28a745;
+}
+
+.vx-hotspot.scene {
+    background: #007bff;
+}
+
+.vx-hotspot.video {
+    background: #dc3545;
+}
+
+.vx-hotspot.audio {
+    background: #6f42c1;
+}
+
+.vx-hotspot.image {
+    background: #fd7e14;
+}
+
+/* Hotspot Tooltip */
+.vx-hotspot-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    margin-bottom: 10px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 1000;
+}
+
+.vx-hotspot-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.9);
+}
+
+.vx-hotspot:hover .vx-hotspot-tooltip {
+    opacity: 1;
+}
+
+/* Hotspot Modal */
+.vx-hotspot-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.vx-hotspot-modal.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.vx-modal-content {
+    background: #fff;
+    border-radius: 8px;
+    max-width: 600px;
+    max-height: 80vh;
+    width: 90%;
+    overflow: hidden;
+    transform: scale(0.8);
+    transition: transform 0.3s ease;
+}
+
+.vx-hotspot-modal.open .vx-modal-content {
+    transform: scale(1);
+}
+
+.vx-modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.vx-modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.vx-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.vx-modal-close:hover {
+    background: #f5f5f5;
+}
+
+.vx-modal-body {
+    padding: 20px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.vx-modal-body img,
+.vx-modal-body video {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+}
+
+/* Error Screen */
+.vx-error-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.vx-error-content {
+    text-align: center;
+    color: #fff;
+    max-width: 400px;
+    padding: 30px;
+}
+
+.vx-error-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    opacity: 0.8;
+}
+
+.vx-error-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 10px;
+}
+
+.vx-error-message {
+    font-size: 16px;
+    margin: 0 0 25px;
+    opacity: 0.9;
+    line-height: 1.5;
+}
+
+.vx-error-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.vx-retry-btn,
+.vx-back-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    padding: 12px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.vx-retry-btn:hover,
+.vx-back-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-1px);
+}
+
+/* Fullscreen Styles */
+.vx-tour-viewer.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+    border-radius: 0;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .vx-top-controls,
+    .vx-bottom-controls {
+        left: 10px;
+        right: 10px;
+    }
+    
+    .vx-control-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+    
+    .vx-info-panel {
+        width: calc(100% - 20px);
+        left: 10px;
+        transform: translateY(-100vh);
+    }
+    
+    .vx-info-panel.open {
+        transform: translateY(0);
+    }
+    
+    .vx-scene-thumbnails {
+        max-width: 250px;
+    }
+    
+    .vx-scene-thumbnail {
+        width: 50px;
+        height: 35px;
+    }
+    
+    .vx-tour-stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .vx-hotspot {
+        width: 25px;
+        height: 25px;
+    }
+    
+    .vx-modal-content {
+        width: 95%;
+        max-height: 90vh;
+    }
+    
+    .vx-modal-header,
+    .vx-modal-body {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .vx-top-controls {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+    }
+    
+    .vx-bottom-controls {
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .vx-control-group {
+        flex-wrap: wrap;
+    }
+    
+    .vx-scene-thumbnails {
+        order: -1;
+        max-width: 100%;
+    }
+    
+    .vx-error-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+/* High DPI Displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .vx-hotspot {
+        border-width: 2px;
+    }
+    
+    .vx-control-btn {
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .vx-hotspot.pulse,
+    .vx-hotspot.glow {
+        animation: none;
+    }
+    
+    .vx-loading-spinner {
+        animation: none;
+        border-top-color: transparent;
+    }
+    
+    * {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .vx-tour-viewer {
+        display: none;
+    }
+}
+
+/* Dark Theme Support */
+@media (prefers-color-scheme: dark) {
+    .vx-modal-content {
+        background: #2d2d2d;
+        color: #fff;
+    }
+    
+    .vx-modal-header {
+        border-bottom-color: #444;
+    }
+    
+    .vx-modal-close:hover {
+        background: #444;
+    }
+}
+
+/* Accessibility */
+.vx-control-btn:focus,
+.vx-hotspot:focus {
+    outline: 2px solid #007cba;
+    outline-offset: 2px;
+}
+
+.vx-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Custom Scrollbars */
+.vx-info-panel::-webkit-scrollbar,
+.vx-modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.vx-info-panel::-webkit-scrollbar-track,
+.vx-modal-body::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.vx-info-panel::-webkit-scrollbar-thumb,
+.vx-modal-body::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.vx-info-panel::-webkit-scrollbar-thumb:hover,
+.vx-modal-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}

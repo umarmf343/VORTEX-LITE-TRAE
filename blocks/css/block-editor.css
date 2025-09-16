@@ -1,0 +1,327 @@
+/**
+ * Vortex360 Lite - Gutenberg Block Editor Styles
+ * 
+ * Styles for the block editor interface
+ */
+
+/* Block Container */
+.vx-gutenberg-block {
+    position: relative;
+    min-height: 200px;
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    background: #f9f9f9;
+    transition: all 0.3s ease;
+}
+
+.vx-gutenberg-block:hover {
+    border-color: #0073aa;
+    background: #f0f8ff;
+}
+
+.vx-gutenberg-block.is-selected {
+    border-color: #0073aa;
+    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
+}
+
+/* Block Preview */
+.vx-block-preview {
+    position: relative;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #000;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vx-preview-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(0, 0, 0, 0.7) 0%,
+        rgba(0, 0, 0, 0.3) 50%,
+        rgba(0, 0, 0, 0.7) 100%
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.vx-block-preview:hover .vx-preview-overlay {
+    opacity: 1;
+}
+
+.vx-preview-info {
+    text-align: center;
+    color: white;
+    padding: 20px;
+}
+
+.vx-preview-info h3 {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.vx-preview-info p {
+    margin: 0 0 15px 0;
+    opacity: 0.9;
+    font-size: 14px;
+}
+
+.vx-preview-badge {
+    display: inline-block;
+    background: #0073aa;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.vx-preview-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.vx-preview-placeholder svg {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.vx-preview-placeholder p {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* Loading State */
+.vx-block-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: #666;
+}
+
+.vx-block-loading .components-spinner {
+    margin-bottom: 15px;
+}
+
+.vx-block-loading p {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* Error State */
+.vx-block-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: #d63638;
+    text-align: center;
+}
+
+.vx-block-error p {
+    margin: 0 0 15px 0;
+    font-size: 14px;
+}
+
+/* Inspector Controls */
+.vx-upgrade-notice {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.vx-upgrade-notice p {
+    margin: 0 0 15px 0;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.vx-upgrade-notice .components-button {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.vx-upgrade-notice .components-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: white;
+}
+
+/* Placeholder Styles */
+.components-placeholder.vx-tour-placeholder {
+    min-height: 200px;
+    border: 2px dashed #ddd;
+    background: #f9f9f9;
+}
+
+.components-placeholder.vx-tour-placeholder .components-placeholder__label {
+    color: #0073aa;
+    font-weight: 600;
+}
+
+.components-placeholder.vx-tour-placeholder .components-placeholder__instructions {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+/* Select Control in Placeholder */
+.components-placeholder .components-select-control {
+    min-width: 200px;
+    margin-bottom: 15px;
+}
+
+/* Responsive Design */
+@media (max-width: 782px) {
+    .vx-preview-info {
+        padding: 15px;
+    }
+    
+    .vx-preview-info h3 {
+        font-size: 16px;
+    }
+    
+    .vx-preview-info p {
+        font-size: 13px;
+    }
+    
+    .vx-preview-placeholder {
+        padding: 30px 15px;
+    }
+    
+    .vx-preview-placeholder svg {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .vx-preview-placeholder p {
+        font-size: 14px;
+    }
+}
+
+/* Block Alignment */
+.wp-block-vortex360-tour-viewer.alignwide {
+    max-width: 1100px;
+}
+
+.wp-block-vortex360-tour-viewer.alignfull {
+    max-width: none;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .vx-gutenberg-block {
+        border-color: #555;
+        background: #1e1e1e;
+    }
+    
+    .vx-gutenberg-block:hover {
+        border-color: #0073aa;
+        background: #2a2a2a;
+    }
+    
+    .vx-preview-placeholder {
+        color: #ccc;
+    }
+    
+    .vx-block-loading {
+        color: #ccc;
+    }
+    
+    .components-placeholder.vx-tour-placeholder {
+        border-color: #555;
+        background: #1e1e1e;
+    }
+    
+    .components-placeholder.vx-tour-placeholder .components-placeholder__instructions {
+        color: #ccc;
+    }
+}
+
+/* Animation */
+@keyframes vx-pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.vx-block-loading .components-spinner {
+    animation: vx-pulse 2s infinite;
+}
+
+/* Focus States */
+.vx-gutenberg-block:focus-within {
+    border-color: #0073aa;
+    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+    .vx-gutenberg-block {
+        border-width: 3px;
+    }
+    
+    .vx-preview-overlay {
+        background: rgba(0, 0, 0, 0.9);
+    }
+    
+    .vx-preview-badge {
+        background: #000;
+        border: 2px solid #fff;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .vx-gutenberg-block {
+        border: 1px solid #000;
+        background: #fff;
+    }
+    
+    .vx-preview-overlay {
+        display: none;
+    }
+    
+    .vx-upgrade-notice {
+        background: #f0f0f0;
+        color: #000;
+        border: 1px solid #ccc;
+    }
+}

@@ -1,0 +1,727 @@
+/* AlFawz Qur'an Institute — generated with TRAE */
+/* Author: Auto-scaffold (review required) */
+
+/* Vortex360 Lite Admin Styles */
+/* Modern UI/UX with gradients, animations, and mobile responsiveness */
+
+:root {
+  --vortex-primary: #667eea;
+  --vortex-secondary: #764ba2;
+  --vortex-accent: #f093fb;
+  --vortex-success: #4ade80;
+  --vortex-warning: #fbbf24;
+  --vortex-error: #f87171;
+  --vortex-dark: #1f2937;
+  --vortex-light: #f9fafb;
+  --vortex-border: #e5e7eb;
+  --vortex-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --vortex-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --vortex-radius: 8px;
+  --vortex-radius-lg: 12px;
+  --vortex-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Base Styles */
+.vortex360-admin {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
+  color: var(--vortex-dark);
+}
+
+/* Header */
+.vortex360-header {
+  background: linear-gradient(135deg, var(--vortex-primary) 0%, var(--vortex-secondary) 100%);
+  color: white;
+  padding: 2rem 0;
+  margin: 0 -20px 2rem -20px;
+  box-shadow: var(--vortex-shadow-lg);
+}
+
+.vortex360-header h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.vortex360-header .subtitle {
+  text-align: center;
+  margin-top: 0.5rem;
+  opacity: 0.9;
+  font-size: 1.1rem;
+  animation: fadeInUp 0.6s ease-out 0.2s both;
+}
+
+/* Navigation Tabs */
+.vortex360-nav {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid var(--vortex-border);
+  flex-wrap: wrap;
+}
+
+.vortex360-nav-item {
+  padding: 1rem 1.5rem;
+  background: white;
+  border: 2px solid var(--vortex-border);
+  border-bottom: none;
+  border-radius: var(--vortex-radius) var(--vortex-radius) 0 0;
+  text-decoration: none;
+  color: var(--vortex-dark);
+  font-weight: 500;
+  transition: var(--vortex-transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.vortex360-nav-item:hover {
+  background: linear-gradient(135deg, var(--vortex-primary) 0%, var(--vortex-accent) 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--vortex-shadow);
+}
+
+.vortex360-nav-item.active {
+  background: linear-gradient(135deg, var(--vortex-primary) 0%, var(--vortex-secondary) 100%);
+  color: white;
+  border-color: var(--vortex-primary);
+}
+
+/* Cards */
+.vortex360-card {
+  background: white;
+  border-radius: var(--vortex-radius-lg);
+  box-shadow: var(--vortex-shadow);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  transition: var(--vortex-transition);
+  border: 1px solid var(--vortex-border);
+}
+
+.vortex360-card:hover {
+  box-shadow: var(--vortex-shadow-lg);
+  transform: translateY(-2px);
+}
+
+.vortex360-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--vortex-border);
+}
+
+.vortex360-card-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  background: linear-gradient(135deg, var(--vortex-primary) 0%, var(--vortex-secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Buttons */
+.vortex360-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--vortex-radius);
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: var(--vortex-transition);
+  font-size: 0.95rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.vortex360-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.vortex360-btn:hover::before {
+  left: 100%;
+}
+
+.vortex360-btn-primary {
+  background: linear-gradient(135deg, var(--vortex-primary) 0%, var(--vortex-secondary) 100%);
+  color: white;
+}
+
+.vortex360-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--vortex-shadow-lg);
+}
+
+.vortex360-btn-secondary {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  color: white;
+}
+
+.vortex360-btn-success {
+  background: linear-gradient(135deg, var(--vortex-success) 0%, #22c55e 100%);
+  color: white;
+}
+
+.vortex360-btn-warning {
+  background: linear-gradient(135deg, var(--vortex-warning) 0%, #f59e0b 100%);
+  color: white;
+}
+
+.vortex360-btn-danger {
+  background: linear-gradient(135deg, var(--vortex-error) 0%, #ef4444 100%);
+  color: white;
+}
+
+.vortex360-btn-outline {
+  background: transparent;
+  border: 2px solid var(--vortex-primary);
+  color: var(--vortex-primary);
+}
+
+.vortex360-btn-outline:hover {
+  background: var(--vortex-primary);
+  color: white;
+}
+
+.vortex360-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Form Elements */
+.vortex360-form-group {
+  margin-bottom: 1.5rem;
+}
+
+.vortex360-label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--vortex-dark);
+}
+
+.vortex360-input,
+.vortex360-textarea,
+.vortex360-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--vortex-border);
+  border-radius: var(--vortex-radius);
+  font-size: 1rem;
+  transition: var(--vortex-transition);
+  background: white;
+}
+
+.vortex360-input:focus,
+.vortex360-textarea:focus,
+.vortex360-select:focus {
+  outline: none;
+  border-color: var(--vortex-primary);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.vortex360-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* Tables */
+.vortex360-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: var(--vortex-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--vortex-shadow);
+}
+
+.vortex360-table th {
+  background: linear-gradient(135deg, var(--vortex-primary) 0%, var(--vortex-secondary) 100%);
+  color: white;
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+}
+
+.vortex360-table td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--vortex-border);
+  transition: var(--vortex-transition);
+}
+
+.vortex360-table tbody tr:hover {
+  background: var(--vortex-light);
+}
+
+.vortex360-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Status Badges */
+.vortex360-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.vortex360-status-published {
+  background: rgba(74, 222, 128, 0.1);
+  color: #16a34a;
+}
+
+.vortex360-status-draft {
+  background: rgba(251, 191, 36, 0.1);
+  color: #d97706;
+}
+
+.vortex360-status-archived {
+  background: rgba(156, 163, 175, 0.1);
+  color: #6b7280;
+}
+
+/* Tour Editor */
+.vortex360-editor {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.vortex360-editor-main {
+  background: white;
+  border-radius: var(--vortex-radius-lg);
+  padding: 2rem;
+  box-shadow: var(--vortex-shadow);
+}
+
+.vortex360-editor-sidebar {
+  background: white;
+  border-radius: var(--vortex-radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--vortex-shadow);
+  height: fit-content;
+  position: sticky;
+  top: 2rem;
+}
+
+/* Scene Grid */
+.vortex360-scenes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.vortex360-scene-card {
+  background: white;
+  border-radius: var(--vortex-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--vortex-shadow);
+  transition: var(--vortex-transition);
+  border: 2px solid transparent;
+}
+
+.vortex360-scene-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--vortex-shadow-lg);
+  border-color: var(--vortex-primary);
+}
+
+.vortex360-scene-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  background: linear-gradient(135deg, var(--vortex-light) 0%, var(--vortex-border) 100%);
+}
+
+.vortex360-scene-content {
+  padding: 1rem;
+}
+
+.vortex360-scene-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--vortex-dark);
+}
+
+.vortex360-scene-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+/* Hotspot Editor */
+.vortex360-hotspot-editor {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.vortex360-hotspot {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: var(--vortex-accent);
+  border: 3px solid white;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: var(--vortex-transition);
+  animation: pulse 2s infinite;
+}
+
+.vortex360-hotspot:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 20px rgba(240, 147, 251, 0.6);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(240, 147, 251, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(240, 147, 251, 0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Loading States */
+.vortex360-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vortex360-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--vortex-border);
+  border-top: 2px solid var(--vortex-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Notifications */
+.vortex360-notification {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  padding: 1rem 1.5rem;
+  border-radius: var(--vortex-radius);
+  color: white;
+  font-weight: 500;
+  box-shadow: var(--vortex-shadow-lg);
+  z-index: 9999;
+  animation: slideInRight 0.3s ease-out;
+}
+
+.vortex360-notification-success {
+  background: linear-gradient(135deg, var(--vortex-success) 0%, #22c55e 100%);
+}
+
+.vortex360-notification-error {
+  background: linear-gradient(135deg, var(--vortex-error) 0%, #ef4444 100%);
+}
+
+.vortex360-notification-warning {
+  background: linear-gradient(135deg, var(--vortex-warning) 0%, #f59e0b 100%);
+}
+
+/* Modal */
+.vortex360-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.vortex360-modal-content {
+  background: white;
+  border-radius: var(--vortex-radius-lg);
+  padding: 2rem;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--vortex-shadow-lg);
+  animation: bounceIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Lite Version Badge */
+.vortex360-lite-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, var(--vortex-accent) 0%, var(--vortex-primary) 100%);
+  color: white;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.vortex360-upgrade-notice {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid #f59e0b;
+  border-radius: var(--vortex-radius);
+  padding: 1rem;
+  margin: 1rem 0;
+  color: #92400e;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .vortex360-editor {
+    grid-template-columns: 1fr;
+  }
+  
+  .vortex360-editor-sidebar {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .vortex360-header {
+    margin: 0 -10px 1rem -10px;
+    padding: 1.5rem 1rem;
+  }
+  
+  .vortex360-header h1 {
+    font-size: 2rem;
+  }
+  
+  .vortex360-nav {
+    flex-direction: column;
+  }
+  
+  .vortex360-nav-item {
+    text-align: center;
+  }
+  
+  .vortex360-card {
+    padding: 1.5rem;
+  }
+  
+  .vortex360-card-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .vortex360-scenes-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .vortex360-table {
+    font-size: 0.875rem;
+  }
+  
+  .vortex360-table th,
+  .vortex360-table td {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .vortex360-notification {
+    top: 1rem;
+    right: 1rem;
+    left: 1rem;
+  }
+  
+  .vortex360-modal-content {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .vortex360-header h1 {
+    font-size: 1.75rem;
+  }
+  
+  .vortex360-btn {
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+  }
+  
+  .vortex360-card {
+    padding: 1rem;
+  }
+  
+  .vortex360-input,
+  .vortex360-textarea,
+  .vortex360-select {
+    padding: 0.625rem 0.75rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .vortex360-header,
+  .vortex360-nav,
+  .vortex360-btn,
+  .vortex360-notification,
+  .vortex360-modal {
+    display: none !important;
+  }
+  
+  .vortex360-card {
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  :root {
+    --vortex-primary: #0066cc;
+    --vortex-secondary: #004499;
+    --vortex-border: #666;
+  }
+  
+  .vortex360-card {
+    border: 2px solid var(--vortex-border);
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .vortex360-hotspot {
+    animation: none;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --vortex-dark: #f9fafb;
+    --vortex-light: #1f2937;
+    --vortex-border: #374151;
+  }
+  
+  .vortex360-card,
+  .vortex360-input,
+  .vortex360-textarea,
+  .vortex360-select,
+  .vortex360-table {
+    background: #374151;
+    color: #f9fafb;
+  }
+  
+  .vortex360-input,
+  .vortex360-textarea,
+  .vortex360-select {
+    border-color: #4b5563;
+  }
+  
+  .vortex360-table td {
+    border-bottom-color: #4b5563;
+  }
+}
+
+/* Focus Visible */
+.vortex360-btn:focus-visible,
+.vortex360-input:focus-visible,
+.vortex360-textarea:focus-visible,
+.vortex360-select:focus-visible {
+  outline: 2px solid var(--vortex-primary);
+  outline-offset: 2px;
+}
+
+/* Utility Classes */
+.vortex360-text-center { text-align: center; }
+.vortex360-text-right { text-align: right; }
+.vortex360-mb-0 { margin-bottom: 0; }
+.vortex360-mb-1 { margin-bottom: 0.5rem; }
+.vortex360-mb-2 { margin-bottom: 1rem; }
+.vortex360-mt-2 { margin-top: 1rem; }
+.vortex360-p-0 { padding: 0; }
+.vortex360-hidden { display: none; }
+.vortex360-flex { display: flex; }
+.vortex360-items-center { align-items: center; }
+.vortex360-justify-between { justify-content: space-between; }
+.vortex360-gap-2 { gap: 1rem; }
+.vortex360-w-full { width: 100%; }
+.vortex360-h-full { height: 100%; }

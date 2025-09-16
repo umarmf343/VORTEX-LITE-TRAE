@@ -1,0 +1,972 @@
+# Comprehensive Guide to Building the Vortex360 Lite Virtual Tour Plugin for WordPress
+
+Hello! As an expert WordPress plugin developer and UI/UX designer, I'll provide a detailed, step-by-step guide to building the **Vortex360 Lite** plugin from scratch. This is the LITE version of a freemium virtual tour plugin, designed for WordPress sites hosted on cPanel environments. The plugin allows users to create interactive 360° virtual tours using panoramic images, with features like scene navigation via hotspots, a beautiful mobile-responsive viewer, and subtle upsell prompts for the Pro version.
+
+Since you (the AI agent) have coding skills but no prior knowledge of this project, I'll explain every concept, decision, and code snippet in detail. We'll build a fullstack plugin: backend in PHP (handling data, admin interfaces, and APIs), frontend in JavaScript/CSS (for the tour viewer and admin builder), and database integration via WordPress's MySQL tables.
+
+The LITE version limits include:
+- Max 5 scenes per tour.
+- Max 5 hotspots per scene (text, image, or link types only; no advanced like video or floorplans).
+- Basic features: Upload 360° images, add hotspots for navigation/info, shortcode/Gutenberg/Elementor embedding, import/export, duplicate tours, lazy loading, and admin preview.
+- Pro upsells: Gentle notices for features like floorplans, audio, analytics, video hotspots, and more builder integrations (e.g., Divi, Oxygen).
+
+We'll use proven patterns from competitors like iPanorama and WPVR for structure and bundling (e.g., Pannellum library). The UI/UX will be top-notch: Modern gradients (e.g., radial for buttons, linear for backgrounds), smooth animations (CSS transitions for fades/zooms, JS for hotspot pops), and mobile responsiveness (flexbox, media queries for touch controls).
+
+**Freemium Model Integration**: The plugin detects if "Vortex360 Pro" is installed and disables limits/upsells seamlessly.
+
+Let's build it step by step. Estimated time: 20-40 hours for an experienced coder.
+
+## Table of Contents
+1. **Project Overview and Features**
+2. **Prerequisites and Tools**
+3. **Setting Up the Development Environment**
+4. **Creating the Plugin Structure**
+5. **Implementing the Includes Folder (Core Logic)**
+6. **Implementing the Admin Folder (Backend Interface)**
+7. **Implementing the Public Folder (Frontend Viewer)**
+8. **Implementing Blocks (Gutenberg Integration)**
+9. **Implementing Elementor Widget**
+10. **Handling Assets, Languages, and Samples**
+11. **Implementing Upgrade Notices**
+12. **Testing and Debugging**
+13. **Optimization for Performance and Engagement**
+14. **Deployment to cPanel**
+15. **Final Documentation and User Guide**
+
+## 1. Project Overview and Features
+
+Vortex360 Lite is a WordPress plugin that registers a Custom Post Type (CPT) called "vortex_tour" for managing virtual tours. Users upload 360° panoramic images as scenes, add hotspots (clickable points for navigation or info), and embed tours via shortcode, Gutenberg block, or Elementor widget.
+
+**Key LITE Features**:
+- **Tour Creation**: Admin metabox for adding/editing scenes and hotspots.
+- **Viewer**: Pannellum-based 360° viewer with thumbnails, controls (zoom, fullscreen, arrows), lazy loading, and basic transitions.
+- **UI/UX**: Engaging design with gradients (e.g., blue-to-purple for buttons), animations (fade-ins for hotspots), mobile-responsive layout (touch drag on phones).
+- **Limits**: Enforced softly with warnings and Pro upsells.
+- **API**: REST endpoints for fetching tour data (JSON format for frontend).
+- **Extras**: Import/export JSON, duplicate tours, i18n support, sample tour.
+
+**Tech Stack**:
+- **Backend**: PHP 8.1+, WordPress APIs (CPT, metaboxes, REST, AJAX).
+- **Frontend**: Vanilla JS (with jQuery), CSS (for gradients/animations), Pannellum library (bundled).
+- **Database**: Custom meta for tours (scenes/hotspots stored as serialized arrays in post meta).
+- **Dependencies**: No external installs needed; bundle Pannellum. Use WP's built-in media uploader.
+- **Animations/Gradients**: CSS for simple effects; JS for dynamic (e.g., hotspot pulse via keyframes).
+- **Mobile Responsiveness**: Media queries, touch events in JS.
+
+No Node.js/React needed—keep it lightweight for WP compatibility.
+
+## 2. Prerequisites and Tools
+
+- **Knowledge**: PHP, JS, CSS, WordPress plugin dev (hooks, filters), MySQL basics.
+- **Tools**:
+  - Local server: XAMPP/MAMP/Laragon (with PHP 8.1+, MySQL).
+  - Code editor: VS Code (with PHP/JS extensions).
+  - Browser: Chrome/Firefox for dev tools.
+  - Git: For version control.
+  - WordPress: Latest (6.6+ as of Sep 2025).
+  - cPanel: For deployment (shared hosting with PHP/MySQL).
+- **Dependencies**:
+  - Pannellum: Download v2.5.6 from https://pannellum.org/download/ (bundle in `public/lib/pannellum/`).
+  - No Composer/npm—manual includes for simplicity.
+- **APIs**: WordPress REST API for tour data; AJAX for admin interactions.
+
+## 3. Setting Up the Development Environment
+
+1. Install XAMPP/Laragon and start Apache/MySQL.
+2. Download WordPress, extract to `htdocs/wp-site`, create DB in phpMyAdmin (e.g., `wp_vortex`), run installer at `localhost/wp-site`.
+3. In `wp-config.php`, add:
+   ```php
+   define('WP_DEBUG', true);
+   define('WP_DEBUG_LOG', true);
+   ```
+4. Activate a default theme (e.g., Twenty Twenty-Four).
+5. Create plugin folder: `wp-content/plugins/vortex360-lite`.
+6. Init Git: `git init` in the folder, add `.gitignore` for `vendor/` (though none used).
+7. Download Pannellum: Place `css/pannellum.css`, `js/libpannellum.js`, `js/pannellum.js`, and any images (e.g., controls sprites) in `public/lib/pannellum/`.
+
+## 4. Creating the Plugin Structure
+
+Match the provided tree exactly. Create folders/files as listed. Start with empty files; we'll fill them next.
+
+- Root: `vortex360-lite.php`, `uninstall.php`, `readme.txt`, `LICENSE.txt`, `index.php` (silent; `<?php // Silence is golden ?>`).
+- Folders: `includes/`, `admin/`, `public/`, `blocks/`, `elementor/`, `assets/`, `languages/`, `sample/`, `upgrade/`.
+
+For `readme.txt`: Standard WP.org format.
+```
+=== Vortex360 Lite ===
+Contributors: yourname
+Tags: virtual tour, 360, panorama
+Requires at least: 6.0
+Tested up to: 6.6
+Requires PHP: 8.1
+Stable tag: 1.0.0
+License: GPLv2 or later
+
+A lightweight virtual tour plugin for WordPress.
+```
+
+`LICENSE.txt`: Copy GPL-2.0 text.
+
+## 5. Implementing the Includes Folder (Core Logic)
+
+This folder handles core classes and helpers.
+
+### `includes/class-vx-loader.php`
+Registers all hooks.
+```php
+<?php
+class VX_Loader {
+    protected $actions = [];
+    protected $filters = [];
+
+    public function add_action($hook, $component, $callback, $priority = 10, $accepted_args = 1) {
+        $this->actions[] = compact('hook', 'component', 'callback', 'priority', 'accepted_args');
+    }
+
+    public function add_filter($hook, $component, $callback, $priority = 10, $accepted_args = 1) {
+        $this->filters[] = compact('hook', 'component', 'callback', 'priority', 'accepted_args');
+    }
+
+    public function run() {
+        foreach ($this->filters as $hook) {
+            add_filter($hook['hook'], [$hook['component'], $hook['callback']], $hook['priority'], $hook['accepted_args']);
+        }
+        foreach ($this->actions as $hook) {
+            add_action($hook['hook'], [$hook['component'], $hook['callback']], $hook['priority'], $hook['accepted_args']);
+        }
+    }
+}
+```
+
+### `includes/class-vx.php`
+Singleton core class.
+```php
+<?php
+class VX {
+    private static $instance = null;
+    public $loader;
+
+    private function __construct() {
+        $this->loader = new VX_Loader();
+        $this->define_constants();
+        $this->includes();
+        $this->init_hooks();
+    }
+
+    public static function get_instance() {
+        if (null === self::$instance) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+
+    private function define_constants() {
+        define('VX_VERSION', '1.0.0');
+        define('VX_PLUGIN_DIR', plugin_dir_path(__DIR__ . '/..'));
+        define('VX_PLUGIN_URL', plugin_dir_url(__DIR__ . '/..'));
+        define('VX_CPT', 'vortex_tour');
+    }
+
+    private function includes() {
+        require_once VX_PLUGIN_DIR . 'includes/class-vx-i18n.php';
+        require_once VX_PLUGIN_DIR . 'includes/class-vx-cpt.php';
+        require_once VX_PLUGIN_DIR . 'includes/class-vx-limits-lite.php';
+        // ... include all other classes
+        require_once VX_PLUGIN_DIR . 'includes/helpers/vx-utils.php';
+        // etc.
+    }
+
+    private function init_hooks() {
+        $this->loader->add_action('init', new VX_CPT(), 'register_cpt');
+        $this->loader->add_action('plugins_loaded', new VX_i18n(), 'load_textdomain');
+        // Add more for other classes
+        if (is_admin()) {
+            require_once VX_PLUGIN_DIR . 'admin/class-vx-admin.php';
+            $admin = new VX_Admin();
+            $this->loader->run(); // Run after all adds
+        } else {
+            require_once VX_PLUGIN_DIR . 'public/class-vx-public.php';
+            $public = new VX_Public();
+            $this->loader->run();
+        }
+    }
+}
+```
+
+### `includes/class-vx-i18n.php`
+Load translations.
+```php
+<?php
+class VX_i18n {
+    public function load_textdomain() {
+        load_plugin_textdomain('vortex360-lite', false, dirname(plugin_basename(__FILE__)) . '/languages/');
+    }
+}
+```
+
+### `includes/class-vx-cpt.php`
+Register CPT.
+```php
+<?php
+class VX_CPT {
+    public function register_cpt() {
+        $labels = [
+            'name' => __('Vortex Tours', 'vortex360-lite'),
+            // ... full labels
+        ];
+        $args = [
+            'labels' => $labels,
+            'public' => false,
+            'show_ui' => true,
+            'supports' => ['title'],
+            'capability_type' => 'post',
+            'capabilities' => ['edit_post' => 'edit_vortex_tour', /* map in capabilities class */],
+            'menu_icon' => 'dashicons-camera',
+        ];
+        register_post_type(VX_CPT, $args);
+    }
+}
+```
+
+### `includes/class-vx-limits-lite.php`
+Enforce limits.
+```php
+<?php
+class VX_Limits_Lite {
+    public function get_max_scenes() {
+        return 5;
+    }
+
+    public function get_max_hotspots_per_scene() {
+        return 5;
+    }
+
+    public function check_limits($tour_id, $scenes) {
+        if (count($scenes) > $this->get_max_scenes()) {
+            // Return error or upsell notice
+            return ['error' => __('Max 5 scenes in Lite. Upgrade to Pro!', 'vortex360-lite')];
+        }
+        // Similar for hotspots
+        return true;
+    }
+}
+```
+
+### `includes/class-vx-scenes.php`
+Model for scenes.
+```php
+<?php
+class VX_Scenes {
+    public function validate_scene($data) {
+        // Sanitize image URL, title, pitch/yaw defaults
+        $data['image'] = esc_url_raw($data['image']);
+        $data['title'] = sanitize_text_field($data['title']);
+        // Default view: pitch 0, yaw 0, hfov 120
+        return $data;
+    }
+
+    public function save_scenes($tour_id, $scenes) {
+        $validated = array_map([$this, 'validate_scene'], $scenes);
+        update_post_meta($tour_id, '_vx_scenes', $validated);
+    }
+
+    public function get_scenes($tour_id) {
+        return get_post_meta($tour_id, '_vx_scenes', true) ?: [];
+    }
+}
+```
+
+### `includes/class-vx-hotspots.php`
+Similar to scenes, but for hotspots.
+```php
+<?php
+class VX_Hotspots {
+    public function validate_hotspot($data) {
+        $data['type'] = in_array($data['type'], ['text', 'image', 'link']) ? $data['type'] : 'text'; // Lite only
+        $data['pitch'] = floatval($data['pitch']);
+        $data['yaw'] = floatval($data['yaw']);
+        $data['text'] = sanitize_text_field($data['text']);
+        // etc.
+        return $data;
+    }
+
+    // Save/get as meta, associated with scene index
+}
+```
+
+### `includes/class-vx-shortcode.php`
+Shortcode handler.
+```php
+<?php
+class VX_Shortcode {
+    public function __construct() {
+        add_shortcode('vortex360', [$this, 'render']);
+    }
+
+    public function render($atts) {
+        $id = $atts['id'] ?? 0;
+        if (!$id || get_post_type($id) !== VX_CPT) return '';
+        ob_start();
+        include VX_PLUGIN_DIR . 'public/templates/tour.php'; // Pass $id
+        return ob_get_clean();
+    }
+}
+```
+
+### `includes/class-vx-rest.php`
+Minimal REST API.
+```php
+<?php
+class VX_REST {
+    public function __construct() {
+        add_action('rest_api_init', [$this, 'register_routes']);
+    }
+
+    public function register_routes() {
+        register_rest_route('vortex360/v1', '/tour/(?P<id>\d+)', [
+            'methods' => 'GET',
+            'callback' => [$this, 'get_tour'],
+            'permission_callback' => '__return_true',
+        ]);
+    }
+
+    public function get_tour($request) {
+        $id = $request['id'];
+        $scenes = (new VX_Scenes())->get_scenes($id);
+        $hotspots = (new VX_Hotspots())->get_hotspots($id); // Assume similar method
+        return ['scenes' => $scenes, 'hotspots' => $hotspots, 'settings' => get_post_meta($id, '_vx_settings', true)];
+    }
+}
+```
+
+### `includes/class-vx-import-export.php`
+JSON handling.
+```php
+<?php
+class VX_Import_Export {
+    public function export($tour_id) {
+        $data = [
+            'title' => get_the_title($tour_id),
+            'scenes' => (new VX_Scenes())->get_scenes($tour_id),
+            // etc.
+        ];
+        return json_encode($data);
+    }
+
+    public function import($json) {
+        $data = json_decode($json, true);
+        $post_id = wp_insert_post(['post_title' => $data['title'], 'post_type' => VX_CPT, 'post_status' => 'draft']);
+        (new VX_Scenes())->save_scenes($post_id, $data['scenes']);
+        // Validate limits
+        return $post_id;
+    }
+}
+```
+
+### `includes/class-vx-duplicate.php`
+Duplicate tour.
+```php
+<?php
+class VX_Duplicate {
+    public function duplicate($tour_id) {
+        $new_id = wp_insert_post(['post_title' => get_the_title($tour_id) . ' (Copy)', 'post_type' => VX_CPT, 'post_status' => 'draft']);
+        update_post_meta($new_id, '_vx_scenes', get_post_meta($tour_id, '_vx_scenes', true));
+        // Copy all meta
+        return $new_id;
+    }
+}
+```
+
+### `includes/class-vx-capabilities.php`
+Map roles.
+```php
+<?php
+class VX_Capabilities {
+    public function __construct() {
+        add_action('admin_init', [$this, 'add_caps']);
+    }
+
+    public function add_caps() {
+        $roles = ['administrator', 'editor']; // Author in Pro
+        foreach ($roles as $role) {
+            $role_obj = get_role($role);
+            $role_obj->add_cap('edit_vortex_tour');
+            // Add edit_others, delete, etc.
+        }
+    }
+}
+```
+
+### `includes/class-vx-upgrade-bridge.php`
+Detect Pro.
+```php
+<?php
+class VX_Upgrade_Bridge {
+    public static function is_pro_active() {
+        return defined('VORTEX360_PRO_VERSION'); // Assume Pro defines this
+    }
+
+    public function disable_limits_if_pro() {
+        if (self::is_pro_active()) {
+            // Override limit class methods via filter
+        }
+    }
+}
+```
+
+### Helpers
+- `vx-utils.php`: Nonces, template loader, safe SVG inline.
+  ```php
+  <?php
+  function vx_get_nonce($action) {
+      return wp_create_nonce($action);
+  }
+
+  function vx_load_template($file, $vars = []) {
+      extract($vars);
+      include $file;
+  }
+
+  function vx_safe_svg($svg) {
+      return wp_kses($svg, ['svg' => ['viewbox' => true], 'path' => ['d' => true, 'fill' => true]]);
+  }
+  ```
+- `vx-validators.php`: Input sanitization wrappers.
+- `vx-upsell.php`: Reusable CTA.
+  ```php
+  <?php
+  function vx_upsell_notice($feature) {
+      return sprintf(__('Upgrade to Pro for %s!', 'vortex360-lite'), $feature);
+  }
+  ```
+
+## 6. Implementing the Admin Folder (Backend Interface)
+
+Handles admin UI for tour building.
+
+### `admin/class-vx-admin.php`
+Menus, assets.
+```php
+<?php
+class VX_Admin {
+    public function __construct() {
+        add_action('admin_menu', [$this, 'add_menus']);
+        add_action('admin_enqueue_scripts', [$this, 'enqueue_assets']);
+    }
+
+    public function add_menus() {
+        add_submenu_page('edit.php?post_type=' . VX_CPT, __('Settings', 'vortex360-lite'), __('Settings', 'vortex360-lite'), 'manage_options', 'vx-settings', function() {
+            include VX_PLUGIN_DIR . 'admin/views/page-settings.php';
+        });
+    }
+
+    public function enqueue_assets($hook) {
+        if (strpos($hook, VX_CPT) !== false) {
+            wp_enqueue_style('vx-admin-css', VX_PLUGIN_URL . 'admin/css/admin.css');
+            wp_enqueue_style('vx-builder-css', VX_PLUGIN_URL . 'admin/css/builder.css');
+            wp_enqueue_script('vx-admin-js', VX_PLUGIN_URL . 'admin/js/admin.js', ['jquery'], VX_VERSION, true);
+            wp_enqueue_script('vx-builder-js', VX_PLUGIN_URL . 'admin/js/builder.js', ['jquery-ui-sortable'], VX_VERSION, true);
+            wp_localize_script('vx-builder-js', 'vx_data', ['ajax_url' => admin_url('admin-ajax.php'), 'nonce' => vx_get_nonce('vx_builder')]);
+        }
+    }
+}
+```
+
+### `admin/classes/class-vx-admin-pages.php`
+Enhance tours list (columns for shortcode, duplicate button).
+
+```php
+<?php
+class VX_Admin_Pages {
+    public function __construct() {
+        add_filter('manage_' . VX_CPT . '_posts_columns', [$this, 'add_columns']);
+        add_action('manage_' . VX_CPT . '_posts_custom_column', [$this, 'render_columns'], 10, 2);
+    }
+
+    public function add_columns($columns) {
+        $columns['shortcode'] = __('Shortcode', 'vortex360-lite');
+        return $columns;
+    }
+
+    public function render_columns($column, $post_id) {
+        if ($column === 'shortcode') {
+            echo '[vortex360 id="' . $post_id . '"]';
+        }
+    }
+}
+```
+
+### `admin/classes/class-vx-settings.php`
+Lite settings (e.g., default autoplay, logo).
+Use WP Settings API.
+```php
+<?php
+class VX_Settings {
+    public function __construct() {
+        add_action('admin_init', [$this, 'register_settings']);
+    }
+
+    public function register_settings() {
+        register_setting('vx_settings', 'vx_options');
+        add_settings_section('vx_general', __('General', 'vortex360-lite'), null, 'vx-settings');
+        add_settings_field('vx_autoplay', __('Autoplay Tours', 'vortex360-lite'), [$this, 'autoplay_field'], 'vx-settings', 'vx_general');
+    }
+
+    public function autoplay_field() {
+        $options = get_option('vx_options', []);
+        echo '<input type="checkbox" name="vx_options[autoplay]" ' . checked($options['autoplay'] ?? 0, 1, false) . ' />';
+    }
+}
+```
+
+### `admin/classes/class-vx-metabox-tour.php`
+Core builder metabox.
+```php
+<?php
+class VX_Metabox_Tour {
+    public function __construct() {
+        add_action('add_meta_boxes', [$this, 'add_metabox']);
+        add_action('save_post', [$this, 'save']);
+    }
+
+    public function add_metabox() {
+        add_meta_box('vx_tour_builder', __('Tour Builder', 'vortex360-lite'), [$this, 'render'], VX_CPT, 'normal', 'high');
+    }
+
+    public function render($post) {
+        $scenes = (new VX_Scenes())->get_scenes($post->ID);
+        wp_nonce_field('vx_builder', 'vx_nonce');
+        // HTML for sortable scenes list
+        echo '<div id="vx-scenes">';
+        foreach ($scenes as $index => $scene) {
+            echo '<div class="scene-item" data-index="' . $index . '">';
+            echo '<img src="' . $scene['image'] . '" alt="Thumbnail" style="width:100px;">';
+            echo '<input type="text" name="scenes[' . $index . '][title]" value="' . esc_attr($scene['title']) . '">';
+            // Hotspot editor: Add buttons, fields for pitch/yaw/type
+            echo '</div>';
+        }
+        echo '</div>';
+        echo '<button id="add-scene">Add Scene</button>'; // JS handles
+        if (count($scenes) >= 5) echo vx_upsell_notice('unlimited scenes');
+    }
+
+    public function save($post_id) {
+        if (!wp_verify_nonce($_POST['vx_nonce'], 'vx_builder')) return;
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+        $scenes = $_POST['scenes'] ?? [];
+        $check = (new VX_Limits_Lite())->check_limits($post_id, $scenes);
+        if (is_array($check) && isset($check['error'])) {
+            // Add admin notice
+            return;
+        }
+        (new VX_Scenes())->save_scenes($post_id, $scenes);
+        // Save hotspots similarly
+    }
+}
+```
+
+For UI: Use accordion for scenes, drag-drop sortable (jQuery UI).
+
+### `admin/classes/class-vx-preview.php`
+Admin preview.
+```php
+<?php
+class VX_Preview {
+    public function render_preview($post_id) {
+        // Iframe loading public viewer with ?preview=1
+        echo '<iframe src="' . get_permalink($post_id) . '?preview=1" style="width:100%; height:500px;"></iframe>';
+    }
+}
+```
+
+### `admin/classes/class-vx-ajax.php`
+AJAX for sorting, icons.
+```php
+<?php
+class VX_Ajax {
+    public function __construct() {
+        add_action('wp_ajax_vx_sort_scenes', [$this, 'sort_scenes']);
+    }
+
+    public function sort_scenes() {
+        check_ajax_referer('vx_builder', 'nonce');
+        $order = $_POST['order'] ?? [];
+        $post_id = $_POST['post_id'];
+        $scenes = (new VX_Scenes())->get_scenes($post_id);
+        $new_scenes = [];
+        foreach ($order as $index) {
+            $new_scenes[] = $scenes[$index];
+        }
+        (new VX_Scenes())->save_scenes($post_id, $new_scenes);
+        wp_send_json_success();
+    }
+}
+```
+
+### Views
+- `page-settings.php`: Form for settings.
+- `page-tours.php`: Custom list if needed.
+- Modals: HTML for import/export, icons (Lite subset: 10 free icons).
+
+### CSS (`admin/css/admin.css`, `builder.css`)
+For beautiful UI:
+- Gradients: `background: linear-gradient(135deg, #4b6cb7, #182848);` for buttons.
+- Animations: `@keyframes fadeIn { from {opacity:0;} to {opacity:1;} } .scene-item { animation: fadeIn 0.5s; }`
+- Responsive: `@media (max-width: 768px) { .scene-item { flex-direction: column; } }`
+
+### JS (`admin/js/admin.js`, `builder.js`, `preview.js`)
+- Builder: Use jQuery sortable for scenes, add/remove with limits check.
+- Icon picker: Modal with SVGs.
+- Preview: Load via AJAX.
+
+Example in `builder.js`:
+```js
+jQuery(function($) {
+    $('#vx-scenes').sortable({
+        update: function() {
+            var order = $(this).sortable('toArray', {attribute: 'data-index'});
+            $.post(ajaxurl, {action: 'vx_sort_scenes', order: order, post_id: $('#post_ID').val(), nonce: vx_data.nonce});
+        }
+    });
+
+    $('#add-scene').click(function() {
+        if ($('.scene-item').length >= 5) {
+            alert('Max 5 scenes in Lite. Upgrade to Pro!');
+            return;
+        }
+        // Append new scene HTML with media uploader
+        wp.media({title: 'Select Panorama', button: {text: 'Use Image'}, multiple: false}).on('select', function() {
+            var attachment = this.state().get('selection').first().toJSON();
+            // Add to DOM
+        }).open();
+    });
+});
+```
+
+## 7. Implementing the Public Folder (Frontend Viewer)
+
+### `public/class-vx-public.php`
+Enqueue assets, render.
+```php
+<?php
+class VX_Public {
+    public function __construct() {
+        add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
+    }
+
+    public function enqueue_assets() {
+        if (is_singular(VX_CPT) || has_shortcode(get_the_content(), 'vortex360')) { // Conditional
+            wp_enqueue_style('pannellum-css', VX_PLUGIN_URL . 'public/lib/pannellum/css/pannellum.css');
+            wp_enqueue_style('vx-vortex-css', VX_PLUGIN_URL . 'public/css/vortex360.css');
+            wp_enqueue_style('vx-thumbnails-css', VX_PLUGIN_URL . 'public/css/thumbnails.css');
+            wp_enqueue_script('libpannellum-js', VX_PLUGIN_URL . 'public/lib/pannellum/js/libpannellum.js', [], VX_VERSION, true);
+            wp_enqueue_script('pannellum-js', VX_PLUGIN_URL . 'public/lib/pannellum/js/pannellum.js', ['libpannellum-js'], VX_VERSION, true);
+            wp_enqueue_script('vx-viewer-js', VX_PLUGIN_URL . 'public/js/viewer.js', ['pannellum-js'], VX_VERSION, true);
+            wp_enqueue_script('vx-controls-js', VX_PLUGIN_URL . 'public/js/controls.js', ['jquery'], VX_VERSION, true);
+            wp_enqueue_script('vx-lazyload-js', VX_PLUGIN_URL . 'public/js/lazyload.js', [], VX_VERSION, true);
+            wp_localize_script('vx-viewer-js', 'vx_public_data', ['rest_url' => rest_url('vortex360/v1/tour/')]);
+        }
+    }
+}
+```
+
+### `public/classes/class-vx-render.php`
+Build config.
+```php
+<?php
+class VX_Render {
+    public function get_viewer_config($tour_id) {
+        $scenes = (new VX_Scenes())->get_scenes($tour_id);
+        $config = [
+            'default' => ['firstScene' => 0],
+            'scenes' => []
+        ];
+        foreach ($scenes as $index => $scene) {
+            $config['scenes'][$index] = [
+                'title' => $scene['title'],
+                'panorama' => $scene['image'],
+                'hotSpots' => (new VX_Hotspots())->get_hotspots_for_scene($tour_id, $index) // Format for Pannellum
+            ];
+        }
+        return json_encode($config);
+    }
+}
+```
+
+### CSS (`public/css/vortex360.css`, `thumbnails.css`)
+Beautiful UI:
+- Viewer container: `width:100%; height:500px; background: radial-gradient(circle, #f6f8fa, #e9ecef);`
+- Controls: Buttons with `background: linear-gradient(to right, #667eea, #764ba2); transition: transform 0.3s; :hover { transform: scale(1.1); }`
+- Thumbnails: Flex row, `@media (max-width: 600px) { flex-direction: column; }`
+- Animations: Hotspot tooltips `animation: pulse 1s infinite; @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.05);} }`
+- Mobile: Touch-friendly, larger buttons.
+
+### JS (`public/js/viewer.js`, `controls.js`, `lazyload.js`)
+- Viewer: Init Pannellum.
+```js
+document.addEventListener('DOMContentLoaded', function() {
+    var viewer = pannellum.viewer('vx-viewer-container', {
+        type: 'equirectangular',
+        panorama: '', // Initial, load via API
+        autoLoad: true,
+        showControls: false // Custom controls
+    });
+
+    // Fetch data via REST
+    fetch(vx_public_data.rest_url + tour_id)
+        .then(response => response.json())
+        .then(data => {
+            // Configure scenes
+            data.scenes.forEach((scene, index) => {
+                viewer.addScene(index, {
+                    title: scene.title,
+                    type: 'equirectangular',
+                    panorama: scene.image,
+                    hotSpots: scene.hotspots.map(hs => ({
+                        pitch: hs.pitch,
+                        yaw: hs.yaw,
+                        type: 'info', // or scene for navigation
+                        text: hs.text,
+                        // Click handler for navigation: viewer.loadScene(target)
+                    }))
+                });
+            });
+            viewer.loadScene(0);
+            // Add animations: viewer.on('load', () => { /* fade in */ });
+        });
+});
+```
+- Controls: Custom zoom/fullscreen with touch support.
+```js
+jQuery(function($) {
+    $('#zoom-in').click(() => viewer.setHfov(viewer.getHfov() - 10));
+    // Keyboard: document.addEventListener('keydown', e => { if (e.key === 'ArrowLeft') viewer.setYaw(viewer.getYaw() - 10); });
+    // Touch: Use Pannellum's built-in
+});
+```
+- Lazyload: Use IntersectionObserver for images.
+```js
+const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.src = entry.target.dataset.src;
+            observer.unobserve(entry.target);
+        }
+    });
+});
+document.querySelectorAll('img[data-src]').forEach(img => observer.observe(img));
+```
+
+### Templates (`public/templates/tour.php`)
+Overridable HTML.
+```php
+<?php
+$config = (new VX_Render())->get_viewer_config($id);
+?>
+<div id="vx-tour-wrapper" class="vx-mobile-responsive">
+    <div id="vx-viewer-container"></div>
+    <div id="vx-thumbnails" class="flex">
+        <?php foreach ($scenes as $index => $scene): ?>
+            <img data-src="<?php echo $scene['image']; ?>" alt="<?php echo $scene['title']; ?>" class="thumbnail" onclick="viewer.loadScene(<?php echo $index; ?>)">
+        <?php endforeach; ?>
+    </div>
+    <div id="vx-controls">
+        <button id="zoom-in"><?php echo vx_safe_svg(file_get_contents(VX_PLUGIN_DIR . 'assets/icons/zoom-in.svg')); ?></button>
+        <!-- More buttons with gradients -->
+    </div>
+</div>
+<script>var tour_id = <?php echo $id; ?>;</script>
+```
+
+## 8. Implementing Blocks (Gutenberg Integration)
+
+### `blocks/tour/block.json`
+```json
+{
+    "name": "vortex360/tour",
+    "title": "Vortex360 Tour",
+    "category": "embed",
+    "icon": "camera",
+    "attributes": {
+        "tourId": { "type": "number" }
+    },
+    "editorScript": "file:./build/index.js",
+    "style": "file:./build/style-index.css"
+}
+```
+
+### `blocks/tour/edit.js`
+```js
+import { useSelect } from '@wordpress/data';
+import { SelectControl } from '@wordpress/components';
+
+export default function Edit({ attributes, setAttributes }) {
+    const tours = useSelect(select => select('core').getEntityRecords('postType', 'vortex_tour', { perPage: -1 }));
+    return (
+        <SelectControl
+            label="Select Tour"
+            value={attributes.tourId}
+            options={tours ? tours.map(tour => ({ label: tour.title.rendered, value: tour.id })) : []}
+            onChange={value => setAttributes({ tourId: parseInt(value) })}
+        />
+    );
+}
+```
+
+### `blocks/tour/save.js`
+```js
+export default function Save({ attributes }) {
+    return <div>[vortex360 id="{attributes.tourId}"]</div>; // Or direct render
+}
+```
+
+### `blocks/build/`
+Use `wp-scripts build` if setup; otherwise manual minify.
+
+### `blocks/index.php`
+Register block.
+```php
+<?php
+add_action('init', function() {
+    register_block_type(VX_PLUGIN_DIR . 'blocks/tour');
+});
+```
+
+## 9. Implementing Elementor Widget
+
+### `elementor/elementor.php`
+```php
+<?php
+add_action('elementor/widgets/register', function($widgets_manager) {
+    require_once VX_PLUGIN_DIR . 'elementor/widgets/class-vx-widget-tour.php';
+    $widgets_manager->register(new VX_Widget_Tour());
+});
+```
+
+### `elementor/widgets/class-vx-widget-tour.php`
+```php
+<?php
+class VX_Widget_Tour extends \Elementor\Widget_Base {
+    public function get_name() { return 'vx-tour'; }
+    public function get_title() { return __('Vortex360 Tour', 'vortex360-lite'); }
+
+    protected function register_controls() {
+        $this->start_controls_section('content', ['label' => __('Content', 'vortex360-lite')]);
+        $this->add_control('tour_id', [
+            'label' => __('Select Tour', 'vortex360-lite'),
+            'type' => \Elementor\Controls_Manager::SELECT,
+            'options' => $this->get_tours_options(),
+        ]);
+        $this->end_controls_section();
+    }
+
+    private function get_tours_options() {
+        $tours = get_posts(['post_type' => VX_CPT, 'numberposts' => -1]);
+        $options = [];
+        foreach ($tours as $tour) {
+            $options[$tour->ID] = $tour->post_title;
+        }
+        return $options;
+    }
+
+    protected function render() {
+        $settings = $this->get_settings_for_display();
+        echo do_shortcode('[vortex360 id="' . $settings['tour_id'] . '"]');
+    }
+}
+```
+
+## 10. Handling Assets, Languages, and Samples
+
+- `assets/icons/`: SVGs for controls (download free ones, e.g., from FontAwesome).
+- `assets/img/`: Placeholder for splash.
+- `languages/vortex360-lite.pot`: Generate with WP-CLI or Poedit.
+- `sample/sample_tour.zip`: ZIP of JSON export for a basic tour (2 scenes, hotspots).
+
+Import on activation:
+In `vortex360-lite.php`, add activation hook to import sample if no tours exist.
+
+## 11. Implementing Upgrade Notices
+
+### `upgrade/class-vx-upgrade-notices.php`
+```php
+<?php
+class VX_Upgrade_Notices {
+    public function __construct() {
+        if (!VX_Upgrade_Bridge::is_pro_active()) {
+            add_action('admin_notices', [$this, 'show_notices']);
+        }
+    }
+
+    public function show_notices() {
+        // Contextual, e.g., in builder if limit hit
+        include VX_PLUGIN_DIR . 'upgrade/partials/card-feature-floorplan.php'; // HTML card with CTA
+    }
+}
+```
+
+### Partials
+HTML cards: e.g., `card-feature-floorplan.php` with gradient background, animation on hover, link to Pro page.
+
+## 12. Testing and Debugging
+
+- Activate plugin: Check CPT appears, no errors in debug.log.
+- Create tour: Add scenes/hotspots, check limits/upsells.
+- Embed: Test shortcode/block/widget on page.
+- Viewer: Load on desktop/mobile, check animations (fade on scene change), gradients, touch navigation.
+- REST: Test endpoint with Postman.
+- Edge cases: Invalid images, over limits, import/export.
+- Performance: Lazy load reduces initial load.
+- Compatibility: Test with popular themes/builders.
+
+## 13. Optimization for Performance and Engagement
+
+- Minify CSS/JS: Use tools like cssminifier.com.
+- Image Optimization: Advise using WP plugins like Smush.
+- Engagement: Add subtle animations (e.g., hotspot entry with CSS `transform: translateY(10px) to 0`).
+- SEO: Add schema.org for tours if Pro.
+- Mobile: Test on emulators; ensure fullscreen works.
+
+## 14. Deployment to cPanel
+
+1. ZIP plugin folder.
+2. Login to cPanel > File Manager > `public_html/wp-content/plugins/`.
+3. Upload ZIP, extract.
+4. In WP admin, activate.
+5. Database: Auto-handled by WP; no custom tables needed (all meta).
+6. Troubleshooting: Check PHP version, increase memory if large panos.
+7. Updates: Use Git for versions; for WP.org, prepare svn.
+
+## 15. Final Documentation and User Guide
+
+Create a `docs/` folder (not in tree, optional) or in-plugin help tab.
+
+- User Guide: How to create tour, embed, limits.
+- Developer: Filters/hooks for extension (e.g., `apply_filters('vx_scenes_config', $config)`).
+- Pro Upgrade: Link to your site for Pro/Agency.
+
+In main file `vortex360-lite.php`:
+```php
+<?php
+/*
+Plugin Name: Vortex360 Lite
+Version: 1.0.0
+// etc.
+*/
+
+if (!defined('ABSPATH')) exit;
+
+require_once __DIR__ . '/includes/class-vx-loader.php';
+require_once __DIR__ . '/includes/class-vx.php';
+
+VX::get_instance();
+
+register_uninstall_hook(__FILE__, 'vx_uninstall');
+function vx_uninstall() {
+    // Delete options, meta
+    delete_option('vx_options');
+    // etc.
+}
+```
+
+Congratulations! You've built a complete, engaging virtual tour plugin. Test thoroughly, then iterate for Pro (e.g., remove limits, add features). If issues, debug with `error_log()`.

@@ -1,0 +1,283 @@
+Awesome—here’s a **comprehensive, end-to-end specification** for how **Vortex360 Lite** (the free edition) should work. I’ve broken it into clear sections that cover product behavior, data structures, user flows, rendering, performance, security, and the upgrade path. Where helpful, I point to patterns visible in your competitors’ shipped plugin trees (viewer libraries, admin/public split, block assets) so you can “steal like an artist” while staying original. &#x20;
+
+---
+
+# 1) Product scope & philosophy
+
+**Goal:** A delightful, lightweight 360° tour builder that lets anyone publish professional panoramas fast—then naturally upsells to Pro for advanced features.
+
+**What Lite includes (core value):**
+
+* 1 tour.
+* Limits for scale control: **5 scenes per tour**, **5 hotspots per scene** (text/image/link types).
+* Basic transitions (fade/zoom), basic tooltips, thumbnail strip.
+* Fullscreen, zoom, autorotate, mouse/keyboard/touch/gyroscope.
+* Shortcode + Gutenberg block + basic Elementor widget.
+* One logo (branding), lazy-load, import/export, duplicate, admin preview.
+* Community email support.
+
+**What Lite excludes (and teases):**
+
+* Floor plan, scene gallery (advanced), compass/radar, audio/video layers, form/3D/e-commerce hotspots, heatmap, analytics exports, GA/Pixel, multilingual integrations, etc. (All Pro).
+
+---
+
+# 2) Information architecture (CPT + meta schema)
+
+**Custom Post Type:** `vortex_tour`
+
+**Tour meta schema (stored in a single, sanitized JSON blob):**
+
+```json
+{
+  "version": 1,
+  "settings": {
+    "ui": { "showThumbnails": true, "showZoom": true, "showFullscreen": true },
+    "autorotate": { "enabled": true, "speed": 0.3, "pauseOnHover": true },
+    "branding": { "logoId": 123, "logoUrl": "https://..." },
+    "mobile": { "gyro": true, "touch": true }
+  },
+  "scenes": [
+    {
+      "id": "scene_1",
+      "title": "Lobby",
+      "type": "sphere",                       // sphere|cube|flat|little-planet (Lite supports these 4)
+      "image": { "id": 456, "url": "https://..." },
+      "previewImage": { "id": 789, "url": "https://..." },
+      "initView": { "yaw": 0, "pitch": 0, "fov": 70 },
+      "hotspots": [
+        {
+          "id": "hs_1",
+          "type": "info",                     // info|link|scene
+          "yaw": 30, "pitch": -5,
+          "title": "Reception desk",
+          "text": "Welcome!",
+          "url": null,
+          "targetSceneId": null,
+          "icon": "info"
+        }
+      ]
+    }
+  ]
+}
+```
+
+* Use **strict sanitization** on save and validate limits (≤5 scenes; ≤5 hotspots/scene).
+* Store logo and images as **attachment IDs** to preserve portability across domains.
+* Expose a read-only, public **REST endpoint** that delivers only the **render config** (no secrets).
+
+---
+
+# 3) Admin UX (builder) & content workflow
+
+**A. Create a tour**
+
+1. **Add New Tour** → name your tour.
+2. **Add scenes** (up to 5): upload/select panorama image; choose type (sphere/cube/flat/little-planet); set preview; set initial view.
+3. **Add hotspots** (up to 5 per scene): **info**, **link**, or **scene jump**.
+
+   * Info: title + short text (no raw HTML in Lite).
+   * Link: URL + “open in new tab”.
+   * Scene: dropdown to another scene.
+
+**B. Builder UI elements**
+
+* **Thumbnail strip** to reorder scenes (drag & drop).
+* **Mini compass dial** to set initial yaw/pitch (visual handle).
+* **Limit counters** with soft warnings (“4/5 scenes used”).
+* **Live Preview** panel that reflects changes instantly without saving.
+
+**C. Settings**
+
+* UI toggles: show/hide thumbnails, zoom, fullscreen.
+* Autorotate: enable + speed + pause on hover.
+* Mobile: enable/disable gyroscope.
+* Branding: one logo upload + position (top-left/right).
+* Performance: lazy-load on page visibility (enabled by default).
+
+**D. Import/Export & Duplicate**
+
+* **Export**: downloads `tour-config.json`.
+* **Import**: uploads JSON, validates image IDs/URLs (maps to local IDs if possible).
+* **Duplicate**: one-click clone (appends “Copy” to title).
+
+**E. Upsell nudges (respectful)**
+
+* When a user tries to **add a 6th scene** or select **“floor plan”** or **“audio layer”**, show a small Pro teaser card with a “Learn more” link.
+
+> Inspiration: both competitor trees split **admin vs public vs includes** and ship a **viewer library** separately, which is a great pattern to follow for a clean builder experience. &#x20;
+
+---
+
+# 4) Rendering pipeline (front-end)
+
+**Viewer choice:** Bundle a stable WebGL 360 viewer. We’ll follow WPVR’s proven approach of packaging **Pannellum** under a `/public/lib/pannellum` directory (clean, self-contained; battle-tested for mono panoramas).&#x20;
+*(Note: iPanorama bundles Three.js and many custom transition scripts; Lite sticks to essentials for speed and size.)*&#x20;
+
+**How a tour renders:**
+
+1. Shortcode/Block/Elementor widget outputs a container `<div id="vx-123">`.
+2. A **small inline JSON** (or localized script object) contains the sanitized config.
+3. `viewer.js` initializes Pannellum on intersection (lazy-load), sets up:
+
+   * **Basic transitions**: fade/zoom only (others are Pro).
+   * **Controls**: zoom, fullscreen, autorotate, keyboard arrows, mouse wheel.
+   * **Thumbnails**: one-row strip (horizontal).
+   * **Tooltips**: simple balloon style (no animation packs).
+
+**Accessibility & UX details**
+
+* Focusable controls with `aria-label` (Zoom in/out, Fullscreen).
+* Trap focus inside modal tooltip; `Esc` closes tooltips.
+* Keyboard nav mirrors arrows + `+/-` for zoom.
+
+---
+
+# 5) Embedding options
+
+**Shortcode**
+
+```text
+[vortex360 id="123" width="100%" height="500px" autorotate="true"]
+```
+
+**Gutenberg block**
+
+* Attributes: `tourId`, `width`, `height`, `autorotate`, `showThumbnails`, `showFullscreen`, `showZoom`.
+* Block uses **server render** for front parity.
+
+**Elementor (basic widget)**
+
+* Controls: tour selector, dimensions, toggles for UI (thumbnails/zoom/fullscreen), autorotate.
+
+*(Additional page builders are Pro.)*
+
+---
+
+# 6) Performance strategy
+
+* **Lazy-load** panoramas with `IntersectionObserver` (init only when visible).
+* **Progressive image** option: first show preview image; when ready, swap to full pano.
+* **Asset scoping**: enqueue viewer assets **only** on pages where shortcode/block/widget is present.
+* Debounce mouse/gyro events; throttle autorotate frame updates.
+* Provide guidance in docs on **recommended image sizes** and **cubic vs equirectangular**.
+
+> Note: WPVR ships Pannellum + videojs-vr under `/public/lib`, a tidy pattern for scoped assets.&#x20;
+> iPanorama’s tree shows a large Three.js footprint and a transitions directory—you’ll surpass that in **Pro**, not Lite.&#x20;
+
+---
+
+# 7) Mobile experience
+
+* **Touch/drag** by default; **gyroscope** optional.
+* On iOS 13+ style devices, prompt for motion permission when the user taps “Enable Gyro”.
+* Auto-pause autorotate while the user interacts (resumes after N seconds).
+
+---
+
+# 8) Security model
+
+* **Nonces & capability checks** for all POST/AJAX/REST routes.
+* **Sanitize everything** (titles, text, URLs, numbers). Strip HTML from “info” tooltips in Lite.
+* **CORS-safe**: front REST endpoint is read-only and returns only render config.
+* Template files guarded by `ABSPATH` checks; ship `index.php` in all folders.
+
+---
+
+# 9) Analytics (Lite)
+
+* **Local counters** only (privacy-friendly, no trackers):
+
+  * `tour_view` (once per page load), `scene_view` (on change), `hotspot_click`.
+* Aggregate to post meta daily (or store light rolling totals).
+* A simple **per-tour totals** panel in the admin sidebar.
+  *(Heatmap, exports, GA/Pixel integrations → Pro.)*
+
+---
+
+# 10) Internationalization & accessibility
+
+* Load text domain at `plugins_loaded`.
+* Ship a `vortex360-lite.pot`.
+* Provide **RTL-aware** CSS.
+* Controls have screen-reader labels; text contrast meets WCAG AA.
+
+---
+
+# 11) Theming & branding (Lite)
+
+* One logo with position options (TL/TR); safe max dimensions.
+* Expose a few CSS variables for colors:
+
+  * `--vx-ui-bg`, `--vx-ui-fg`, `--vx-thumb-bg`, `--vx-accent`.
+* Allow theme override of `/public/templates/tour.php` via filter (no file copying needed).
+
+---
+
+# 12) Import/Export & Duplicate (details)
+
+**Export**:
+
+* Writes `tour-config.json` (schema shown above), with images as both IDs and URLs.
+
+**Import**:
+
+* Validates schema; attempts **ID remap** if attachments exist; else keeps URLs.
+* On failure, shows a per-scene issue list (missing image, invalid type, >5 hotspots).
+
+**Duplicate**:
+
+* Deep clones config, clears analytics counters, re-titles as “Copy”.
+
+---
+
+# 13) Error handling & edge cases
+
+* **Missing image** → show preview tile with “Image not found” & skip scene.
+* **Corrupt yaw/pitch/fov** → reset to defaults (0/0/70).
+* **Exceeding limits** → prevent save and show a friendly message + Pro info card.
+* **Device GPU issues** → fallback to a “static preview only” mode with helpful text.
+
+---
+
+# 14) Code layout (high level)
+
+Use the tri-layer pattern with clearly separated responsibilities:
+
+* `/includes` → CPT, models, shortcode, REST, limits, helpers.
+* `/admin` → metabox builder, settings, preview, modals, assets.
+* `/public` → viewer bootstrap, controls, lazy-load, templates, **viewer library under `/public/lib/pannellum/`** (pattern inspired by WPVR).&#x20;
+* `/blocks` → Gutenberg block scaffold (block.json, edit/save).
+* `/elementor` → simple widget.
+
+*(This mirrors what your competitors do: iPanorama keeps **assets/gutenberg/includes** in distinct folders; WPVR keeps **admin/public/includes** with the viewer libs under **public/lib**. We follow those best practices while trimming bloat for Lite.)* &#x20;
+
+---
+
+# 15) Upgrade path → Pro (seamless)
+
+* Pro installs as a separate plugin. On activation it:
+
+  * **Detects Lite**, disables `class-vx-limits-lite` caps.
+  * Extends the same builder UI (adds **floor plan**, **advanced hotspots**, **audio/video**, **gallery**, **compass/radar**, **analytics**, etc.).
+  * Consumes the same JSON schema; **no migration** required—Pro just respects additional keys.
+* Lite’s upsell cards link to the Pro screen; after Pro activation, those cards auto-hide.
+
+---
+
+# 16) QA checklist (ship-ready)
+
+* Create → Save → Preview → Publish in major browsers & mobile Safari/Chrome.
+* Stress test with **5 scenes × 5 hotspots** (max Lite).
+* Lazy-load correctness (only initialize when visible).
+* Keyboard & screen reader audit.
+* Import/export round-trip.
+* Conflicts: ensure assets enqueue only where used; namespace all globals.
+* RTL and long-string truncation in UI.
+
+---
+
+## TL;DR
+
+**Vortex360 Lite** delivers a polished, privacy-friendly 360° builder that’s fast to set up and safe to run on any theme. It mirrors the **clean admin/public/includes split** and **bundled viewer library** approaches you see in the wild, without the bloat—then it **click-upgrades** to Pro to unlock the heavy hitters (floor plans, audio/video, analytics, etc.). &#x20;
+

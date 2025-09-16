@@ -1,0 +1,537 @@
+/**
+ * Vortex360 Lite - Admin Styles
+ * 
+ * Main admin interface styles for the plugin
+ */
+
+/* ==========================================================================
+   General Admin Styles
+   ========================================================================== */
+
+.vx-admin-page {
+    max-width: 1200px;
+    margin: 20px 0;
+}
+
+.vx-admin-header {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.vx-admin-header h1 {
+    margin: 0 0 10px 0;
+    font-size: 24px;
+    color: #23282d;
+}
+
+.vx-admin-header p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.vx-admin-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+.vx-admin-main {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.vx-admin-sidebar {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+/* ==========================================================================
+   Tours List Customizations
+   ========================================================================== */
+
+.vx-scene-count {
+    display: inline-block;
+    background: #0073aa;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.vx-limit-badge {
+    display: inline-block;
+    background: #d63638;
+    color: #fff;
+    padding: 2px 4px;
+    border-radius: 2px;
+    font-size: 9px;
+    font-weight: 600;
+    margin-left: 4px;
+}
+
+.vx-shortcode-copy {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.vx-shortcode-copy:hover {
+    background-color: #f0f0f1;
+}
+
+.vx-shortcode-copy.copied {
+    background-color: #00a32a;
+    color: #fff;
+}
+
+/* ==========================================================================
+   Upgrade Notices
+   ========================================================================== */
+
+.vx-upgrade-notice {
+    border-left-color: #f18500 !important;
+    position: relative;
+}
+
+.vx-upgrade-notice .notice-dismiss {
+    display: none;
+}
+
+.vx-upgrade-content {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 20px;
+    align-items: start;
+}
+
+.vx-upgrade-content h3 {
+    margin: 0 0 10px 0;
+    color: #f18500;
+    font-size: 16px;
+}
+
+.vx-upgrade-content ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.vx-upgrade-content li {
+    margin: 0 0 5px 0;
+    color: #666;
+    font-size: 13px;
+}
+
+.vx-upgrade-content li:before {
+    content: "✓";
+    color: #00a32a;
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+.vx-upgrade-btn {
+    background: #f18500 !important;
+    border-color: #f18500 !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+}
+
+.vx-upgrade-btn:hover {
+    background: #e67e00 !important;
+    border-color: #e67e00 !important;
+}
+
+.vx-dismiss-notice {
+    color: #666;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.vx-dismiss-notice:hover {
+    color: #0073aa;
+}
+
+/* ==========================================================================
+   Settings Page
+   ========================================================================== */
+
+.vx-settings-section {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.vx-settings-section h2 {
+    margin: 0;
+    padding: 15px 20px;
+    border-bottom: 1px solid #ccd0d4;
+    background: #f9f9f9;
+    font-size: 16px;
+    color: #23282d;
+}
+
+.vx-settings-section .form-table {
+    margin: 0;
+}
+
+.vx-settings-section .form-table th {
+    padding-left: 20px;
+}
+
+.vx-settings-section .form-table td {
+    padding-right: 20px;
+}
+
+/* ==========================================================================
+   Upgrade Page
+   ========================================================================== */
+
+.vx-upgrade-page {
+    max-width: 1000px;
+    margin: 20px 0;
+}
+
+.vx-upgrade-hero {
+    background: linear-gradient(135deg, #f18500 0%, #e67e00 100%);
+    color: #fff;
+    padding: 40px;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.vx-upgrade-hero h1 {
+    margin: 0 0 15px 0;
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.vx-upgrade-hero p {
+    margin: 0 0 25px 0;
+    font-size: 18px;
+    opacity: 0.9;
+}
+
+.vx-upgrade-hero .button {
+    background: #fff;
+    color: #f18500;
+    border: none;
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 4px;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s;
+}
+
+.vx-upgrade-hero .button:hover {
+    background: #f0f0f0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.vx-features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.vx-feature-card {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 8px;
+    padding: 25px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.vx-feature-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.vx-feature-card h3 {
+    margin: 0 0 15px 0;
+    color: #f18500;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+}
+
+.vx-feature-card h3:before {
+    content: "✓";
+    background: #00a32a;
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.vx-feature-card p {
+    margin: 0;
+    color: #666;
+    line-height: 1.6;
+}
+
+.vx-comparison-table {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 30px;
+}
+
+.vx-comparison-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.vx-comparison-table th {
+    background: #f9f9f9;
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #ccd0d4;
+    font-weight: 600;
+}
+
+.vx-comparison-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.vx-comparison-table .vx-check {
+    color: #00a32a;
+    font-weight: bold;
+}
+
+.vx-comparison-table .vx-cross {
+    color: #d63638;
+    font-weight: bold;
+}
+
+.vx-comparison-table .vx-pro-column {
+    background: #f8f9fa;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+    .vx-admin-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .vx-upgrade-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .vx-admin-header {
+        padding: 15px;
+    }
+    
+    .vx-upgrade-hero {
+        padding: 30px 20px;
+    }
+    
+    .vx-upgrade-hero h1 {
+        font-size: 24px;
+    }
+    
+    .vx-upgrade-hero p {
+        font-size: 16px;
+    }
+    
+    .vx-features-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .vx-feature-card {
+        padding: 20px;
+    }
+}
+
+/* ==========================================================================
+   Loading States
+   ========================================================================== */
+
+.vx-loading {
+    position: relative;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.vx-loading:after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #0073aa;
+    border-radius: 50%;
+    animation: vx-spin 1s linear infinite;
+}
+
+@keyframes vx-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ==========================================================================
+   Success/Error Messages
+   ========================================================================== */
+
+.vx-message {
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin: 10px 0;
+    font-size: 14px;
+}
+
+.vx-message.success {
+    background: #d1e7dd;
+    color: #0f5132;
+    border: 1px solid #badbcc;
+}
+
+.vx-message.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.vx-message.warning {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.vx-message.info {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+/* ==========================================================================
+   Utility Classes
+   ========================================================================== */
+
+.vx-text-center {
+    text-align: center;
+}
+
+.vx-text-right {
+    text-align: right;
+}
+
+.vx-mb-0 {
+    margin-bottom: 0 !important;
+}
+
+.vx-mb-10 {
+    margin-bottom: 10px !important;
+}
+
+.vx-mb-20 {
+    margin-bottom: 20px !important;
+}
+
+.vx-mt-0 {
+    margin-top: 0 !important;
+}
+
+.vx-mt-10 {
+    margin-top: 10px !important;
+}
+
+.vx-mt-20 {
+    margin-top: 20px !important;
+}
+
+.vx-hidden {
+    display: none !important;
+}
+
+.vx-visible {
+    display: block !important;
+}
+
+.vx-flex {
+    display: flex;
+}
+
+.vx-flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vx-flex-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.vx-gap-10 {
+    gap: 10px;
+}
+
+.vx-gap-20 {
+    gap: 20px;
+}
+
+/* ==========================================================================
+   Dark Mode Support (WordPress 5.7+)
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+    .auto-fold #adminmenu .wp-submenu a:hover,
+    .auto-fold #adminmenu .wp-submenu a:focus {
+        color: #00a0d2;
+    }
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+
+@media print {
+    .vx-upgrade-notice,
+    .vx-upgrade-btn,
+    .vx-dismiss-notice {
+        display: none !important;
+    }
+    
+    .vx-admin-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .vx-admin-sidebar {
+        display: none;
+    }
+}
