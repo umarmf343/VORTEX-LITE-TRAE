@@ -266,19 +266,32 @@ $tours = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}vortex360_tours ORDER 
                         </div>
 
                         <!-- Scenes Management -->
+                        <?php
+                        $scene_limit = 5;
+                        $scene_count = count($scenes);
+                        $scene_limit_reached = $scene_count >= $scene_limit;
+                        ?>
+
                         <div class="vortex360-editor-section">
                             <div class="vortex360-section-header">
                                 <h3 class="vortex360-section-title">
                                     <span class="dashicons dashicons-format-gallery"></span>
-                                    Scenes (<?php echo count($scenes); ?>)
+                                    Scenes (<?php echo $scene_count; ?>)
                                 </h3>
-                                
-                                <button class="vortex360-btn vortex360-btn-primary vortex360-add-scene" data-tour-id="<?php echo $tour->id; ?>">
+
+                                <button class="vortex360-btn vortex360-btn-primary vortex360-add-scene" data-tour-id="<?php echo $tour->id; ?>" <?php disabled($scene_limit_reached); ?> aria-disabled="<?php echo $scene_limit_reached ? 'true' : 'false'; ?>">
                                     <span class="dashicons dashicons-plus-alt"></span>
                                     Add Scene
                                 </button>
                             </div>
-                            
+
+                            <p class="vortex360-section-description">
+                                <?php printf(esc_html__('Vortex360 Lite supports up to %d scenes per tour.', 'vortex360-lite'), $scene_limit); ?>
+                                <?php if ($scene_limit_reached): ?>
+                                    <span class="vortex360-limit-warning"><?php esc_html_e('Scene limit reached. Delete an existing scene to add another.', 'vortex360-lite'); ?></span>
+                                <?php endif; ?>
+                            </p>
+
                             <?php if (empty($scenes)): ?>
                                 <div class="vortex360-empty-state">
                                     <div class="vortex360-empty-icon">📷</div>
