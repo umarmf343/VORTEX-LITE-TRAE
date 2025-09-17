@@ -153,12 +153,42 @@ class Vortex360_Lite_Scene {
             );
         }
 
-        if (isset($data['tour_id'])) {
-            $new_tour_id = absint($data['tour_id']);
+        $should_update_tour = array_key_exists('tour_id', $data);
+        $validated_tour_id = null;
+
+        if ($should_update_tour) {
+            $validated_tour_id = absint($data['tour_id']);
             $current_tour_id = (int) $scene->tour_id;
 
-            if ($new_tour_id && $new_tour_id !== $current_tour_id) {
-                $current_scene_count = $this->get_scene_count($new_tour_id);
+            if ($validated_tour_id === 0) {
+                return array(
+                    'success' => false,
+                    'error' => 'A valid destination tour is required to move a scene.',
+                    'code' => 'INVALID_TARGET_TOUR'
+                );
+            }
+
+            if ($validated_tour_id !== $current_tour_id) {
+                $tour_manager = new Vortex360_Lite_Tour();
+                $target_tour = $tour_manager->get_tour_by_id($validated_tour_id);
+
+                if (!$target_tour) {
+                    return array(
+                        'success' => false,
+                        'error' => 'Destination tour not found.',
+                        'code' => 'TARGET_TOUR_NOT_FOUND'
+                    );
+                }
+
+                if ($target_tour->created_by != get_current_user_id() && !current_user_can('manage_options')) {
+                    return array(
+                        'success' => false,
+                        'error' => 'You do not have permission to move this scene to the selected tour.',
+                        'code' => 'SCENE_MOVE_FORBIDDEN'
+                    );
+                }
+
+                $current_scene_count = $this->get_scene_count($validated_tour_id);
 
                 if ($current_scene_count >= VORTEX360_LITE_SCENE_LIMIT) {
                     return array(
@@ -177,8 +207,11 @@ class Vortex360_Lite_Scene {
         // Sanitize data
         $sanitized_data = $this->database->sanitize_scene_data($data);
 
-        // Remove tour_id from update data (shouldn't be changed)
-        unset($sanitized_data['tour_id']);
+        if ($should_update_tour) {
+            $sanitized_data['tour_id'] = $validated_tour_id ? $validated_tour_id : (int) $scene->tour_id;
+        } else {
+            unset($sanitized_data['tour_id']);
+        }
         
         // Update database
         $table_name = $wpdb->prefix . 'vortex360_scenes';

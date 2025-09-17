@@ -180,13 +180,45 @@ class Vortex360_Lite_Hotspot {
             }
         }
 
-        // Enforce Lite hotspot limit when moving hotspots between scenes.
-        if (isset($data['scene_id'])) {
-            $new_scene_id = absint($data['scene_id']);
+        $should_update_scene = array_key_exists('scene_id', $data);
+        $validated_scene_id = null;
+
+        if ($should_update_scene) {
+            $validated_scene_id = absint($data['scene_id']);
             $current_scene_id = (int) $hotspot->scene_id;
 
-            if ($new_scene_id && $new_scene_id !== $current_scene_id) {
-                $current_hotspot_count = $this->get_hotspot_count($new_scene_id);
+            if ($validated_scene_id === 0) {
+                return array(
+                    'success' => false,
+                    'error' => 'A valid destination scene is required to move a hotspot.',
+                    'code' => 'INVALID_TARGET_SCENE'
+                );
+            }
+
+            if ($validated_scene_id !== $current_scene_id) {
+                $scene_manager = new Vortex360_Lite_Scene();
+                $new_scene = $scene_manager->get_scene_by_id($validated_scene_id);
+
+                if (!$new_scene) {
+                    return array(
+                        'success' => false,
+                        'error' => 'Destination scene not found.',
+                        'code' => 'TARGET_SCENE_NOT_FOUND'
+                    );
+                }
+
+                $tour_manager = new Vortex360_Lite_Tour();
+                $target_tour = $tour_manager->get_tour_by_id($new_scene->tour_id);
+
+                if (!$target_tour || ($target_tour->created_by != get_current_user_id() && !current_user_can('manage_options'))) {
+                    return array(
+                        'success' => false,
+                        'error' => 'You do not have permission to move this hotspot to the selected scene.',
+                        'code' => 'HOTSPOT_MOVE_FORBIDDEN'
+                    );
+                }
+
+                $current_hotspot_count = $this->get_hotspot_count($validated_scene_id);
                 $limits = function_exists('vx_get_lite_limits') ? vx_get_lite_limits() : array();
                 $max_hotspots = isset($limits['max_hotspots_per_scene']) ? (int) $limits['max_hotspots_per_scene'] : 5;
 
@@ -207,8 +239,11 @@ class Vortex360_Lite_Hotspot {
         // Sanitize data
         $sanitized_data = $this->database->sanitize_hotspot_data($data);
 
-        // Remove scene_id from update data (shouldn't be changed)
-        unset($sanitized_data['scene_id']);
+        if ($should_update_scene) {
+            $sanitized_data['scene_id'] = $validated_scene_id ? $validated_scene_id : (int) $hotspot->scene_id;
+        } else {
+            unset($sanitized_data['scene_id']);
+        }
         
         // Update database
         $table_name = $wpdb->prefix . 'vortex360_hotspots';
