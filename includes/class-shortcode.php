@@ -530,44 +530,56 @@ class Vortex360_Lite_Shortcode {
             return;
         }
         
-        // Enqueue Pannellum library
+        // Enqueue the bundled Pannellum library
+        wp_enqueue_style(
+            'vortex360-lite-pannellum',
+            VORTEX360_LITE_PLUGIN_URL . 'assets/pannellum/pannellum.css',
+            array(),
+            '2.5.6'
+        );
+
         wp_enqueue_script(
-            'pannellum',
-            VORTEX360_LITE_URL . 'assets/js/pannellum.js',
+            'vortex360-lite-pannellum',
+            VORTEX360_LITE_PLUGIN_URL . 'assets/pannellum/pannellum.js',
             array(),
             '2.5.6',
             true
         );
-        
+
+        // Core viewer bundles
         wp_enqueue_style(
-            'pannellum',
-            VORTEX360_LITE_URL . 'assets/css/pannellum.css',
-            array(),
-            '2.5.6'
+            'vortex360-lite-viewer',
+            VORTEX360_LITE_PLUGIN_URL . 'public/css/vortex360-viewer.css',
+            array('vortex360-lite-pannellum'),
+            VORTEX360_LITE_VERSION
         );
-        
-        // Enqueue our frontend script
+
         wp_enqueue_script(
-            'vortex360-lite-frontend',
-            VORTEX360_LITE_URL . 'assets/js/frontend.js',
-            array('pannellum'),
+            'vortex360-lite-tour-viewer',
+            VORTEX360_LITE_PLUGIN_URL . 'assets/js/tour-viewer.js',
+            array('vortex360-lite-pannellum', 'jquery'),
             VORTEX360_LITE_VERSION,
             true
         );
-        
-        wp_enqueue_style(
+
+        wp_enqueue_script(
             'vortex360-lite-frontend',
-            VORTEX360_LITE_URL . 'assets/css/frontend.css',
-            array('pannellum'),
-            VORTEX360_LITE_VERSION
+            VORTEX360_LITE_PLUGIN_URL . 'public/js/vortex360-viewer.js',
+            array('vortex360-lite-pannellum', 'vortex360-lite-tour-viewer', 'jquery'),
+            VORTEX360_LITE_VERSION,
+            true
         );
-        
-        // Localize script with AJAX URL and nonce
-        wp_localize_script('vortex360-lite-frontend', 'vortex360Ajax', array(
+
+        // Localize script with AJAX URL and asset paths
+        $config = array(
             'ajaxUrl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('vortex360_nonce'),
-            'pluginUrl' => VORTEX360_LITE_URL
-        ));
+            'nonce' => wp_create_nonce('vortex360_lite_nonce'),
+            'pluginUrl' => VORTEX360_LITE_PLUGIN_URL,
+            'assetsUrl' => VORTEX360_LITE_PLUGIN_URL . 'assets/',
+            'pannellumPath' => VORTEX360_LITE_PLUGIN_URL . 'assets/pannellum/'
+        );
+
+        wp_localize_script('vortex360-lite-frontend', 'Vortex360LiteConfig', $config);
     }
     
     /**
