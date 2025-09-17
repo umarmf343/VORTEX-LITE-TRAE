@@ -79,16 +79,22 @@ class Vortex360_Lite_Scene {
             );
         }
         
+        $scene_count = $this->get_scene_count($data['tour_id']);
+
+        if ($scene_count >= 5) {
+            return $this->get_scene_limit_error();
+        }
+
         // Sanitize data
         $sanitized_data = $this->database->sanitize_scene_data($data);
-        
+
         // Set sort order if not provided
         if (!isset($sanitized_data['sort_order'])) {
             $sanitized_data['sort_order'] = $this->get_next_sort_order($data['tour_id']);
         }
-        
+
         // If this is the first scene, make it default
-        if ($this->get_scene_count($data['tour_id']) === 0) {
+        if ($scene_count === 0) {
             $sanitized_data['is_default'] = true;
         }
         
@@ -478,7 +484,20 @@ class Vortex360_Lite_Scene {
         $prefix = 'vortex360-scene-' . time() . '-' . wp_generate_password(8, false);
         return $prefix . $ext;
     }
-    
+
+    /**
+     * Get standardized Lite limit error response
+     *
+     * @return array
+     */
+    private function get_scene_limit_error() {
+        return array(
+            'success' => false,
+            'error' => __('Vortex360 Lite supports up to five scenes per tour. Upgrade to add more scenes.', 'vortex360-lite'),
+            'code' => 'LITE_SCENE_LIMIT_REACHED'
+        );
+    }
+
     /**
      * Get scene count for a tour
      * @param int $tour_id Tour ID
@@ -580,7 +599,7 @@ class Vortex360_Lite_Scene {
         if (!wp_verify_nonce($_POST['nonce'] ?? '', 'vortex360_nonce')) {
             wp_die('Security check failed');
         }
-        
+
         $data = array(
             'tour_id' => absint($_POST['tour_id'] ?? 0),
             'title' => sanitize_text_field($_POST['title'] ?? ''),
@@ -591,9 +610,13 @@ class Vortex360_Lite_Scene {
             'yaw' => floatval($_POST['yaw'] ?? 0),
             'hfov' => floatval($_POST['hfov'] ?? 100)
         );
-        
+
+        if ($data['tour_id'] && $this->get_scene_count($data['tour_id']) >= 5) {
+            wp_send_json($this->get_scene_limit_error());
+        }
+
         $result = $this->create_scene($data);
-        
+
         wp_send_json($result);
     }
     
