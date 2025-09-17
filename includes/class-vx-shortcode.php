@@ -86,7 +86,7 @@ class VX_Shortcode {
         
         // Check if tour exists and is published
         $tour = get_post($tour_id);
-        if (!$tour || $tour->post_type !== 'vortex_tour' || $tour->post_status !== 'publish') {
+        if (!$tour || $tour->post_type !== 'vx_tour' || $tour->post_status !== 'publish') {
             return $this->render_error(__('Tour not found or not published.', 'vortex360-lite'));
         }
 

@@ -237,7 +237,7 @@ class VX_Public {
         
         // Check if tour exists and is published
         $tour = get_post($tour_id);
-        if (!$tour || $tour->post_status !== 'publish' || $tour->post_type !== 'vortex_tour') {
+        if (!$tour || $tour->post_status !== 'publish' || $tour->post_type !== 'vx_tour') {
             wp_send_json_error(array(
                 'message' => __('Tour not found or not published.', 'vortex360-lite')
             ));

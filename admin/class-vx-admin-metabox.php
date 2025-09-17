@@ -59,7 +59,7 @@ class VX_Admin_Metabox {
             'vx-tour-editor',
             __('Tour Editor', 'vortex360-lite'),
             array($this, 'render_tour_editor'),
-            'vortex_tour',
+            'vx_tour',
             'normal',
             'high'
         );
@@ -68,7 +68,7 @@ class VX_Admin_Metabox {
             'vx-tour-settings',
             __('Tour Settings', 'vortex360-lite'),
             array($this, 'render_tour_settings'),
-            'vortex_tour',
+            'vx_tour',
             'side',
             'default'
         );
@@ -77,7 +77,7 @@ class VX_Admin_Metabox {
             'vx-tour-preview',
             __('Tour Preview', 'vortex360-lite'),
             array($this, 'render_tour_preview'),
-            'vortex_tour',
+            'vx_tour',
             'side',
             'default'
         );
@@ -86,7 +86,7 @@ class VX_Admin_Metabox {
             'vx-tour-shortcode',
             __('Shortcode', 'vortex360-lite'),
             array($this, 'render_shortcode_box'),
-            'vortex_tour',
+            'vx_tour',
             'side',
             'low'
         );
@@ -101,7 +101,7 @@ class VX_Admin_Metabox {
     public function enqueue_admin_scripts($hook) {
         global $post_type, $post;
 
-        if ($post_type !== 'vortex_tour') {
+        if ($post_type !== 'vx_tour') {
             return;
         }
 
@@ -541,7 +541,7 @@ class VX_Admin_Metabox {
         }
 
         // Check post type
-        if (get_post_type($post_id) !== 'vortex_tour') {
+        if (get_post_type($post_id) !== 'vx_tour') {
             return;
         }
 

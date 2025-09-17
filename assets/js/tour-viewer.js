@@ -58,7 +58,14 @@
             if (this.scenes.length === 0) {
                 throw new Error('No scenes found in tour data');
             }
-            
+
+            if (!this.options.data.startScene) {
+                const defaultScene = this.scenes.find(scene => scene.is_default) || this.scenes[0];
+                if (defaultScene) {
+                    this.options.data.startScene = defaultScene.id;
+                }
+            }
+
             this.setupPannellum();
             this.bindEvents();
             
@@ -117,14 +124,26 @@
         
         // Build scenes configuration
         this.scenes.forEach(scene => {
+            const initialView = scene.initial_view || {};
+            const imageUrl = scene.image_url || (scene.image && scene.image.url) || '';
+            const pitch = typeof initialView.pitch === 'number'
+                ? initialView.pitch
+                : (typeof scene.pitch === 'number' ? scene.pitch : parseFloat(scene.pitch) || 0);
+            const yaw = typeof initialView.yaw === 'number'
+                ? initialView.yaw
+                : (typeof scene.yaw === 'number' ? scene.yaw : parseFloat(scene.yaw) || 0);
+            const hfov = typeof initialView.fov === 'number'
+                ? initialView.fov
+                : (typeof scene.hfov === 'number' ? scene.hfov : parseFloat(scene.hfov) || 100);
+
             scenes[scene.id] = {
                 type: 'equirectangular',
-                panorama: scene.image_url,
+                panorama: imageUrl,
                 title: scene.title,
                 author: this.options.data.title,
-                pitch: scene.initial_view.pitch || 0,
-                yaw: scene.initial_view.yaw || 0,
-                hfov: scene.initial_view.fov || 100,
+                pitch: pitch,
+                yaw: yaw,
+                hfov: hfov,
                 minHfov: 30,
                 maxHfov: 120,
                 hotSpots: [] // Will be populated dynamically
@@ -172,46 +191,54 @@
      * @returns {Object} Pannellum hotspot configuration
      */
     VortexTourViewer.prototype.buildHotspotConfig = function(hotspot) {
+        const type = (hotspot.type || 'info').toLowerCase();
+        const pitch = typeof hotspot.pitch === 'number'
+            ? hotspot.pitch
+            : parseFloat(hotspot.pitch) || 0;
+        const yaw = typeof hotspot.yaw === 'number'
+            ? hotspot.yaw
+            : parseFloat(hotspot.yaw) || 0;
+
         const config = {
             id: 'hotspot-' + hotspot.id,
-            pitch: hotspot.position.pitch,
-            yaw: hotspot.position.yaw,
-            cssClass: 'vx-hotspot vx-hotspot-' + hotspot.type,
+            pitch: pitch,
+            yaw: yaw,
+            cssClass: 'vx-hotspot vx-hotspot-' + type,
             createTooltipFunc: this.createHotspotTooltip.bind(this, hotspot),
             createTooltipArgs: hotspot
         };
-        
-        // Handle different hotspot types
-        switch (hotspot.type) {
+
+        switch (type) {
             case 'scene':
                 config.type = 'scene';
-                config.sceneId = hotspot.target_scene_id;
-                config.targetYaw = hotspot.target_yaw || 0;
-                config.targetPitch = hotspot.target_pitch || 0;
+                config.sceneId = hotspot.target_scene_id ? String(hotspot.target_scene_id) : null;
+                config.targetYaw = typeof hotspot.target_yaw === 'number' ? hotspot.target_yaw : 0;
+                config.targetPitch = typeof hotspot.target_pitch === 'number' ? hotspot.target_pitch : 0;
+                if (!config.sceneId) {
+                    config.type = 'info';
+                    config.clickHandlerFunc = this.handleGenericHotspot.bind(this, hotspot);
+                }
                 break;
-                
-            case 'info':
-                config.type = 'info';
-                config.clickHandlerFunc = this.handleInfoHotspot.bind(this, hotspot);
-                break;
-                
+
             case 'link':
                 config.type = 'info';
                 config.clickHandlerFunc = this.handleLinkHotspot.bind(this, hotspot);
                 break;
-                
+
+            case 'image':
             case 'video':
             case 'audio':
-            case 'image':
                 config.type = 'info';
                 config.clickHandlerFunc = this.handleMediaHotspot.bind(this, hotspot);
                 break;
-                
+
+            case 'info':
             default:
                 config.type = 'info';
-                config.clickHandlerFunc = this.handleGenericHotspot.bind(this, hotspot);
+                config.clickHandlerFunc = this.handleInfoHotspot.bind(this, hotspot);
+                break;
         }
-        
+
         return config;
     };
     
@@ -223,7 +250,7 @@
     VortexTourViewer.prototype.createHotspotTooltip = function(hotspot) {
         const tooltip = document.createElement('div');
         tooltip.className = 'vx-hotspot-tooltip';
-        tooltip.textContent = hotspot.title || 'Hotspot';
+        tooltip.textContent = hotspot.title || hotspot.name || 'Hotspot';
         return tooltip;
     };
     
@@ -257,7 +284,7 @@
     VortexTourViewer.prototype.handleInfoHotspot = function(hotspot) {
         this.showHotspotModal({
             title: hotspot.title,
-            content: hotspot.description,
+            content: hotspot.content || hotspot.description || '',
             type: 'info'
         });
         
@@ -271,8 +298,9 @@
      * @param {Object} hotspot Hotspot data
      */
     VortexTourViewer.prototype.handleLinkHotspot = function(hotspot) {
-        if (hotspot.url) {
-            window.open(hotspot.url, '_blank', 'noopener,noreferrer');
+        const url = hotspot.target_url || hotspot.url;
+        if (url) {
+            window.open(url, '_blank', 'noopener,noreferrer');
         }
         
         if (this.options.onHotspotClick) {
@@ -287,34 +315,36 @@
     VortexTourViewer.prototype.handleMediaHotspot = function(hotspot) {
         let content = '';
         
+        const mediaUrl = hotspot.media_url || hotspot.target_url || hotspot.url;
+
         switch (hotspot.type) {
             case 'video':
-                if (hotspot.video_url) {
+                if (mediaUrl) {
                     content = `<video controls style="max-width: 100%; height: auto;">
-                        <source src="${hotspot.video_url}" type="video/mp4">
+                        <source src="${mediaUrl}" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>`;
                 }
                 break;
-                
+
             case 'audio':
-                if (hotspot.audio_url) {
+                if (mediaUrl) {
                     content = `<audio controls style="width: 100%;">
-                        <source src="${hotspot.audio_url}" type="audio/mpeg">
+                        <source src="${mediaUrl}" type="audio/mpeg">
                         Your browser does not support the audio tag.
                     </audio>`;
                 }
                 break;
-                
+
             case 'image':
-                if (hotspot.image_url) {
-                    content = `<img src="${hotspot.image_url}" alt="${hotspot.title}" style="max-width: 100%; height: auto;">`;
+                if (mediaUrl) {
+                    content = `<img src="${mediaUrl}" alt="${hotspot.title || ''}" style="max-width: 100%; height: auto;">`;
                 }
                 break;
         }
-        
-        if (hotspot.description) {
-            content += `<p style="margin-top: 15px;">${hotspot.description}</p>`;
+
+        if (hotspot.content || hotspot.description) {
+            content += `<p style="margin-top: 15px;">${hotspot.content || hotspot.description}</p>`;
         }
         
         this.showHotspotModal({
@@ -335,7 +365,7 @@
     VortexTourViewer.prototype.handleGenericHotspot = function(hotspot) {
         this.showHotspotModal({
             title: hotspot.title,
-            content: hotspot.description || 'No additional information available.',
+            content: hotspot.content || hotspot.description || 'No additional information available.',
             type: 'info'
         });
         
@@ -737,6 +767,167 @@
     
 })(window, document);
 
+function normalizeSceneData(scene) {
+    if (!scene) {
+        return null;
+    }
+
+    const normalized = {
+        id: scene.id !== undefined && scene.id !== null ? String(scene.id) : '',
+        title: scene.title || '',
+        description: scene.description || '',
+        image_url: scene.image_url || (scene.image && scene.image.url) || '',
+        image_type: scene.image_type || 'equirectangular',
+        pitch: typeof scene.pitch === 'number' ? scene.pitch : parseFloat(scene.pitch) || 0,
+        yaw: typeof scene.yaw === 'number' ? scene.yaw : parseFloat(scene.yaw) || 0,
+        hfov: typeof scene.hfov === 'number' ? scene.hfov : parseFloat(scene.hfov) || 100,
+        is_default: !!scene.is_default,
+        initial_view: scene.initial_view || null,
+        hotspots: []
+    };
+
+    const hotspots = Array.isArray(scene.hotspots) ? scene.hotspots : [];
+    normalized.hotspots = hotspots.map((hotspot) => ({
+        id: hotspot.id !== undefined && hotspot.id !== null ? String(hotspot.id) : '',
+        type: (hotspot.type || 'info').toLowerCase(),
+        title: hotspot.title || '',
+        content: hotspot.content || hotspot.description || '',
+        target_scene_id: hotspot.target_scene_id !== undefined && hotspot.target_scene_id !== null
+            ? String(hotspot.target_scene_id)
+            : null,
+        target_url: hotspot.target_url || hotspot.url || '',
+        pitch: typeof hotspot.pitch === 'number' ? hotspot.pitch : parseFloat(hotspot.pitch) || 0,
+        yaw: typeof hotspot.yaw === 'number' ? hotspot.yaw : parseFloat(hotspot.yaw) || 0,
+        media_url: hotspot.media_url || '',
+        icon: hotspot.icon || ''
+    }));
+
+    return normalized;
+}
+
+function normalizeTourData(raw) {
+    const data = Object.assign({ scenes: [] }, raw || {});
+    data.id = data.id !== undefined && data.id !== null ? String(data.id) : '';
+    data.title = data.title || '';
+    data.description = data.description || '';
+    data.settings = data.settings || {};
+    data.scenes = (Array.isArray(data.scenes) ? data.scenes : []).map(normalizeSceneData).filter(Boolean);
+
+    if (data.scenes.length) {
+        const defaultScene = data.scenes.find((scene) => scene.is_default) || data.scenes[0];
+        data.startScene = defaultScene.id;
+    } else {
+        data.startScene = null;
+    }
+
+    return data;
+}
+
+window.Vortex360Lite = window.Vortex360Lite || {
+    viewers: {},
+
+    initTour(containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) {
+            return;
+        }
+
+        const dataAttr = container.getAttribute('data-vx-tour-data') || container.getAttribute('data-tour');
+        if (!dataAttr) {
+            return;
+        }
+
+        let tourData;
+        try {
+            tourData = JSON.parse(dataAttr);
+        } catch (error) {
+            console.error('Vortex360 Lite: invalid tour data', error);
+            return;
+        }
+
+        const viewerElement = container.querySelector('.vortex360-viewer');
+        if (!viewerElement) {
+            return;
+        }
+
+        const viewerId = viewerElement.id || `${containerId}-viewer`;
+        viewerElement.id = viewerId;
+
+        const normalized = normalizeTourData(tourData);
+        if (!normalized.scenes.length) {
+            console.error('Vortex360 Lite: no scenes available for tour');
+            return;
+        }
+
+        const viewer = new VortexTourViewer({
+            containerId: viewerId,
+            tourId: container.getAttribute('data-vx-tour-id') || normalized.id || containerId,
+            data: normalized
+        });
+
+        this.viewers[containerId] = viewer;
+    },
+
+    initScene(containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) {
+            return;
+        }
+
+        const dataAttr = container.getAttribute('data-vx-scene-data') || container.getAttribute('data-scene');
+        if (!dataAttr) {
+            return;
+        }
+
+        let sceneData;
+        try {
+            sceneData = JSON.parse(dataAttr);
+        } catch (error) {
+            console.error('Vortex360 Lite: invalid scene data', error);
+            return;
+        }
+
+        const viewerElement = container.querySelector('.vortex360-viewer');
+        if (!viewerElement) {
+            return;
+        }
+
+        const viewerId = viewerElement.id || `${containerId}-viewer`;
+        viewerElement.id = viewerId;
+
+        const normalizedScene = normalizeSceneData(sceneData);
+        if (!normalizedScene) {
+            return;
+        }
+
+        const tourId = container.getAttribute('data-vx-scene-id') || normalizedScene.id;
+        const tourData = normalizeTourData({
+            id: tourId,
+            title: normalizedScene.title,
+            description: normalizedScene.description,
+            scenes: [normalizedScene],
+            settings: sceneData.settings || {}
+        });
+
+        const viewer = new VortexTourViewer({
+            containerId: viewerId,
+            tourId: tourId,
+            data: tourData
+        });
+
+        this.viewers[containerId] = viewer;
+    },
+
+    destroyTour(containerId) {
+        const viewer = this.viewers[containerId];
+        if (viewer && typeof viewer.destroy === 'function') {
+            viewer.destroy();
+        }
+
+        delete this.viewers[containerId];
+    }
+};
+
 // jQuery plugin wrapper (optional)
 if (typeof jQuery !== 'undefined') {
     (function($) {
@@ -757,24 +948,23 @@ if (typeof jQuery !== 'undefined') {
     })(jQuery);
 }
 
-// Auto-initialize tours with data attributes
+// Auto-initialize viewers declared in the markup
 document.addEventListener('DOMContentLoaded', function() {
-    const autoInitElements = document.querySelectorAll('[data-vx-tour-auto]');
-    autoInitElements.forEach(element => {
-        const tourId = element.getAttribute('data-vx-tour-id');
-        const tourData = element.getAttribute('data-vx-tour-data');
-        
-        if (tourId && tourData) {
-            try {
-                const data = JSON.parse(tourData);
-                new VortexTourViewer({
-                    containerId: element.id,
-                    tourId: tourId,
-                    data: data
-                });
-            } catch (error) {
-                console.error('Failed to auto-initialize tour:', error);
-            }
+    const tourElements = document.querySelectorAll('[data-vx-tour-auto]');
+    tourElements.forEach((element) => {
+        if (!element.id) {
+            element.id = 'vortex360-tour-' + Math.random().toString(36).slice(2, 10);
         }
+
+        window.Vortex360Lite.initTour(element.id);
+    });
+
+    const sceneElements = document.querySelectorAll('[data-vx-scene-auto]');
+    sceneElements.forEach((element) => {
+        if (!element.id) {
+            element.id = 'vortex360-scene-' + Math.random().toString(36).slice(2, 10);
+        }
+
+        window.Vortex360Lite.initScene(element.id);
     });
 });

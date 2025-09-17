@@ -135,10 +135,12 @@ class Vortex360_Lite_Shortcode {
         // Generate HTML output
         ob_start();
         ?>
-        <div id="<?php echo esc_attr($container_id); ?>" 
-             class="<?php echo esc_attr(implode(' ', $container_classes)); ?>" 
-             style="<?php echo esc_attr(implode('; ', $container_styles)); ?>" 
-             data-tour="<?php echo esc_attr(wp_json_encode($tour_data)); ?>">
+        <div id="<?php echo esc_attr($container_id); ?>"
+             class="<?php echo esc_attr(implode(' ', $container_classes)); ?>"
+             style="<?php echo esc_attr(implode('; ', $container_styles)); ?>"
+             data-vx-tour-auto="1"
+             data-vx-tour-id="<?php echo esc_attr($tour_id); ?>"
+             data-vx-tour-data="<?php echo esc_attr(wp_json_encode($tour_data)); ?>">
             
             <?php if ($this->parse_boolean($atts['title']) && !empty($tour->title)): ?>
             <div class="vortex360-tour-header">
@@ -169,18 +171,6 @@ class Vortex360_Lite_Shortcode {
             <?php endif; ?>
             
         </div>
-        
-        <script type="text/javascript">
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof Vortex360Lite !== 'undefined') {
-                Vortex360Lite.initTour('<?php echo esc_js($container_id); ?>');
-            } else {
-                console.error('Vortex360 Lite: JavaScript library not loaded');
-                document.getElementById('<?php echo esc_js($container_id); ?>-viewer').innerHTML = 
-                    '<div class="vortex360-error">Error: 360° viewer could not be loaded.</div>';
-            }
-        });
-        </script>
         <?php
         
         return ob_get_clean();
@@ -284,10 +274,12 @@ class Vortex360_Lite_Shortcode {
         // Generate HTML output
         ob_start();
         ?>
-        <div id="<?php echo esc_attr($container_id); ?>" 
-             class="<?php echo esc_attr(implode(' ', $container_classes)); ?>" 
-             style="<?php echo esc_attr(implode('; ', $container_styles)); ?>" 
-             data-scene="<?php echo esc_attr(wp_json_encode($scene_data)); ?>">
+        <div id="<?php echo esc_attr($container_id); ?>"
+             class="<?php echo esc_attr(implode(' ', $container_classes)); ?>"
+             style="<?php echo esc_attr(implode('; ', $container_styles)); ?>"
+             data-vx-scene-auto="1"
+             data-vx-scene-id="<?php echo esc_attr($scene_id); ?>"
+             data-vx-scene-data="<?php echo esc_attr(wp_json_encode($scene_data)); ?>">
             
             <div class="vortex360-viewer" id="<?php echo esc_attr($container_id); ?>-viewer">
                 <div class="vortex360-loading">
@@ -300,18 +292,6 @@ class Vortex360_Lite_Shortcode {
             </div>
             
         </div>
-        
-        <script type="text/javascript">
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof Vortex360Lite !== 'undefined') {
-                Vortex360Lite.initScene('<?php echo esc_js($container_id); ?>');
-            } else {
-                console.error('Vortex360 Lite: JavaScript library not loaded');
-                document.getElementById('<?php echo esc_js($container_id); ?>-viewer').innerHTML = 
-                    '<div class="vortex360-error">Error: 360° viewer could not be loaded.</div>';
-            }
-        });
-        </script>
         <?php
         
         return ob_get_clean();
@@ -530,44 +510,11 @@ class Vortex360_Lite_Shortcode {
             return;
         }
         
-        // Enqueue Pannellum library
-        wp_enqueue_script(
-            'pannellum',
-            VORTEX360_LITE_URL . 'assets/js/pannellum.js',
-            array(),
-            '2.5.6',
-            true
-        );
-        
-        wp_enqueue_style(
-            'pannellum',
-            VORTEX360_LITE_URL . 'assets/css/pannellum.css',
-            array(),
-            '2.5.6'
-        );
-        
-        // Enqueue our frontend script
-        wp_enqueue_script(
-            'vortex360-lite-frontend',
-            VORTEX360_LITE_URL . 'assets/js/frontend.js',
-            array('pannellum'),
-            VORTEX360_LITE_VERSION,
-            true
-        );
-        
-        wp_enqueue_style(
-            'vortex360-lite-frontend',
-            VORTEX360_LITE_URL . 'assets/css/frontend.css',
-            array('pannellum'),
-            VORTEX360_LITE_VERSION
-        );
-        
-        // Localize script with AJAX URL and nonce
-        wp_localize_script('vortex360-lite-frontend', 'vortex360Ajax', array(
-            'ajaxUrl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('vortex360_nonce'),
-            'pluginUrl' => VORTEX360_LITE_URL
-        ));
+        wp_enqueue_style('pannellum');
+        wp_enqueue_script('pannellum');
+
+        wp_enqueue_style('vortex360-lite-viewer');
+        wp_enqueue_script('vortex360-lite-viewer');
     }
     
     /**

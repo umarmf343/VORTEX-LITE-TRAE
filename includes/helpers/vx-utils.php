@@ -151,7 +151,9 @@ function vx_format_file_size($bytes) {
  * Check if current user can manage tours
  */
 function vx_current_user_can_manage_tours() {
-    return current_user_can('edit_vx_tours') || current_user_can('manage_options');
+    return current_user_can('manage_vx_tours')
+        || current_user_can('edit_vx_tours')
+        || current_user_can('manage_options');
 }
 
 /**

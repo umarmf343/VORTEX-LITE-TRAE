@@ -24,7 +24,7 @@ Awesome—here’s a **comprehensive, end-to-end specification** for how **Vorte
 
 # 2) Information architecture (CPT + meta schema)
 
-**Custom Post Type:** `vortex_tour`
+**Custom Post Type:** `vx_tour`
 
 **Tour meta schema (stored in a single, sanitized JSON blob):**
 

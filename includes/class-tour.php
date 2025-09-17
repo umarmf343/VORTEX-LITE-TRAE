@@ -245,9 +245,9 @@ class Vortex360_Lite_Tour {
      */
     public function get_tour_by_slug($slug) {
         global $wpdb;
-        
+
         $table_name = $wpdb->prefix . 'vortex360_tours';
-        
+
         $tour = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM $table_name WHERE slug = %s",
             $slug
@@ -259,7 +259,96 @@ class Vortex360_Lite_Tour {
         
         return $tour;
     }
-    
+
+    /**
+     * Retrieve tours with optional filters.
+     *
+     * @param array $args {
+     *     @type string   $status   Tour status filter. Default 'all'.
+     *     @type string   $orderby  Column to order by. Default 'created_at'.
+     *     @type string   $order    Sort direction. Default 'DESC'.
+     *     @type int|null $user_id  Restrict to a specific author. Default null (current user for non-admins).
+     *     @type int      $per_page Results per page. 0 disables pagination.
+     *     @type int      $page     Page number when paginating.
+     * }
+     *
+     * @return array List of tour objects.
+     */
+    public function get_all_tours($args = array()) {
+        global $wpdb;
+
+        $defaults = array(
+            'status'  => 'all',
+            'orderby' => 'created_at',
+            'order'   => 'DESC',
+            'user_id' => null,
+            'per_page'=> 0,
+            'page'    => 1,
+        );
+
+        $args = wp_parse_args($args, $defaults);
+
+        $table_name = $wpdb->prefix . 'vortex360_tours';
+
+        $conditions = array();
+        $values     = array();
+
+        if (!is_null($args['user_id'])) {
+            $conditions[] = 'created_by = %d';
+            $values[]     = absint($args['user_id']);
+        } elseif (function_exists('current_user_can') && !current_user_can('manage_options')) {
+            $conditions[] = 'created_by = %d';
+            $values[]     = get_current_user_id();
+        }
+
+        if ('all' !== $args['status']) {
+            $allowed_statuses = array('draft', 'published', 'archived');
+            $status           = sanitize_text_field($args['status']);
+
+            if (!in_array($status, $allowed_statuses, true)) {
+                $status = 'draft';
+            }
+
+            $conditions[] = 'status = %s';
+            $values[]     = $status;
+        }
+
+        $where_clause = $conditions ? 'WHERE ' . implode(' AND ', $conditions) : '';
+
+        $allowed_orderby = array('id', 'title', 'status', 'created_at', 'updated_at');
+        $orderby = in_array($args['orderby'], $allowed_orderby, true) ? $args['orderby'] : 'created_at';
+        $order   = 'ASC' === strtoupper($args['order']) ? 'ASC' : 'DESC';
+
+        $limit  = absint($args['per_page']);
+        $page   = max(1, absint($args['page']));
+        $offset = 0;
+
+        $query = "SELECT * FROM $table_name $where_clause ORDER BY $orderby $order";
+
+        $placeholders = $values;
+
+        if ($limit > 0) {
+            $offset         = ($page - 1) * $limit;
+            $query         .= ' LIMIT %d OFFSET %d';
+            $placeholders[] = $limit;
+            $placeholders[] = $offset;
+        }
+
+        if (!empty($placeholders)) {
+            $query = $wpdb->prepare($query, $placeholders);
+        }
+
+        $tours = $wpdb->get_results($query);
+
+        foreach ($tours as $tour) {
+            if (!empty($tour->settings)) {
+                $tour->settings = json_decode($tour->settings, true);
+            }
+        }
+
+        return $tours;
+    }
+
     /**
      * Get tours for current user with pagination
      * @param array $args Query arguments

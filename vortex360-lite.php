@@ -31,6 +31,67 @@ define('VORTEX360_LITE_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('VORTEX360_LITE_PLUGIN_BASENAME', plugin_basename(__FILE__));
 define('VORTEX360_LITE_TEXT_DOMAIN', 'vortex360-lite');
 
+// Legacy constants used throughout the VX_* classes.
+if (!defined('VX_VERSION')) {
+    define('VX_VERSION', VORTEX360_LITE_VERSION);
+}
+
+if (!defined('VX_PLUGIN_FILE')) {
+    define('VX_PLUGIN_FILE', __FILE__);
+}
+
+if (!defined('VX_PLUGIN_DIR')) {
+    define('VX_PLUGIN_DIR', VORTEX360_LITE_PLUGIN_PATH);
+}
+
+if (!defined('VX_PLUGIN_PATH')) {
+    define('VX_PLUGIN_PATH', VORTEX360_LITE_PLUGIN_PATH);
+}
+
+if (!defined('VX_PLUGIN_URL')) {
+    define('VX_PLUGIN_URL', VORTEX360_LITE_PLUGIN_URL);
+}
+
+if (!defined('VX_PLUGIN_BASENAME')) {
+    define('VX_PLUGIN_BASENAME', VORTEX360_LITE_PLUGIN_BASENAME);
+}
+
+if (!defined('VX_LITE_VERSION')) {
+    define('VX_LITE_VERSION', VORTEX360_LITE_VERSION);
+}
+
+if (!defined('VX_LITE_PATH')) {
+    define('VX_LITE_PATH', VORTEX360_LITE_PLUGIN_PATH);
+}
+
+if (!defined('VX_LITE_URL')) {
+    define('VX_LITE_URL', VORTEX360_LITE_PLUGIN_URL);
+}
+
+if (!defined('VX_LITE_FILE')) {
+    define('VX_LITE_FILE', __FILE__);
+}
+
+if (!defined('VX_LITE_BASENAME')) {
+    define('VX_LITE_BASENAME', VORTEX360_LITE_PLUGIN_BASENAME);
+}
+
+if (!defined('VX_MIN_PHP_VERSION')) {
+    define('VX_MIN_PHP_VERSION', '7.4');
+}
+
+if (!defined('VX_MIN_WP_VERSION')) {
+    define('VX_MIN_WP_VERSION', '5.0');
+}
+
+if (!defined('VX_DB_VERSION')) {
+    define('VX_DB_VERSION', '1.0.0');
+}
+
+if (!defined('VX_CPT')) {
+    define('VX_CPT', 'vx_tour');
+}
+
 /**
  * Main plugin class for Vortex360 Lite
  * Handles plugin initialization, activation, and deactivation
@@ -79,22 +140,66 @@ class Vortex360_Lite {
      */
     private function load_dependencies() {
         // Load core classes
-        require_once VORTEX360_LITE_PLUGIN_PATH . 'includes/class-database.php';
-        require_once VORTEX360_LITE_PLUGIN_PATH . 'includes/class-tour.php';
-        require_once VORTEX360_LITE_PLUGIN_PATH . 'includes/class-scene.php';
-        require_once VORTEX360_LITE_PLUGIN_PATH . 'includes/class-hotspot.php';
-        require_once VORTEX360_LITE_PLUGIN_PATH . 'includes/class-shortcode.php';
-        require_once VORTEX360_LITE_PLUGIN_PATH . 'includes/class-rest-api.php';
-        
+        $this->load_dependency('includes/class-database.php');
+        $this->load_dependency('includes/helpers/vx-utils.php');
+        $this->load_dependency('includes/class-tour.php');
+        $this->load_dependency('includes/class-scene.php');
+        $this->load_dependency('includes/class-hotspot.php');
+        $this->load_dependency('includes/class-shortcode.php');
+        $this->load_dependency('includes/class-rest-api.php');
+
         // Load admin classes
         if (is_admin()) {
-            require_once VORTEX360_LITE_PLUGIN_PATH . 'admin/class-admin.php';
-            require_once VORTEX360_LITE_PLUGIN_PATH . 'admin/class-admin-menu.php';
-            require_once VORTEX360_LITE_PLUGIN_PATH . 'admin/class-admin-ajax.php';
+            $this->load_dependency('admin/class-admin.php');
+            $this->load_dependency('admin/class-admin-menu.php');
+            $this->load_dependency('admin/class-admin-ajax.php');
+            $this->load_dependency('admin/class-vx-admin.php');
+            $this->load_dependency('admin/class-vx-admin-ajax.php');
         }
-        
+
         // Load public classes
-        require_once VORTEX360_LITE_PLUGIN_PATH . 'public/class-public.php';
+        $this->load_dependency('public/class-public.php');
+    }
+
+    /**
+     * Safely load a dependency file while discarding accidental output.
+     *
+     * This prevents UTF-8 BOMs or stray whitespace from breaking header
+     * operations during WordPress bootstrap.
+     *
+     * @param string $relative_path Relative path from the plugin root.
+     * @return bool True when the file was loaded, false when missing.
+     */
+    private function load_dependency($relative_path) {
+        $relative_path = ltrim($relative_path, '/');
+        $full_path     = VORTEX360_LITE_PLUGIN_PATH . $relative_path;
+
+        if (!file_exists($full_path)) {
+            $this->debug_log(sprintf('Vortex360 Lite: Missing dependency %s', $relative_path));
+            return false;
+        }
+
+        ob_start();
+        require_once $full_path;
+        $output = ob_get_clean();
+
+        if (!empty($output)) {
+            $this->debug_log(sprintf('Vortex360 Lite: Discarded unexpected output from %s', $relative_path));
+        }
+
+        return true;
+    }
+
+    /**
+     * Write debug messages when WordPress debugging is enabled.
+     *
+     * @param string $message Debug message.
+     * @return void
+     */
+    private function debug_log($message) {
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log($message);
+        }
     }
     
     /**
@@ -142,20 +247,38 @@ class Vortex360_Lite {
      */
     public function init() {
         // Initialize shortcodes
-        new Vortex360_Lite_Shortcode();
-        
+        if (class_exists('Vortex360_Lite_Shortcode')) {
+            new Vortex360_Lite_Shortcode();
+        }
+
         // Initialize REST API
-        new Vortex360_Lite_Rest_API();
-        
+        if (class_exists('Vortex360_Lite_Rest_API')) {
+            new Vortex360_Lite_Rest_API();
+        }
+
         // Initialize admin if in admin area
         if (is_admin()) {
-            new Vortex360_Lite_Admin();
-            new Vortex360_Lite_Admin_Menu();
-            new Vortex360_Lite_Admin_Ajax();
+            if (class_exists('Vortex360_Lite_Admin')) {
+                new Vortex360_Lite_Admin(VORTEX360_LITE_VERSION);
+            } elseif (class_exists('VX_Admin')) {
+                new VX_Admin(VORTEX360_LITE_VERSION);
+            }
+
+            if (class_exists('Vortex360_Lite_Admin_Menu')) {
+                new Vortex360_Lite_Admin_Menu();
+            }
+
+            if (class_exists('Vortex360_Lite_Admin_Ajax')) {
+                new Vortex360_Lite_Admin_Ajax();
+            } elseif (class_exists('VX_Admin_Ajax')) {
+                new VX_Admin_Ajax();
+            }
         }
-        
+
         // Initialize public
-        new Vortex360_Lite_Public();
+        if (class_exists('Vortex360_Lite_Public')) {
+            new Vortex360_Lite_Public();
+        }
     }
     
     /**
@@ -197,43 +320,41 @@ class Vortex360_Lite {
      * Enqueue frontend scripts and styles
      */
     public function frontend_enqueue_scripts() {
-        // Enqueue Pannellum library
-        wp_enqueue_style(
+        // Pannellum is bundled via CDN inside the viewer bootstrap.
+        wp_register_style(
             'pannellum',
-            VORTEX360_LITE_PLUGIN_URL . 'assets/pannellum/pannellum.css',
+            'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css',
             array(),
             '2.5.6'
         );
-        
-        wp_enqueue_script(
+
+        wp_register_script(
             'pannellum',
-            VORTEX360_LITE_PLUGIN_URL . 'assets/pannellum/pannellum.js',
+            'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js',
             array(),
             '2.5.6',
             true
         );
-        
-        // Enqueue plugin frontend CSS
-        wp_enqueue_style(
-            'vortex360-lite-public',
-            VORTEX360_LITE_PLUGIN_URL . 'public/css/public.css',
-            array('pannellum'),
+
+        wp_register_style(
+            'vortex360-lite-viewer',
+            VORTEX360_LITE_PLUGIN_URL . 'assets/css/tour-viewer.css',
+            array(),
             VORTEX360_LITE_VERSION
         );
-        
-        // Enqueue plugin frontend JS
-        wp_enqueue_script(
-            'vortex360-lite-public',
-            VORTEX360_LITE_PLUGIN_URL . 'public/js/public.js',
-            array('jquery', 'pannellum'),
+
+        wp_register_script(
+            'vortex360-lite-viewer',
+            VORTEX360_LITE_PLUGIN_URL . 'assets/js/tour-viewer.js',
+            array('pannellum'),
             VORTEX360_LITE_VERSION,
             true
         );
-        
-        // Localize script for frontend
-        wp_localize_script('vortex360-lite-public', 'vortex360_public', array(
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'plugin_url' => VORTEX360_LITE_PLUGIN_URL
+
+        wp_localize_script('vortex360-lite-viewer', 'vortex360Ajax', array(
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('vortex360_lite_nonce'),
+            'pluginUrl' => VORTEX360_LITE_PLUGIN_URL
         ));
     }
 }

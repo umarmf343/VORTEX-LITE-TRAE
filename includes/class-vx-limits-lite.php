@@ -74,7 +74,7 @@ class VX_Limits_Lite {
      */
     public function init_hooks() {
         // Hook into save post to enforce limits
-        add_action('save_post_vortex_tour', array($this, 'enforce_limits_on_save'), 10, 2);
+        add_action('save_post_vx_tour', array($this, 'enforce_limits_on_save'), 10, 2);
         
         // Add AJAX handlers for limit checking
         add_action('wp_ajax_vx_check_scene_limit', array($this, 'ajax_check_scene_limit'));
@@ -221,7 +221,7 @@ class VX_Limits_Lite {
     public function display_limit_notices() {
         $screen = get_current_screen();
         
-        if (!$screen || $screen->post_type !== 'vortex_tour') {
+        if (!$screen || $screen->post_type !== 'vx_tour') {
             return;
         }
 

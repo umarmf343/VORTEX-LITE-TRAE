@@ -24,6 +24,11 @@ class Vortex360_Lite_Hotspot {
     private $database;
     
     /**
+     * Maximum hotspots allowed per scene for Lite installs.
+     */
+    private const MAX_HOTSPOTS = 5;
+
+    /**
      * Constructor
      */
     public function __construct() {
@@ -79,16 +84,32 @@ class Vortex360_Lite_Hotspot {
             );
         }
         
-        // Validate hotspot type
-        $valid_types = array('info', 'scene', 'link', 'image', 'video');
-        if (!in_array($data['type'], $valid_types)) {
+        // Normalize hotspot type to supported Lite values
+        $normalized_type = $this->normalize_hotspot_type($data['type']);
+        if (is_wp_error($normalized_type)) {
             return array(
                 'success' => false,
-                'error' => 'Invalid hotspot type.',
+                'error' => $normalized_type->get_error_message(),
                 'code' => 'INVALID_TYPE'
             );
         }
-        
+
+        $data['type'] = $normalized_type;
+
+        // Lite limit enforcement: 5 hotspots per scene
+        $current_hotspots = $this->get_hotspot_count($data['scene_id']);
+        if ($current_hotspots >= $this->get_hotspot_limit()) {
+            return array(
+                'success' => false,
+                'error' => sprintf(
+                    /* translators: %d = maximum number of hotspots allowed */
+                    __('Lite version allows a maximum of %d hotspots per scene. Upgrade to Pro for additional hotspots.', 'vortex360-lite'),
+                    $this->get_hotspot_limit()
+                ),
+                'code' => 'LITE_HOTSPOT_LIMIT'
+            );
+        }
+
         // Sanitize data
         $sanitized_data = $this->database->sanitize_hotspot_data($data);
         
@@ -154,14 +175,16 @@ class Vortex360_Lite_Hotspot {
         
         // Validate hotspot type if provided
         if (isset($data['type'])) {
-            $valid_types = array('info', 'scene', 'link', 'image', 'video');
-            if (!in_array($data['type'], $valid_types)) {
+            $normalized_type = $this->normalize_hotspot_type($data['type']);
+            if (is_wp_error($normalized_type)) {
                 return array(
                     'success' => false,
-                    'error' => 'Invalid hotspot type.',
+                    'error' => $normalized_type->get_error_message(),
                     'code' => 'INVALID_TYPE'
                 );
             }
+
+            $data['type'] = $normalized_type;
         }
         
         // Sanitize data
@@ -519,7 +542,7 @@ class Vortex360_Lite_Hotspot {
         }
         
         $result = $this->create_hotspot($data);
-        
+
         wp_send_json($result);
     }
     
@@ -556,8 +579,62 @@ class Vortex360_Lite_Hotspot {
         }
         
         $result = $this->update_hotspot($hotspot_id, $data);
-        
+
         wp_send_json($result);
+    }
+
+    /**
+     * Normalize the requested hotspot type to an allowed Lite value.
+     *
+     * @param string $type Raw type string.
+     * @return string|WP_Error
+     */
+    private function normalize_hotspot_type($type) {
+        $type = strtolower((string) $type);
+
+        if (in_array($type, array('info', 'text'), true)) {
+            return 'info';
+        }
+
+        if (in_array($type, array('link', 'url'), true)) {
+            return 'link';
+        }
+
+        if ('image' === $type) {
+            return 'image';
+        }
+
+        return new WP_Error('invalid_hotspot_type', __('Lite version supports only text, image, or link hotspots.', 'vortex360-lite'));
+    }
+
+    /**
+     * Retrieve the maximum hotspot count allowed for a scene.
+     *
+     * @return int
+     */
+    private function get_hotspot_limit() {
+        $limit = apply_filters('vortex360_lite_max_hotspots_per_scene', self::MAX_HOTSPOTS);
+
+        return max(1, absint($limit));
+    }
+
+    /**
+     * Count hotspots assigned to a scene.
+     *
+     * @param int $scene_id Scene identifier.
+     * @return int
+     */
+    private function get_hotspot_count($scene_id) {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'vortex360_hotspots';
+
+        return (int) $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COUNT(*) FROM $table_name WHERE scene_id = %d",
+                absint($scene_id)
+            )
+        );
     }
     
     /**

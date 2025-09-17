@@ -59,9 +59,9 @@ class VX_Admin {
         add_action('admin_notices', array($this, 'admin_notices'));
         
         // Post list customizations
-        add_filter('manage_vortex_tour_posts_columns', array($this, 'add_custom_columns'));
-        add_action('manage_vortex_tour_posts_custom_column', array($this, 'custom_column_content'), 10, 2);
-        add_filter('manage_edit-vortex_tour_sortable_columns', array($this, 'sortable_columns'));
+        add_filter('manage_vx_tour_posts_columns', array($this, 'add_custom_columns'));
+        add_action('manage_vx_tour_posts_custom_column', array($this, 'custom_column_content'), 10, 2);
+        add_filter('manage_edit-vx_tour_sortable_columns', array($this, 'sortable_columns'));
         
         // Post row actions
         add_filter('post_row_actions', array($this, 'add_row_actions'), 10, 2);
@@ -81,7 +81,7 @@ class VX_Admin {
         add_menu_page(
             __('Vortex360 Tours', 'vortex360-lite'),
             __('Vortex360', 'vortex360-lite'),
-            'manage_vortex_tours',
+            'manage_vx_tours',
             'vortex360-tours',
             array($this, 'tours_page'),
             'dashicons-format-gallery',
@@ -93,8 +93,8 @@ class VX_Admin {
             'vortex360-tours',
             __('All Tours', 'vortex360-lite'),
             __('All Tours', 'vortex360-lite'),
-            'manage_vortex_tours',
-            'edit.php?post_type=vortex_tour'
+            'manage_vx_tours',
+            'edit.php?post_type=vx_tour'
         );
         
         // Add New submenu (redirect to post type)
@@ -102,8 +102,8 @@ class VX_Admin {
             'vortex360-tours',
             __('Add New Tour', 'vortex360-lite'),
             __('Add New', 'vortex360-lite'),
-            'edit_vortex_tours',
-            'post-new.php?post_type=vortex_tour'
+            'edit_vx_tours',
+            'post-new.php?post_type=vx_tour'
         );
         
         // Settings submenu
@@ -121,7 +121,7 @@ class VX_Admin {
             'vortex360-tours',
             __('Upgrade to Pro', 'vortex360-lite'),
             '<span style="color: #f18500;">' . __('Upgrade to Pro', 'vortex360-lite') . '</span>',
-            'manage_vortex_tours',
+            'manage_vx_tours',
             'vortex360-upgrade',
             array($this, 'upgrade_page')
         );
@@ -238,7 +238,7 @@ class VX_Admin {
         // Metabox styles (tour edit page)
         if ($hook === 'post.php' || $hook === 'post-new.php') {
             global $post_type;
-            if ($post_type === 'vortex_tour') {
+            if ($post_type === 'vx_tour') {
                 wp_enqueue_style(
                     'vortex360-admin-metabox',
                     plugin_dir_url(__FILE__) . 'css/vx-admin-metabox.css',
@@ -281,7 +281,7 @@ class VX_Admin {
         // Metabox scripts (tour edit page)
         if ($hook === 'post.php' || $hook === 'post-new.php') {
             global $post_type, $post;
-            if ($post_type === 'vortex_tour') {
+            if ($post_type === 'vx_tour') {
                 wp_enqueue_media();
                 wp_enqueue_script('wp-color-picker');
                 wp_enqueue_script('jquery-ui-sortable');
@@ -333,7 +333,7 @@ class VX_Admin {
             echo '<p><strong>' . __('Vortex360 Lite activated!', 'vortex360-lite') . '</strong> ';
             echo sprintf(
                 __('Get started by <a href="%s">creating your first 360° tour</a>.', 'vortex360-lite'),
-                admin_url('post-new.php?post_type=vortex_tour')
+                admin_url('post-new.php?post_type=vx_tour')
             );
             echo '</p></div>';
             delete_transient('vx_activation_notice');
@@ -360,7 +360,7 @@ class VX_Admin {
         }
         
         // Show different notices based on context
-        if ($screen->id === 'vortex_tour') {
+        if ($screen->id === 'vx_tour') {
             $this->show_editor_upgrade_notice();
         } elseif (strpos($screen->id, 'vortex360') !== false) {
             $this->show_general_upgrade_notice();
@@ -476,7 +476,7 @@ class VX_Admin {
      * Add custom row actions
      */
     public function add_row_actions($actions, $post) {
-        if ($post->post_type === 'vortex_tour') {
+        if ($post->post_type === 'vx_tour') {
             // Preview action
             $preview_url = add_query_arg(array(
                 'vx_preview' => '1',
@@ -505,7 +505,7 @@ class VX_Admin {
      */
     public function tours_page() {
         // Redirect to post type list
-        wp_redirect(admin_url('edit.php?post_type=vortex_tour'));
+        wp_redirect(admin_url('edit.php?post_type=vx_tour'));
         exit;
     }
 
@@ -642,11 +642,11 @@ class VX_Admin {
             'toplevel_page_vortex360-tours',
             'vortex360_page_vortex360-settings',
             'vortex360_page_vortex360-upgrade',
-            'edit-vortex_tour',
-            'vortex_tour'
+            'edit-vx_tour',
+            'vx_tour'
         );
         
         return in_array($hook, $vortex_pages) || 
-               (isset($_GET['post_type']) && $_GET['post_type'] === 'vortex_tour');
+               (isset($_GET['post_type']) && $_GET['post_type'] === 'vx_tour');
     }
 }

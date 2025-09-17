@@ -43,13 +43,18 @@ class Vortex360_Lite_Scene {
     }
     
     /**
+     * Maximum number of scenes allowed for a tour in Lite.
+     */
+    private const MAX_SCENES = 5;
+
+    /**
      * Create a new scene
      * @param array $data Scene data
      * @return array Result with success status and data/error
      */
     public function create_scene($data) {
         global $wpdb;
-        
+
         // Validate required fields
         if (empty($data['tour_id']) || empty($data['title']) || empty($data['image_url'])) {
             return array(
@@ -79,9 +84,23 @@ class Vortex360_Lite_Scene {
             );
         }
         
+        // Enforce Lite limit before attempting to insert a new scene
+        $current_scene_count = $this->get_scene_count($data['tour_id']);
+        if ($current_scene_count >= $this->get_scene_limit()) {
+            return array(
+                'success' => false,
+                'error' => sprintf(
+                    /* translators: %d = maximum number of scenes allowed in Lite */
+                    __('Lite version allows a maximum of %d scenes per tour. Upgrade to Pro for additional scenes.', 'vortex360-lite'),
+                    $this->get_scene_limit()
+                ),
+                'code' => 'LITE_SCENE_LIMIT'
+            );
+        }
+
         // Sanitize data
         $sanitized_data = $this->database->sanitize_scene_data($data);
-        
+
         // Set sort order if not provided
         if (!isset($sanitized_data['sort_order'])) {
             $sanitized_data['sort_order'] = $this->get_next_sort_order($data['tour_id']);
@@ -118,6 +137,17 @@ class Vortex360_Lite_Scene {
                 'message' => 'Scene created successfully'
             )
         );
+    }
+
+    /**
+     * Retrieve the Lite scene limit.
+     *
+     * @return int
+     */
+    private function get_scene_limit() {
+        $limit = apply_filters('vortex360_lite_max_scenes_per_tour', self::MAX_SCENES);
+
+        return max(1, absint($limit));
     }
     
     /**

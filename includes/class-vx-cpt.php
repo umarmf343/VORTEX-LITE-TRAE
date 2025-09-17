@@ -2,7 +2,7 @@
 /**
  * Custom Post Type functionality
  *
- * Registers the vortex_tour custom post type and related capabilities.
+ * Registers the vx_tour custom post type and related capabilities.
  *
  * @link       https://vortex360.co
  * @since      1.0.0
@@ -19,7 +19,7 @@ if (!defined('ABSPATH')) {
 /**
  * Custom Post Type class.
  *
- * Registers the vortex_tour custom post type with proper capabilities
+ * Registers the vx_tour custom post type with proper capabilities
  * and taxonomies for organizing virtual tours.
  *
  * @since      1.0.0
@@ -36,7 +36,7 @@ class VX_CPT {
      * @access   private
      * @var      string    $post_type    The post type slug.
      */
-    private $post_type = 'vortex_tour';
+    private $post_type = 'vx_tour';
 
     /**
      * Register the custom post type.
@@ -75,19 +75,19 @@ class VX_CPT {
         );
 
         $capabilities = array(
-            'edit_post'          => 'edit_vortex_tour',
-            'read_post'          => 'read_vortex_tour',
-            'delete_post'        => 'delete_vortex_tour',
-            'edit_posts'         => 'edit_vortex_tours',
-            'edit_others_posts'  => 'edit_others_vortex_tours',
-            'publish_posts'      => 'publish_vortex_tours',
-            'read_private_posts' => 'read_private_vortex_tours',
-            'delete_posts'       => 'delete_vortex_tours',
-            'delete_private_posts' => 'delete_private_vortex_tours',
-            'delete_published_posts' => 'delete_published_vortex_tours',
-            'delete_others_posts' => 'delete_others_vortex_tours',
-            'edit_private_posts' => 'edit_private_vortex_tours',
-            'edit_published_posts' => 'edit_published_vortex_tours',
+            'edit_post'             => 'edit_vx_tour',
+            'read_post'             => 'read_vx_tour',
+            'delete_post'           => 'delete_vx_tour',
+            'edit_posts'            => 'edit_vx_tours',
+            'edit_others_posts'     => 'edit_others_vx_tours',
+            'publish_posts'         => 'publish_vx_tours',
+            'read_private_posts'    => 'read_private_vx_tours',
+            'delete_posts'          => 'delete_vx_tours',
+            'delete_private_posts'  => 'delete_private_vx_tours',
+            'delete_published_posts'=> 'delete_published_vx_tours',
+            'delete_others_posts'   => 'delete_others_vx_tours',
+            'edit_private_posts'    => 'edit_private_vx_tours',
+            'edit_published_posts'  => 'edit_published_vx_tours',
         );
 
         $args = array(
@@ -111,7 +111,7 @@ class VX_CPT {
             'capabilities'          => $capabilities,
             'map_meta_cap'          => true,
             'show_in_rest'          => true,
-            'rest_base'             => 'vortex-tours',
+            'rest_base'             => 'vx-tours',
             'rest_controller_class' => 'WP_REST_Posts_Controller',
         );
 
@@ -129,19 +129,20 @@ class VX_CPT {
         
         if ($admin_role) {
             // Add capabilities to administrator
-            $admin_role->add_cap('edit_vortex_tour');
-            $admin_role->add_cap('read_vortex_tour');
-            $admin_role->add_cap('delete_vortex_tour');
-            $admin_role->add_cap('edit_vortex_tours');
-            $admin_role->add_cap('edit_others_vortex_tours');
-            $admin_role->add_cap('publish_vortex_tours');
-            $admin_role->add_cap('read_private_vortex_tours');
-            $admin_role->add_cap('delete_vortex_tours');
-            $admin_role->add_cap('delete_private_vortex_tours');
-            $admin_role->add_cap('delete_published_vortex_tours');
-            $admin_role->add_cap('delete_others_vortex_tours');
-            $admin_role->add_cap('edit_private_vortex_tours');
-            $admin_role->add_cap('edit_published_vortex_tours');
+            $admin_role->add_cap('manage_vx_tours');
+            $admin_role->add_cap('edit_vx_tour');
+            $admin_role->add_cap('read_vx_tour');
+            $admin_role->add_cap('delete_vx_tour');
+            $admin_role->add_cap('edit_vx_tours');
+            $admin_role->add_cap('edit_others_vx_tours');
+            $admin_role->add_cap('publish_vx_tours');
+            $admin_role->add_cap('read_private_vx_tours');
+            $admin_role->add_cap('delete_vx_tours');
+            $admin_role->add_cap('delete_private_vx_tours');
+            $admin_role->add_cap('delete_published_vx_tours');
+            $admin_role->add_cap('delete_others_vx_tours');
+            $admin_role->add_cap('edit_private_vx_tours');
+            $admin_role->add_cap('edit_published_vx_tours');
         }
 
         // Get the editor role
@@ -149,19 +150,20 @@ class VX_CPT {
         
         if ($editor_role) {
             // Add capabilities to editor
-            $editor_role->add_cap('edit_vortex_tour');
-            $editor_role->add_cap('read_vortex_tour');
-            $editor_role->add_cap('delete_vortex_tour');
-            $editor_role->add_cap('edit_vortex_tours');
-            $editor_role->add_cap('edit_others_vortex_tours');
-            $editor_role->add_cap('publish_vortex_tours');
-            $editor_role->add_cap('read_private_vortex_tours');
-            $editor_role->add_cap('delete_vortex_tours');
-            $editor_role->add_cap('delete_private_vortex_tours');
-            $editor_role->add_cap('delete_published_vortex_tours');
-            $editor_role->add_cap('delete_others_vortex_tours');
-            $editor_role->add_cap('edit_private_vortex_tours');
-            $editor_role->add_cap('edit_published_vortex_tours');
+            $editor_role->add_cap('manage_vx_tours');
+            $editor_role->add_cap('edit_vx_tour');
+            $editor_role->add_cap('read_vx_tour');
+            $editor_role->add_cap('delete_vx_tour');
+            $editor_role->add_cap('edit_vx_tours');
+            $editor_role->add_cap('edit_others_vx_tours');
+            $editor_role->add_cap('publish_vx_tours');
+            $editor_role->add_cap('read_private_vx_tours');
+            $editor_role->add_cap('delete_vx_tours');
+            $editor_role->add_cap('delete_private_vx_tours');
+            $editor_role->add_cap('delete_published_vx_tours');
+            $editor_role->add_cap('delete_others_vx_tours');
+            $editor_role->add_cap('edit_private_vx_tours');
+            $editor_role->add_cap('edit_published_vx_tours');
         }
 
         // Get the author role
@@ -169,14 +171,14 @@ class VX_CPT {
         
         if ($author_role) {
             // Add limited capabilities to author
-            $author_role->add_cap('edit_vortex_tour');
-            $author_role->add_cap('read_vortex_tour');
-            $author_role->add_cap('delete_vortex_tour');
-            $author_role->add_cap('edit_vortex_tours');
-            $author_role->add_cap('publish_vortex_tours');
-            $author_role->add_cap('delete_vortex_tours');
-            $author_role->add_cap('delete_published_vortex_tours');
-            $author_role->add_cap('edit_published_vortex_tours');
+            $author_role->add_cap('edit_vx_tour');
+            $author_role->add_cap('read_vx_tour');
+            $author_role->add_cap('delete_vx_tour');
+            $author_role->add_cap('edit_vx_tours');
+            $author_role->add_cap('publish_vx_tours');
+            $author_role->add_cap('delete_vx_tours');
+            $author_role->add_cap('delete_published_vx_tours');
+            $author_role->add_cap('edit_published_vx_tours');
         }
     }
 
@@ -198,19 +200,20 @@ class VX_CPT {
     public static function remove_capabilities() {
         $roles = array('administrator', 'editor', 'author');
         $caps = array(
-            'edit_vortex_tour',
-            'read_vortex_tour',
-            'delete_vortex_tour',
-            'edit_vortex_tours',
-            'edit_others_vortex_tours',
-            'publish_vortex_tours',
-            'read_private_vortex_tours',
-            'delete_vortex_tours',
-            'delete_private_vortex_tours',
-            'delete_published_vortex_tours',
-            'delete_others_vortex_tours',
-            'edit_private_vortex_tours',
-            'edit_published_vortex_tours'
+            'manage_vx_tours',
+            'edit_vx_tour',
+            'read_vx_tour',
+            'delete_vx_tour',
+            'edit_vx_tours',
+            'edit_others_vx_tours',
+            'publish_vx_tours',
+            'read_private_vx_tours',
+            'delete_vx_tours',
+            'delete_private_vx_tours',
+            'delete_published_vx_tours',
+            'delete_others_vx_tours',
+            'edit_private_vx_tours',
+            'edit_published_vx_tours'
         );
 
         foreach ($roles as $role_name) {

@@ -51,7 +51,7 @@ class VX_Admin_Ajax {
         }
 
         // Check capabilities
-        if (!current_user_can('edit_vortex_tours')) {
+        if (!current_user_can('edit_vx_tours')) {
             wp_die('Insufficient permissions');
         }
 
@@ -123,7 +123,7 @@ class VX_Admin_Ajax {
         }
 
         // Check capabilities
-        if (!current_user_can('edit_vortex_tours')) {
+        if (!current_user_can('edit_vx_tours')) {
             wp_die('Insufficient permissions');
         }
 
@@ -133,7 +133,7 @@ class VX_Admin_Ajax {
         }
 
         $original_post = get_post($tour_id);
-        if (!$original_post || $original_post->post_type !== 'vortex_tour') {
+        if (!$original_post || $original_post->post_type !== 'vx_tour') {
             wp_send_json_error('Tour not found');
         }
 
@@ -142,7 +142,7 @@ class VX_Admin_Ajax {
             'post_title' => $original_post->post_title . ' (Copy)',
             'post_content' => $original_post->post_content,
             'post_status' => 'draft',
-            'post_type' => 'vortex_tour',
+            'post_type' => 'vx_tour',
             'post_author' => get_current_user_id()
         );
 
@@ -187,7 +187,7 @@ class VX_Admin_Ajax {
         }
 
         $post = get_post($tour_id);
-        if (!$post || $post->post_type !== 'vortex_tour') {
+        if (!$post || $post->post_type !== 'vx_tour') {
             wp_send_json_error('Tour not found');
         }
 
@@ -230,7 +230,7 @@ class VX_Admin_Ajax {
         }
 
         // Check capabilities
-        if (!current_user_can('edit_vortex_tours')) {
+        if (!current_user_can('edit_vx_tours')) {
             wp_die('Insufficient permissions');
         }
 
@@ -259,7 +259,7 @@ class VX_Admin_Ajax {
             'post_title' => sanitize_text_field($import_data['tour']['title']) . ' (Imported)',
             'post_content' => wp_kses_post($import_data['tour']['content']),
             'post_status' => 'draft',
-            'post_type' => 'vortex_tour',
+            'post_type' => 'vx_tour',
             'post_author' => get_current_user_id()
         );
 

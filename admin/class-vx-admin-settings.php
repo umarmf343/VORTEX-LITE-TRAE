@@ -52,7 +52,7 @@ class VX_Admin_Settings {
      */
     public function add_settings_page() {
         add_submenu_page(
-            'edit.php?post_type=vortex_tour',
+            'edit.php?post_type=vx_tour',
             __('Settings', 'vortex360-lite'),
             __('Settings', 'vortex360-lite'),
             'manage_options',
@@ -285,19 +285,19 @@ class VX_Admin_Settings {
             </div>
 
             <nav class="nav-tab-wrapper">
-                <a href="?post_type=vortex_tour&page=<?php echo self::PAGE_SLUG; ?>&tab=general" 
+                <a href="?post_type=vx_tour&page=<?php echo self::PAGE_SLUG; ?>&tab=general"
                    class="nav-tab <?php echo $active_tab === 'general' ? 'nav-tab-active' : ''; ?>">
                     <?php _e('General', 'vortex360-lite'); ?>
                 </a>
-                <a href="?post_type=vortex_tour&page=<?php echo self::PAGE_SLUG; ?>&tab=viewer" 
+                <a href="?post_type=vx_tour&page=<?php echo self::PAGE_SLUG; ?>&tab=viewer"
                    class="nav-tab <?php echo $active_tab === 'viewer' ? 'nav-tab-active' : ''; ?>">
                     <?php _e('Viewer', 'vortex360-lite'); ?>
                 </a>
-                <a href="?post_type=vortex_tour&page=<?php echo self::PAGE_SLUG; ?>&tab=performance" 
+                <a href="?post_type=vx_tour&page=<?php echo self::PAGE_SLUG; ?>&tab=performance"
                    class="nav-tab <?php echo $active_tab === 'performance' ? 'nav-tab-active' : ''; ?>">
                     <?php _e('Performance', 'vortex360-lite'); ?>
                 </a>
-                <a href="?post_type=vortex_tour&page=<?php echo self::PAGE_SLUG; ?>&tab=upgrade" 
+                <a href="?post_type=vx_tour&page=<?php echo self::PAGE_SLUG; ?>&tab=upgrade"
                    class="nav-tab <?php echo $active_tab === 'upgrade' ? 'nav-tab-active' : ''; ?>">
                     <?php _e('Upgrade', 'vortex360-lite'); ?>
                 </a>
@@ -425,12 +425,12 @@ class VX_Admin_Settings {
                     </button>
                 </p>
                 <p>
-                    <a href="<?php echo admin_url('edit.php?post_type=vortex_tour'); ?>" class="button">
+                    <a href="<?php echo admin_url('edit.php?post_type=vx_tour'); ?>" class="button">
                         <?php _e('Manage Tours', 'vortex360-lite'); ?>
                     </a>
                 </p>
                 <p>
-                    <a href="<?php echo admin_url('post-new.php?post_type=vortex_tour'); ?>" class="button button-primary">
+                    <a href="<?php echo admin_url('post-new.php?post_type=vx_tour'); ?>" class="button button-primary">
                         <?php _e('Create New Tour', 'vortex360-lite'); ?>
                     </a>
                 </p>

@@ -133,7 +133,7 @@ class VX_Rest_API {
         $tour_id = $request['id'];
         
         $tour = get_post($tour_id);
-        if (!$tour || $tour->post_type !== 'vortex_tour') {
+        if (!$tour || $tour->post_type !== 'vx_tour') {
             return new WP_Error('tour_not_found', __('Tour not found.', 'vortex360-lite'), array('status' => 404));
         }
 
@@ -168,7 +168,7 @@ class VX_Rest_API {
      */
     public function get_tours($request) {
         $args = array(
-            'post_type' => 'vortex_tour',
+            'post_type' => 'vx_tour',
             'post_status' => 'publish',
             'posts_per_page' => $request['per_page'],
             'paged' => $request['page'],
@@ -224,7 +224,7 @@ class VX_Rest_API {
         $tour_id = $request['id'];
         
         $tour = get_post($tour_id);
-        if (!$tour || $tour->post_type !== 'vortex_tour') {
+        if (!$tour || $tour->post_type !== 'vx_tour') {
             return new WP_Error('tour_not_found', __('Tour not found.', 'vortex360-lite'), array('status' => 404));
         }
 
@@ -317,7 +317,7 @@ class VX_Rest_API {
         }
 
         $tour = get_post($tour_id);
-        if (!$tour || $tour->post_type !== 'vortex_tour') {
+        if (!$tour || $tour->post_type !== 'vx_tour') {
             wp_send_json_error(__('Tour not found.', 'vortex360-lite'));
         }
 
@@ -418,7 +418,7 @@ class VX_Rest_API {
         $tour_id = $request['id'];
         $tour = get_post($tour_id);
         
-        if (!$tour || $tour->post_type !== 'vortex_tour') {
+        if (!$tour || $tour->post_type !== 'vx_tour') {
             return false;
         }
 

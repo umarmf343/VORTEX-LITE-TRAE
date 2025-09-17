@@ -27,7 +27,11 @@ class Vortex360_Lite_Admin {
      * Constructor
      * @param string $version Plugin version
      */
-    public function __construct($version) {
+    public function __construct($version = null) {
+        if ($version === null) {
+            $version = defined('VORTEX360_LITE_VERSION') ? VORTEX360_LITE_VERSION : '1.0.0';
+        }
+
         $this->version = $version;
         
         // Admin hooks
@@ -181,45 +185,58 @@ class Vortex360_Lite_Admin {
      * Tours admin page
      */
     public function admin_page_tours() {
-        $tour_manager = new Vortex360_Lite_Tour();
-        $tours = $tour_manager->get_all_tours();
-        
-        include VORTEX360_LITE_PLUGIN_PATH . 'admin/partials/tours-list.php';
+        $template = VORTEX360_LITE_PLUGIN_PATH . 'admin/templates/dashboard.php';
+
+        if (file_exists($template)) {
+            require $template;
+            return;
+        }
+
+        echo '<div class="wrap">';
+        echo '<h1>' . esc_html__('Vortex360 Lite', 'vortex360-lite') . '</h1>';
+        echo '<p>' . esc_html__('Dashboard template is missing. Please reinstall the plugin.', 'vortex360-lite') . '</p>';
+        echo '</div>';
     }
     
     /**
      * Add/Edit tour admin page
      */
     public function admin_page_add_tour() {
-        $tour_id = absint($_GET['tour_id'] ?? 0);
-        $tour = null;
-        $scenes = array();
-        
-        if ($tour_id) {
-            $tour_manager = new Vortex360_Lite_Tour();
-            $tour = $tour_manager->get_tour_by_id($tour_id);
-            
-            if ($tour) {
-                $scene_manager = new Vortex360_Lite_Scene();
-                $scenes = $scene_manager->get_tour_scenes($tour_id, true);
-            }
-        }
-        
-        include VORTEX360_LITE_PLUGIN_PATH . 'admin/partials/tour-editor.php';
+        $this->admin_page_tours();
     }
     
     /**
      * Settings admin page
      */
     public function admin_page_settings() {
-        include VORTEX360_LITE_PLUGIN_PATH . 'admin/partials/settings.php';
+        $template = VORTEX360_LITE_PLUGIN_PATH . 'admin/views/page-settings.php';
+
+        if (file_exists($template)) {
+            require $template;
+            return;
+        }
+
+        echo '<div class="wrap">';
+        echo '<h1>' . esc_html__('Vortex360 Lite', 'vortex360-lite') . '</h1>';
+        echo '<p>' . esc_html__('Settings screen is unavailable. Please reinstall the plugin.', 'vortex360-lite') . '</p>';
+        echo '</div>';
     }
     
     /**
      * Help admin page
      */
     public function admin_page_help() {
-        include VORTEX360_LITE_PLUGIN_PATH . 'admin/partials/help.php';
+        $template = VORTEX360_LITE_PLUGIN_PATH . 'admin/views/page-help.php';
+
+        if (file_exists($template)) {
+            require $template;
+            return;
+        }
+
+        echo '<div class="wrap">';
+        echo '<h1>' . esc_html__('Vortex360 Lite', 'vortex360-lite') . '</h1>';
+        echo '<p>' . esc_html__('Help resources are currently unavailable.', 'vortex360-lite') . '</p>';
+        echo '</div>';
     }
     
     /**
@@ -318,9 +335,12 @@ class Vortex360_Lite_Admin {
         
         // Check Lite version limit for new tours
         if (!$tour_id) {
-            $existing_tours = $tour_manager->get_all_tours();
+            $existing_tours = $tour_manager->get_all_tours(array(
+                'user_id' => get_current_user_id(),
+            ));
+
             if (count($existing_tours) >= 1) {
-                wp_send_json_error('Lite version allows only 1 tour. Upgrade to Pro for unlimited tours.');
+                wp_send_json_error(__('Lite version allows only 1 tour. Upgrade to Pro for unlimited tours.', 'vortex360-lite'));
             }
         }
         
@@ -335,17 +355,30 @@ class Vortex360_Lite_Admin {
             $result = $tour_manager->update_tour($tour_id, $tour_data);
         } else {
             $result = $tour_manager->create_tour($tour_data);
-            $tour_id = $result;
+            if (is_array($result) && !empty($result['success']) && isset($result['data']['id'])) {
+                $tour_id = (int) $result['data']['id'];
+            }
         }
-        
+
+        if (is_array($result)) {
+            if (!empty($result['success'])) {
+                wp_send_json_success(array(
+                    'tour_id' => $tour_id,
+                    'message' => $result['data']['message'] ?? __('Tour saved successfully', 'vortex360-lite'),
+                ));
+            }
+
+            wp_send_json_error($result['error'] ?? __('Failed to save tour', 'vortex360-lite'));
+        }
+
         if ($result) {
             wp_send_json_success(array(
                 'tour_id' => $tour_id,
-                'message' => 'Tour saved successfully'
+                'message' => __('Tour saved successfully', 'vortex360-lite'),
             ));
-        } else {
-            wp_send_json_error('Failed to save tour');
         }
+
+        wp_send_json_error(__('Failed to save tour', 'vortex360-lite'));
     }
     
     /**
@@ -369,12 +402,20 @@ class Vortex360_Lite_Admin {
         
         $tour_manager = new Vortex360_Lite_Tour();
         $result = $tour_manager->delete_tour($tour_id);
-        
-        if ($result) {
-            wp_send_json_success('Tour deleted successfully');
-        } else {
-            wp_send_json_error('Failed to delete tour');
+
+        if (is_array($result)) {
+            if (!empty($result['success'])) {
+                wp_send_json_success($result['data']['message'] ?? __('Tour deleted successfully', 'vortex360-lite'));
+            }
+
+            wp_send_json_error($result['error'] ?? __('Failed to delete tour', 'vortex360-lite'));
         }
+
+        if ($result) {
+            wp_send_json_success(__('Tour deleted successfully', 'vortex360-lite'));
+        }
+
+        wp_send_json_error(__('Failed to delete tour', 'vortex360-lite'));
     }
     
     /**
@@ -426,17 +467,30 @@ class Vortex360_Lite_Admin {
             $result = $scene_manager->update_scene($scene_id, $scene_data);
         } else {
             $result = $scene_manager->create_scene($scene_data);
-            $scene_id = $result;
+            if (is_array($result) && !empty($result['success']) && isset($result['data']['id'])) {
+                $scene_id = (int) $result['data']['id'];
+            }
         }
-        
+
+        if (is_array($result)) {
+            if (!empty($result['success'])) {
+                wp_send_json_success(array(
+                    'scene_id' => $scene_id,
+                    'message' => $result['data']['message'] ?? __('Scene saved successfully', 'vortex360-lite'),
+                ));
+            }
+
+            wp_send_json_error($result['error'] ?? __('Failed to save scene', 'vortex360-lite'));
+        }
+
         if ($result) {
             wp_send_json_success(array(
                 'scene_id' => $scene_id,
-                'message' => 'Scene saved successfully'
+                'message' => __('Scene saved successfully', 'vortex360-lite'),
             ));
-        } else {
-            wp_send_json_error('Failed to save scene');
         }
+
+        wp_send_json_error(__('Failed to save scene', 'vortex360-lite'));
     }
     
     /**
@@ -460,12 +514,20 @@ class Vortex360_Lite_Admin {
         
         $scene_manager = new Vortex360_Lite_Scene();
         $result = $scene_manager->delete_scene($scene_id);
-        
-        if ($result) {
-            wp_send_json_success('Scene deleted successfully');
-        } else {
-            wp_send_json_error('Failed to delete scene');
+
+        if (is_array($result)) {
+            if (!empty($result['success'])) {
+                wp_send_json_success($result['data']['message'] ?? __('Scene deleted successfully', 'vortex360-lite'));
+            }
+
+            wp_send_json_error($result['error'] ?? __('Failed to delete scene', 'vortex360-lite'));
         }
+
+        if ($result) {
+            wp_send_json_success(__('Scene deleted successfully', 'vortex360-lite'));
+        }
+
+        wp_send_json_error(__('Failed to delete scene', 'vortex360-lite'));
     }
     
     /**
@@ -517,17 +579,30 @@ class Vortex360_Lite_Admin {
             $result = $hotspot_manager->update_hotspot($hotspot_id, $hotspot_data);
         } else {
             $result = $hotspot_manager->create_hotspot($hotspot_data);
-            $hotspot_id = $result;
+            if (is_array($result) && !empty($result['success']) && isset($result['data']['id'])) {
+                $hotspot_id = (int) $result['data']['id'];
+            }
         }
-        
+
+        if (is_array($result)) {
+            if (!empty($result['success'])) {
+                wp_send_json_success(array(
+                    'hotspot_id' => $hotspot_id,
+                    'message' => $result['data']['message'] ?? __('Hotspot saved successfully', 'vortex360-lite'),
+                ));
+            }
+
+            wp_send_json_error($result['error'] ?? __('Failed to save hotspot', 'vortex360-lite'));
+        }
+
         if ($result) {
             wp_send_json_success(array(
                 'hotspot_id' => $hotspot_id,
-                'message' => 'Hotspot saved successfully'
+                'message' => __('Hotspot saved successfully', 'vortex360-lite'),
             ));
-        } else {
-            wp_send_json_error('Failed to save hotspot');
         }
+
+        wp_send_json_error(__('Failed to save hotspot', 'vortex360-lite'));
     }
     
     /**
@@ -551,12 +626,20 @@ class Vortex360_Lite_Admin {
         
         $hotspot_manager = new Vortex360_Lite_Hotspot();
         $result = $hotspot_manager->delete_hotspot($hotspot_id);
-        
-        if ($result) {
-            wp_send_json_success('Hotspot deleted successfully');
-        } else {
-            wp_send_json_error('Failed to delete hotspot');
+
+        if (is_array($result)) {
+            if (!empty($result['success'])) {
+                wp_send_json_success($result['data']['message'] ?? __('Hotspot deleted successfully', 'vortex360-lite'));
+            }
+
+            wp_send_json_error($result['error'] ?? __('Failed to delete hotspot', 'vortex360-lite'));
         }
+
+        if ($result) {
+            wp_send_json_success(__('Hotspot deleted successfully', 'vortex360-lite'));
+        }
+
+        wp_send_json_error(__('Failed to delete hotspot', 'vortex360-lite'));
     }
     
     /**
