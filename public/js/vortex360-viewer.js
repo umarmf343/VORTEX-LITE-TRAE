@@ -9,11 +9,17 @@
 (function() {
     'use strict';
 
+    const liteConfig = window.Vortex360LiteConfig || {};
+
+    if (typeof window.vortex360Ajax === 'undefined') {
+        window.vortex360Ajax = liteConfig;
+    }
+
     // Global viewer object
     window.Vortex360Viewer = {
         viewers: {},
         config: {
-            pannellumPath: 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/',
+            pannellumPath: (liteConfig.pannellumPath ? liteConfig.pannellumPath.replace(/\/?$/, '/') : 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/'),
             autoLoad: true,
             showControls: true,
             showFullscreenCtrl: true,
@@ -208,13 +214,18 @@
                             config.sceneId = 'scene_' + hotspot.target_scene_id;
                         }
                         break;
-                    
+
+                    case 'link':
                     case 'url':
-                        if (hotspot.url) {
-                            config.URL = hotspot.url;
+                        const targetUrl = hotspot.target_url || hotspot.url;
+                        if (targetUrl) {
+                            config.URL = targetUrl;
+                            config.clickHandlerFunc = () => {
+                                window.open(targetUrl, '_blank', 'noopener,noreferrer');
+                            };
                         }
                         break;
-                    
+
                     case 'info':
                     default:
                         if (hotspot.content) {
@@ -482,6 +493,139 @@
             if (viewerData && viewerData.viewer) {
                 viewerData.viewer.toggleFullscreen();
             }
+        }
+    };
+
+    function parseJsonAttribute(element, attribute) {
+        if (!element) {
+            return null;
+        }
+
+        const raw = element.getAttribute(attribute);
+        if (!raw) {
+            return null;
+        }
+
+        try {
+            return JSON.parse(raw);
+        } catch (error) {
+            console.error('Vortex360: Failed to parse', attribute, error);
+            return null;
+        }
+    }
+
+    function normaliseScenes(scenes) {
+        if (!Array.isArray(scenes)) {
+            return [];
+        }
+
+        return scenes.map(scene => {
+            const pitch = typeof scene.pitch === 'number' ? scene.pitch : parseFloat(scene.pitch) || 0;
+            const yaw = typeof scene.yaw === 'number' ? scene.yaw : parseFloat(scene.yaw) || 0;
+            const hfov = typeof scene.hfov === 'number' ? scene.hfov : parseFloat(scene.hfov) || 100;
+
+            const settings = Object.assign({
+                pitch: pitch,
+                yaw: yaw,
+                hfov: hfov
+            }, scene.settings || {});
+
+            return Object.assign({}, scene, {
+                hotspots: Array.isArray(scene.hotspots) ? scene.hotspots : [],
+                settings: settings,
+                is_default: !!scene.is_default
+            });
+        });
+    }
+
+    function ensureDefaultScene(scenes) {
+        if (!Array.isArray(scenes) || scenes.length === 0) {
+            return scenes || [];
+        }
+
+        const hasDefault = scenes.some(scene => scene.is_default);
+        if (!hasDefault) {
+            scenes[0].is_default = true;
+        }
+
+        return scenes;
+    }
+
+    function buildViewerOptions(settings = {}) {
+        return {
+            autoLoad: settings.autoload !== false,
+            showControls: settings.controls !== false,
+            showFullscreenCtrl: settings.fullscreen !== false,
+            showZoomCtrl: settings.controls !== false,
+            mouseZoom: settings.mousewheel !== false,
+            doubleClickZoom: settings.mousewheel !== false,
+            draggable: settings.draggable !== false,
+            keyboardZoom: settings.keyboard !== false,
+            compass: settings.compass === true
+        };
+    }
+
+    function initialiseViewer(containerId, tourData) {
+        if (!tourData) {
+            return;
+        }
+
+        const viewerId = containerId + '-viewer';
+        const viewerElement = document.getElementById(viewerId);
+
+        if (!viewerElement) {
+            console.error('Vortex360: Viewer element not found:', viewerId);
+            return;
+        }
+
+        const scenes = ensureDefaultScene(normaliseScenes(tourData.scenes));
+        tourData.scenes = scenes;
+
+        Vortex360Viewer.init(viewerId, tourData, buildViewerOptions(tourData.settings || {}));
+    }
+
+    window.Vortex360Lite = {
+        initTour: function(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) {
+                console.error('Vortex360: Tour container not found:', containerId);
+                return;
+            }
+
+            const tourData = parseJsonAttribute(container, 'data-tour');
+            if (!tourData) {
+                console.error('Vortex360: Missing tour data for', containerId);
+                return;
+            }
+
+            initialiseViewer(containerId, tourData);
+        },
+
+        initScene: function(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) {
+                console.error('Vortex360: Scene container not found:', containerId);
+                return;
+            }
+
+            const sceneData = parseJsonAttribute(container, 'data-scene');
+            if (!sceneData) {
+                console.error('Vortex360: Missing scene data for', containerId);
+                return;
+            }
+
+            const tourData = {
+                id: sceneData.id,
+                title: sceneData.title,
+                description: sceneData.description,
+                settings: sceneData.settings || {},
+                scenes: [Object.assign({}, sceneData, {
+                    is_default: true,
+                    hotspots: Array.isArray(sceneData.hotspots) ? sceneData.hotspots : []
+                })]
+            };
+
+            initialiseViewer(containerId, tourData);
         }
     };
 

@@ -31,6 +31,10 @@ define('VORTEX360_LITE_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('VORTEX360_LITE_PLUGIN_BASENAME', plugin_basename(__FILE__));
 define('VORTEX360_LITE_TEXT_DOMAIN', 'vortex360-lite');
 
+if (!defined('VORTEX360_LITE_URL')) {
+    define('VORTEX360_LITE_URL', VORTEX360_LITE_PLUGIN_URL);
+}
+
 /**
  * Main plugin class for Vortex360 Lite
  * Handles plugin initialization, activation, and deactivation
@@ -197,44 +201,63 @@ class Vortex360_Lite {
      * Enqueue frontend scripts and styles
      */
     public function frontend_enqueue_scripts() {
-        // Enqueue Pannellum library
+        // Register and enqueue the Pannellum viewer library bundled with the plugin
         wp_enqueue_style(
-            'pannellum',
+            'vortex360-lite-pannellum',
             VORTEX360_LITE_PLUGIN_URL . 'assets/pannellum/pannellum.css',
             array(),
             '2.5.6'
         );
-        
+
         wp_enqueue_script(
-            'pannellum',
+            'vortex360-lite-pannellum',
             VORTEX360_LITE_PLUGIN_URL . 'assets/pannellum/pannellum.js',
             array(),
             '2.5.6',
             true
         );
-        
-        // Enqueue plugin frontend CSS
+
+        // Core viewer styles
         wp_enqueue_style(
-            'vortex360-lite-public',
-            VORTEX360_LITE_PLUGIN_URL . 'public/css/public.css',
-            array('pannellum'),
+            'vortex360-lite-viewer',
+            VORTEX360_LITE_PLUGIN_URL . 'public/css/vortex360-viewer.css',
+            array('vortex360-lite-pannellum'),
             VORTEX360_LITE_VERSION
         );
-        
-        // Enqueue plugin frontend JS
+
+        // Core viewer logic and helpers
         wp_enqueue_script(
-            'vortex360-lite-public',
-            VORTEX360_LITE_PLUGIN_URL . 'public/js/public.js',
-            array('jquery', 'pannellum'),
+            'vortex360-lite-tour-viewer',
+            VORTEX360_LITE_PLUGIN_URL . 'assets/js/tour-viewer.js',
+            array('vortex360-lite-pannellum', 'jquery'),
             VORTEX360_LITE_VERSION,
             true
         );
-        
-        // Localize script for frontend
-        wp_localize_script('vortex360-lite-public', 'vortex360_public', array(
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'plugin_url' => VORTEX360_LITE_PLUGIN_URL
-        ));
+
+        wp_enqueue_script(
+            'vortex360-lite-frontend',
+            VORTEX360_LITE_PLUGIN_URL . 'public/js/vortex360-viewer.js',
+            array('vortex360-lite-pannellum', 'vortex360-lite-tour-viewer', 'jquery'),
+            VORTEX360_LITE_VERSION,
+            true
+        );
+
+        wp_localize_script('vortex360-lite-frontend', 'Vortex360LiteConfig', $this->get_frontend_script_data());
+    }
+
+    /**
+     * Build localized data shared with frontend scripts.
+     *
+     * @return array
+     */
+    private function get_frontend_script_data() {
+        return array(
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('vortex360_lite_nonce'),
+            'pluginUrl' => VORTEX360_LITE_PLUGIN_URL,
+            'assetsUrl' => VORTEX360_LITE_PLUGIN_URL . 'assets/',
+            'pannellumPath' => VORTEX360_LITE_PLUGIN_URL . 'assets/pannellum/'
+        );
     }
 }
 
