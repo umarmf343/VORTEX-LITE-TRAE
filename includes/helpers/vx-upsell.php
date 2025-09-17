@@ -84,10 +84,10 @@ function vx_is_feature_available($feature) {
 function vx_get_lite_limits() {
     return array(
         'max_tours' => 10,
-        'max_scenes_per_tour' => 5,
+        'max_scenes_per_tour' => defined('VORTEX360_LITE_SCENE_LIMIT') ? VORTEX360_LITE_SCENE_LIMIT : 5,
         'max_hotspots_per_scene' => 5,
         'max_file_size' => 50 * 1024 * 1024, // 50MB
-        'allowed_hotspot_types' => array('info', 'link', 'scene'),
+        'allowed_hotspot_types' => array('info', 'link', 'image'),
         'allowed_file_types' => array('image/jpeg', 'image/png', 'image/webp')
     );
 }

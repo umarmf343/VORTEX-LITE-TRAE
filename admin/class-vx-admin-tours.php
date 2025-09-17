@@ -1186,7 +1186,7 @@ class VX_Admin_Tours {
         }
         
         // Limit scenes in Lite version
-        $max_scenes = 3;
+        $max_scenes = defined('VORTEX360_LITE_SCENE_LIMIT') ? VORTEX360_LITE_SCENE_LIMIT : 5;
         $scene_count = 0;
         
         foreach ($scenes as $scene_data) {

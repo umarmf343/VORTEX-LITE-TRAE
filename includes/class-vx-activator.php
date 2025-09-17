@@ -302,7 +302,7 @@ class VX_Activator {
             ],
             'vx_lite_settings' => [
                 'max_tours' => 5,
-                'max_scenes_per_tour' => 5,
+                'max_scenes_per_tour' => defined('VORTEX360_LITE_SCENE_LIMIT') ? VORTEX360_LITE_SCENE_LIMIT : 5,
                 'max_hotspots_per_scene' => 10,
                 'show_branding' => true,
                 'upgrade_notices' => true

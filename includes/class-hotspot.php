@@ -284,11 +284,7 @@ class Vortex360_Lite_Hotspot {
         }
 
         if ($hotspot) {
-            if ($hotspot->type === 'text') {
-                $hotspot->type = 'info';
-            } elseif ($hotspot->type === 'url') {
-                $hotspot->type = 'link';
-            }
+            $hotspot->type = $this->denormalize_hotspot_type($hotspot->type);
         }
 
         return $hotspot;
@@ -311,17 +307,38 @@ class Vortex360_Lite_Hotspot {
         
         // Decode settings for each hotspot
         foreach ($hotspots as $hotspot) {
-            if ($hotspot->type === 'text') {
-                $hotspot->type = 'info';
-            } elseif ($hotspot->type === 'url') {
-                $hotspot->type = 'link';
-            }
+            $hotspot->type = $this->denormalize_hotspot_type($hotspot->type);
             if (!empty($hotspot->settings)) {
                 $hotspot->settings = json_decode($hotspot->settings, true);
             }
         }
 
         return $hotspots;
+    }
+
+    /**
+     * Convert stored hotspot types to the lite viewer equivalents.
+     *
+     * @param string $type Database hotspot type.
+     * @return string Public hotspot type.
+     */
+    private function denormalize_hotspot_type($type) {
+        $map = array(
+            'text' => 'info',
+            'info' => 'info',
+            'url' => 'link',
+            'link' => 'link',
+            'image' => 'image',
+            'scene' => 'info'
+        );
+
+        $type = strtolower($type ?: 'info');
+
+        if (!array_key_exists($type, $map)) {
+            return 'info';
+        }
+
+        return $map[$type];
     }
 
     /**
@@ -354,13 +371,7 @@ class Vortex360_Lite_Hotspot {
         
         $table_name = $wpdb->prefix . 'vortex360_hotspots';
         
-        if ($type === 'info') {
-            $db_type = 'text';
-        } elseif ($type === 'link') {
-            $db_type = 'url';
-        } else {
-            $db_type = $type;
-        }
+        $db_type = $this->normalize_requested_hotspot_type($type);
 
         $query = $wpdb->prepare(
             "SELECT * FROM $table_name WHERE type = %s ORDER BY created_at DESC",
@@ -375,17 +386,38 @@ class Vortex360_Lite_Hotspot {
         
         // Decode settings for each hotspot
         foreach ($hotspots as $hotspot) {
-            if ($hotspot->type === 'text') {
-                $hotspot->type = 'info';
-            } elseif ($hotspot->type === 'url') {
-                $hotspot->type = 'link';
-            }
+            $hotspot->type = $this->denormalize_hotspot_type($hotspot->type);
             if (!empty($hotspot->settings)) {
                 $hotspot->settings = json_decode($hotspot->settings, true);
             }
         }
-        
+
         return $hotspots;
+    }
+
+    /**
+     * Normalize requested hotspot types to the stored database values.
+     *
+     * @param string $type Requested hotspot type.
+     * @return string Database hotspot type.
+     */
+    private function normalize_requested_hotspot_type($type) {
+        $map = array(
+            'info' => 'text',
+            'text' => 'text',
+            'link' => 'url',
+            'url' => 'url',
+            'image' => 'image',
+            'scene' => 'text'
+        );
+
+        $type = strtolower($type ?: 'info');
+
+        if (!array_key_exists($type, $map)) {
+            return 'text';
+        }
+
+        return $map[$type];
     }
     
     /**

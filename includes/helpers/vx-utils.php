@@ -322,7 +322,7 @@ function vx_get_allowed_hotspot_types() {
     return array(
         'info' => __('Information', 'vortex360-lite'),
         'link' => __('External Link', 'vortex360-lite'),
-        'scene' => __('Scene Navigation', 'vortex360-lite')
+        'image' => __('Image', 'vortex360-lite')
     );
 }
 

@@ -297,24 +297,9 @@ class Vortex360_Lite_Database {
      * @return array Sanitized data array
      */
     public function sanitize_hotspot_data($data) {
-        $type = strtolower($data['type'] ?? 'info');
-        $allowed_types = array('info', 'link', 'image');
-
-        if (!in_array($type, $allowed_types, true)) {
-            $type = 'info';
-        }
-
-        if ($type === 'info') {
-            $normalized_type = 'text';
-        } elseif ($type === 'link') {
-            $normalized_type = 'url';
-        } else {
-            $normalized_type = $type;
-        }
-
         return array(
             'scene_id' => absint($data['scene_id'] ?? 0),
-            'type' => $normalized_type,
+            'type' => $this->normalize_hotspot_type($data['type'] ?? ''),
             'title' => sanitize_text_field($data['title'] ?? ''),
             'content' => wp_kses_post($data['content'] ?? ''),
             'target_scene_id' => !empty($data['target_scene_id'])
@@ -331,5 +316,30 @@ class Vortex360_Lite_Database {
                          ? wp_json_encode($data['settings']) : '{}',
             'is_active' => (bool) ($data['is_active'] ?? true)
         );
+    }
+
+    /**
+     * Normalize hotspot types to the values stored in the database.
+     *
+     * @param string $type Submitted hotspot type.
+     * @return string Normalized database value.
+     */
+    private function normalize_hotspot_type($type) {
+        $type = strtolower($type ?: 'info');
+
+        $map = array(
+            'info' => 'text',
+            'text' => 'text',
+            'link' => 'url',
+            'url' => 'url',
+            'image' => 'image',
+            'scene' => 'text'
+        );
+
+        if (!array_key_exists($type, $map)) {
+            return 'text';
+        }
+
+        return $map[$type];
     }
 }
