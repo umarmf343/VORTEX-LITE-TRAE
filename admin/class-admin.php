@@ -515,19 +515,44 @@ class Vortex360_Lite_Admin {
         
         if ($hotspot_id) {
             $result = $hotspot_manager->update_hotspot($hotspot_id, $hotspot_data);
-        } else {
-            $result = $hotspot_manager->create_hotspot($hotspot_data);
-            $hotspot_id = $result;
-        }
-        
-        if ($result) {
+
+            if (is_array($result) && empty($result['success'])) {
+                wp_send_json_error($result);
+            }
+
+            if ($result === false) {
+                wp_send_json_error('Failed to save hotspot');
+            }
+
             wp_send_json_success(array(
                 'hotspot_id' => $hotspot_id,
                 'message' => 'Hotspot saved successfully'
             ));
-        } else {
+        }
+
+        $creation = $hotspot_manager->create_hotspot($hotspot_data);
+
+        if (is_array($creation)) {
+            if (empty($creation['success'])) {
+                wp_send_json_error($creation);
+            }
+
+            $hotspot_id = $creation['data']['id'] ?? 0;
+
+            wp_send_json_success(array(
+                'hotspot_id' => $hotspot_id,
+                'message' => $creation['data']['message'] ?? 'Hotspot saved successfully'
+            ));
+        }
+
+        if ($creation === false) {
             wp_send_json_error('Failed to save hotspot');
         }
+
+        wp_send_json_success(array(
+            'hotspot_id' => absint($creation),
+            'message' => 'Hotspot saved successfully'
+        ));
     }
     
     /**
