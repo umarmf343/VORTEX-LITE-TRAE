@@ -315,7 +315,10 @@ class VX_Admin {
                         'confirmRemoveScene' => __('Are you sure you want to remove this scene?', 'vortex360-lite'),
                         'confirmRemoveHotspot' => __('Are you sure you want to remove this hotspot?', 'vortex360-lite'),
                         'maxScenesReached' => __('Maximum number of scenes reached for Lite version.', 'vortex360-lite'),
-                        'maxHotspotsReached' => __('Maximum number of hotspots reached for this scene.', 'vortex360-lite'),
+                        'maxHotspotsReached' => sprintf(
+                            __('You\'ve reached the Lite limit of %d hotspots for this scene. Upgrade to Pro for unlimited hotspots.', 'vortex360-lite'),
+                            vx_get_lite_limits()['max_hotspots_per_scene']
+                        ),
                         'upgradePrompt' => __('Upgrade to Pro for unlimited scenes and hotspots.', 'vortex360-lite')
                     )
                 ));

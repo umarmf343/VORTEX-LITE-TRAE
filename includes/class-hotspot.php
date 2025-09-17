@@ -80,12 +80,28 @@ class Vortex360_Lite_Hotspot {
         }
         
         // Validate hotspot type
-        $valid_types = array('info', 'scene', 'link', 'image', 'video');
-        if (!in_array($data['type'], $valid_types)) {
+        $valid_types = array('info', 'link', 'image');
+        if (!in_array($data['type'], $valid_types, true)) {
             return array(
                 'success' => false,
                 'error' => 'Invalid hotspot type.',
                 'code' => 'INVALID_TYPE'
+            );
+        }
+
+        // Enforce Lite hotspot limit per scene
+        $current_hotspot_count = $this->get_hotspot_count($data['scene_id']);
+        $limits = function_exists('vx_get_lite_limits') ? vx_get_lite_limits() : array();
+        $max_hotspots = isset($limits['max_hotspots_per_scene']) ? (int) $limits['max_hotspots_per_scene'] : 5;
+
+        if ($current_hotspot_count >= $max_hotspots) {
+            return array(
+                'success' => false,
+                'error' => sprintf(
+                    __("You've reached the Lite limit of %d hotspots for this scene. Upgrade to Pro for unlimited hotspots.", 'vortex360-lite'),
+                    $max_hotspots
+                ),
+                'code' => 'HOTSPOT_LIMIT_REACHED'
             );
         }
         
@@ -154,8 +170,8 @@ class Vortex360_Lite_Hotspot {
         
         // Validate hotspot type if provided
         if (isset($data['type'])) {
-            $valid_types = array('info', 'scene', 'link', 'image', 'video');
-            if (!in_array($data['type'], $valid_types)) {
+            $valid_types = array('info', 'link', 'image');
+            if (!in_array($data['type'], $valid_types, true)) {
                 return array(
                     'success' => false,
                     'error' => 'Invalid hotspot type.',
@@ -262,11 +278,19 @@ class Vortex360_Lite_Hotspot {
             "SELECT * FROM $table_name WHERE id = %d",
             $hotspot_id
         ));
-        
+
         if ($hotspot && !empty($hotspot->settings)) {
             $hotspot->settings = json_decode($hotspot->settings, true);
         }
-        
+
+        if ($hotspot) {
+            if ($hotspot->type === 'text') {
+                $hotspot->type = 'info';
+            } elseif ($hotspot->type === 'url') {
+                $hotspot->type = 'link';
+            }
+        }
+
         return $hotspot;
     }
     
@@ -287,12 +311,36 @@ class Vortex360_Lite_Hotspot {
         
         // Decode settings for each hotspot
         foreach ($hotspots as $hotspot) {
+            if ($hotspot->type === 'text') {
+                $hotspot->type = 'info';
+            } elseif ($hotspot->type === 'url') {
+                $hotspot->type = 'link';
+            }
             if (!empty($hotspot->settings)) {
                 $hotspot->settings = json_decode($hotspot->settings, true);
             }
         }
-        
+
         return $hotspots;
+    }
+
+    /**
+     * Get the current hotspot count for a scene
+     *
+     * @param int $scene_id Scene ID
+     * @return int Number of hotspots associated with the scene
+     */
+    public function get_hotspot_count($scene_id) {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'vortex360_hotspots';
+
+        $count = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $table_name WHERE scene_id = %d",
+            absint($scene_id)
+        ));
+
+        return (int) $count;
     }
     
     /**
@@ -306,9 +354,17 @@ class Vortex360_Lite_Hotspot {
         
         $table_name = $wpdb->prefix . 'vortex360_hotspots';
         
+        if ($type === 'info') {
+            $db_type = 'text';
+        } elseif ($type === 'link') {
+            $db_type = 'url';
+        } else {
+            $db_type = $type;
+        }
+
         $query = $wpdb->prepare(
             "SELECT * FROM $table_name WHERE type = %s ORDER BY created_at DESC",
-            $type
+            $db_type
         );
         
         if ($limit) {
@@ -319,6 +375,11 @@ class Vortex360_Lite_Hotspot {
         
         // Decode settings for each hotspot
         foreach ($hotspots as $hotspot) {
+            if ($hotspot->type === 'text') {
+                $hotspot->type = 'info';
+            } elseif ($hotspot->type === 'url') {
+                $hotspot->type = 'link';
+            }
             if (!empty($hotspot->settings)) {
                 $hotspot->settings = json_decode($hotspot->settings, true);
             }

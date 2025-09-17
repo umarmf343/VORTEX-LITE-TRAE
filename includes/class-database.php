@@ -297,16 +297,29 @@ class Vortex360_Lite_Database {
      * @return array Sanitized data array
      */
     public function sanitize_hotspot_data($data) {
+        $type = strtolower($data['type'] ?? 'info');
+        $allowed_types = array('info', 'link', 'image');
+
+        if (!in_array($type, $allowed_types, true)) {
+            $type = 'info';
+        }
+
+        if ($type === 'info') {
+            $normalized_type = 'text';
+        } elseif ($type === 'link') {
+            $normalized_type = 'url';
+        } else {
+            $normalized_type = $type;
+        }
+
         return array(
             'scene_id' => absint($data['scene_id'] ?? 0),
-            'type' => in_array($data['type'] ?? 'info', 
-                              ['info', 'scene', 'url', 'image', 'video']) 
-                     ? $data['type'] : 'info',
+            'type' => $normalized_type,
             'title' => sanitize_text_field($data['title'] ?? ''),
             'content' => wp_kses_post($data['content'] ?? ''),
-            'target_scene_id' => !empty($data['target_scene_id']) 
+            'target_scene_id' => !empty($data['target_scene_id'])
                                 ? absint($data['target_scene_id']) : null,
-            'target_url' => !empty($data['target_url']) 
+            'target_url' => !empty($data['target_url'])
                            ? esc_url_raw($data['target_url']) : null,
             'media_url' => !empty($data['media_url']) 
                           ? esc_url_raw($data['media_url']) : null,
