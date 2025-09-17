@@ -47,6 +47,10 @@ class Vortex360_Lite_Public {
         if (!defined('VX_PLUGIN_DIR')) {
             define('VX_PLUGIN_DIR', VORTEX360_LITE_PLUGIN_PATH);
         }
+
+        if (!defined('VX_PLUGIN_PATH')) {
+            define('VX_PLUGIN_PATH', VORTEX360_LITE_PLUGIN_PATH);
+        }
     }
 
     /**

@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
  * This class enforces the limitations of the Lite version:
  * - Maximum 5 scenes per tour
  * - Maximum 5 hotspots per scene
- * - Only basic hotspot types (info, link, scene)
+ * - Only basic hotspot types (info, link, image)
  *
  * @since      1.0.0
  * @package    Vortex360_Lite
@@ -56,7 +56,7 @@ class VX_Limits_Lite {
      * @access   private
      * @var      array    $allowed_hotspot_types    Allowed hotspot types.
      */
-    private $allowed_hotspot_types = array('info', 'link', 'scene');
+    private $allowed_hotspot_types = array('info', 'link', 'image');
 
     /**
      * Initialize the class and set its properties.
@@ -64,6 +64,10 @@ class VX_Limits_Lite {
      * @since    1.0.0
      */
     public function __construct() {
+        if (defined('VORTEX360_LITE_SCENE_LIMIT')) {
+            $this->max_scenes = VORTEX360_LITE_SCENE_LIMIT;
+        }
+
         add_action('init', array($this, 'init_hooks'));
     }
 

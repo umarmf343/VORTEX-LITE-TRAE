@@ -183,13 +183,6 @@
         
         // Handle different hotspot types
         switch (hotspot.type) {
-            case 'scene':
-                config.type = 'scene';
-                config.sceneId = hotspot.target_scene_id;
-                config.targetYaw = hotspot.target_yaw || 0;
-                config.targetPitch = hotspot.target_pitch || 0;
-                break;
-                
             case 'info':
                 config.type = 'info';
                 config.clickHandlerFunc = this.handleInfoHotspot.bind(this, hotspot);

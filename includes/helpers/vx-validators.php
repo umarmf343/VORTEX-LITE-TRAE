@@ -262,8 +262,13 @@ function vx_validate_tour_config($config) {
     if (!isset($config['scenes']) || !is_array($config['scenes'])) {
         $errors[] = __('Tour must have at least one scene', 'vortex360-lite');
     } else {
-        if (count($config['scenes']) > 5) {
-            $errors[] = __('Maximum 5 scenes allowed in Lite version', 'vortex360-lite');
+        $max_scenes = defined('VORTEX360_LITE_SCENE_LIMIT') ? VORTEX360_LITE_SCENE_LIMIT : 5;
+
+        if (count($config['scenes']) > $max_scenes) {
+            $errors[] = sprintf(
+                __('Maximum %d scenes allowed in Lite version', 'vortex360-lite'),
+                $max_scenes
+            );
         }
         
         if (empty($config['scenes'])) {

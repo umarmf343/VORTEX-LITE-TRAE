@@ -267,9 +267,10 @@ $tours = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}vortex360_tours ORDER 
 
                         <!-- Scenes Management -->
                         <?php
-                        $scene_limit = 5;
+                        $scene_limit = defined('VORTEX360_LITE_SCENE_LIMIT') ? VORTEX360_LITE_SCENE_LIMIT : 5;
                         $scene_count = count($scenes);
                         $scene_limit_reached = $scene_count >= $scene_limit;
+                        $scene_limit_message_id = 'vortex360-scene-limit-message';
                         ?>
 
                         <div class="vortex360-editor-section">
@@ -279,7 +280,7 @@ $tours = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}vortex360_tours ORDER 
                                     Scenes (<?php echo $scene_count; ?>)
                                 </h3>
 
-                                <button class="vortex360-btn vortex360-btn-primary vortex360-add-scene" data-tour-id="<?php echo $tour->id; ?>" <?php disabled($scene_limit_reached); ?> aria-disabled="<?php echo $scene_limit_reached ? 'true' : 'false'; ?>">
+                                <button class="vortex360-btn vortex360-btn-primary vortex360-add-scene" data-tour-id="<?php echo $tour->id; ?>" <?php disabled($scene_limit_reached); ?> aria-disabled="<?php echo $scene_limit_reached ? 'true' : 'false'; ?>"<?php echo $scene_limit_reached ? ' aria-describedby="' . esc_attr($scene_limit_message_id) . '"' : ''; ?>>
                                     <span class="dashicons dashicons-plus-alt"></span>
                                     Add Scene
                                 </button>
@@ -288,7 +289,7 @@ $tours = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}vortex360_tours ORDER 
                             <p class="vortex360-section-description">
                                 <?php printf(esc_html__('Vortex360 Lite supports up to %d scenes per tour.', 'vortex360-lite'), $scene_limit); ?>
                                 <?php if ($scene_limit_reached): ?>
-                                    <span class="vortex360-limit-warning"><?php esc_html_e('Scene limit reached. Delete an existing scene to add another.', 'vortex360-lite'); ?></span>
+                                    <span class="vortex360-limit-warning" id="<?php echo esc_attr($scene_limit_message_id); ?>"><?php esc_html_e('Scene limit reached. Delete an existing scene to add another.', 'vortex360-lite'); ?></span>
                                 <?php endif; ?>
                             </p>
 

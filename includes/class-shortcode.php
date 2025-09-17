@@ -573,7 +573,7 @@ class Vortex360_Lite_Shortcode {
         // Localize script with AJAX URL and asset paths
         $config = array(
             'ajaxUrl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('vortex360_lite_nonce'),
+            'nonce' => wp_create_nonce('vortex360_nonce'),
             'pluginUrl' => VORTEX360_LITE_PLUGIN_URL,
             'assetsUrl' => VORTEX360_LITE_PLUGIN_URL . 'assets/',
             'pannellumPath' => VORTEX360_LITE_PLUGIN_URL . 'assets/pannellum/'

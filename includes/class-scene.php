@@ -81,7 +81,7 @@ class Vortex360_Lite_Scene {
         
         $scene_count = $this->get_scene_count($data['tour_id']);
 
-        if ($scene_count >= 5) {
+        if ($scene_count >= VORTEX360_LITE_SCENE_LIMIT) {
             return $this->get_scene_limit_error();
         }
 
@@ -493,7 +493,10 @@ class Vortex360_Lite_Scene {
     private function get_scene_limit_error() {
         return array(
             'success' => false,
-            'error' => __('Vortex360 Lite supports up to five scenes per tour. Upgrade to add more scenes.', 'vortex360-lite'),
+            'error' => sprintf(
+                __('Vortex360 Lite supports up to %d scenes per tour. Upgrade to add more scenes.', 'vortex360-lite'),
+                VORTEX360_LITE_SCENE_LIMIT
+            ),
             'code' => 'LITE_SCENE_LIMIT_REACHED'
         );
     }
@@ -610,10 +613,6 @@ class Vortex360_Lite_Scene {
             'yaw' => floatval($_POST['yaw'] ?? 0),
             'hfov' => floatval($_POST['hfov'] ?? 100)
         );
-
-        if ($data['tour_id'] && $this->get_scene_count($data['tour_id']) >= 5) {
-            wp_send_json($this->get_scene_limit_error());
-        }
 
         $result = $this->create_scene($data);
 

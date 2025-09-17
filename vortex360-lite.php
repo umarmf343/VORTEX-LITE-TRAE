@@ -30,6 +30,7 @@ define('VORTEX360_LITE_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('VORTEX360_LITE_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('VORTEX360_LITE_PLUGIN_BASENAME', plugin_basename(__FILE__));
 define('VORTEX360_LITE_TEXT_DOMAIN', 'vortex360-lite');
+define('VORTEX360_LITE_SCENE_LIMIT', 5);
 
 if (!defined('VORTEX360_LITE_URL')) {
     define('VORTEX360_LITE_URL', VORTEX360_LITE_PLUGIN_URL);
@@ -192,7 +193,7 @@ class Vortex360_Lite {
         // Localize script for AJAX
         wp_localize_script('vortex360-lite-admin', 'vortex360_ajax', array(
             'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('vortex360_lite_nonce'),
+            'nonce' => wp_create_nonce('vortex360_nonce'),
             'max_tours' => get_option('vortex360_lite_max_tours', 1)
         ));
     }
@@ -253,7 +254,7 @@ class Vortex360_Lite {
     private function get_frontend_script_data() {
         return array(
             'ajaxUrl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('vortex360_lite_nonce'),
+            'nonce' => wp_create_nonce('vortex360_nonce'),
             'pluginUrl' => VORTEX360_LITE_PLUGIN_URL,
             'assetsUrl' => VORTEX360_LITE_PLUGIN_URL . 'assets/',
             'pannellumPath' => VORTEX360_LITE_PLUGIN_URL . 'assets/pannellum/'
