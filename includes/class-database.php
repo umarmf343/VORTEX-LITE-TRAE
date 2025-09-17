@@ -318,13 +318,31 @@ class Vortex360_Lite_Database {
             'yaw' => floatval($data['yaw'] ?? 0),
             'css_class' => sanitize_html_class($data['css_class'] ?? ''),
             'icon' => sanitize_text_field($data['icon'] ?? ''),
-            'settings' => is_array($data['settings'] ?? null)
-                ? wp_json_encode($data['settings'])
-                : ((is_string($data['settings'] ?? null) && $data['settings'] !== '')
-                    ? wp_kses_post($data['settings'])
-                    : '{}'),
+            'settings' => $this->sanitize_settings_field($data['settings'] ?? null),
             'is_active' => (bool) ($data['is_active'] ?? true)
         );
+    }
+
+    /**
+     * Ensure settings data is stored as a valid JSON string.
+     *
+     * @param mixed $settings Raw settings value.
+     * @return string
+     */
+    private function sanitize_settings_field($settings) {
+        if (is_array($settings)) {
+            return wp_json_encode($settings);
+        }
+
+        if (is_string($settings) && $settings !== '') {
+            json_decode($settings);
+
+            if (JSON_ERROR_NONE === json_last_error()) {
+                return $settings;
+            }
+        }
+
+        return '{}';
     }
 
     /**

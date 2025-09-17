@@ -177,8 +177,9 @@ class Vortex360_Lite_Scene {
         // Sanitize data
         $sanitized_data = $this->database->sanitize_scene_data($data);
 
-        // Remove tour_id from update data (shouldn't be changed)
-        unset($sanitized_data['tour_id']);
+        if (!array_key_exists('tour_id', $data)) {
+            unset($sanitized_data['tour_id']);
+        }
         
         // Update database
         $table_name = $wpdb->prefix . 'vortex360_scenes';

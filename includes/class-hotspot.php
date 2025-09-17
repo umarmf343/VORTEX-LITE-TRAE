@@ -207,8 +207,9 @@ class Vortex360_Lite_Hotspot {
         // Sanitize data
         $sanitized_data = $this->database->sanitize_hotspot_data($data);
 
-        // Remove scene_id from update data (shouldn't be changed)
-        unset($sanitized_data['scene_id']);
+        if (!array_key_exists('scene_id', $data)) {
+            unset($sanitized_data['scene_id']);
+        }
         
         // Update database
         $table_name = $wpdb->prefix . 'vortex360_hotspots';
