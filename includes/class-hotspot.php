@@ -179,10 +179,34 @@ class Vortex360_Lite_Hotspot {
                 );
             }
         }
-        
+
+        // Enforce Lite hotspot limit when moving hotspots between scenes.
+        if (isset($data['scene_id'])) {
+            $new_scene_id = absint($data['scene_id']);
+            $current_scene_id = (int) $hotspot->scene_id;
+
+            if ($new_scene_id && $new_scene_id !== $current_scene_id) {
+                $current_hotspot_count = $this->get_hotspot_count($new_scene_id);
+                $limits = function_exists('vx_get_lite_limits') ? vx_get_lite_limits() : array();
+                $max_hotspots = isset($limits['max_hotspots_per_scene']) ? (int) $limits['max_hotspots_per_scene'] : 5;
+
+                if ($current_hotspot_count >= $max_hotspots) {
+                    return array(
+                        'success' => false,
+                        'error' => sprintf(
+                            /* translators: %d = maximum number of hotspots allowed */
+                            __("Lite version allows a maximum of %d hotspots per scene. Upgrade to Pro for additional hotspots.", 'vortex360-lite'),
+                            $max_hotspots
+                        ),
+                        'code' => 'LITE_HOTSPOT_LIMIT'
+                    );
+                }
+            }
+        }
+
         // Sanitize data
         $sanitized_data = $this->database->sanitize_hotspot_data($data);
-        
+
         // Remove scene_id from update data (shouldn't be changed)
         unset($sanitized_data['scene_id']);
         

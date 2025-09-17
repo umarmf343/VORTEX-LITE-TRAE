@@ -32,6 +32,39 @@ define('VORTEX360_LITE_PLUGIN_BASENAME', plugin_basename(__FILE__));
 define('VORTEX360_LITE_TEXT_DOMAIN', 'vortex360-lite');
 define('VORTEX360_LITE_SCENE_LIMIT', 5);
 
+// Provide shared constants expected by VX_* classes shipped with the scaffold
+if (!defined('VX_VERSION')) {
+    define('VX_VERSION', VORTEX360_LITE_VERSION);
+}
+
+if (!defined('VX_PLUGIN_FILE')) {
+    define('VX_PLUGIN_FILE', __FILE__);
+}
+
+if (!defined('VX_PLUGIN_BASENAME')) {
+    define('VX_PLUGIN_BASENAME', VORTEX360_LITE_PLUGIN_BASENAME);
+}
+
+if (!defined('VX_PLUGIN_URL')) {
+    define('VX_PLUGIN_URL', VORTEX360_LITE_PLUGIN_URL);
+}
+
+if (!defined('VX_PLUGIN_DIR')) {
+    define('VX_PLUGIN_DIR', VORTEX360_LITE_PLUGIN_PATH);
+}
+
+if (!defined('VX_PLUGIN_PATH')) {
+    define('VX_PLUGIN_PATH', VORTEX360_LITE_PLUGIN_PATH);
+}
+
+if (!defined('VX_MIN_PHP_VERSION')) {
+    define('VX_MIN_PHP_VERSION', '7.4');
+}
+
+if (!defined('VX_MIN_WP_VERSION')) {
+    define('VX_MIN_WP_VERSION', '5.0');
+}
+
 if (!defined('VORTEX360_LITE_URL')) {
     define('VORTEX360_LITE_URL', VORTEX360_LITE_PLUGIN_URL);
 }
@@ -93,9 +126,15 @@ class Vortex360_Lite {
         
         // Load admin classes
         if (is_admin()) {
-            require_once VORTEX360_LITE_PLUGIN_PATH . 'admin/class-admin.php';
-            require_once VORTEX360_LITE_PLUGIN_PATH . 'admin/class-admin-menu.php';
-            require_once VORTEX360_LITE_PLUGIN_PATH . 'admin/class-admin-ajax.php';
+            require_once VORTEX360_LITE_PLUGIN_PATH . 'admin/class-vx-admin.php';
+            require_once VORTEX360_LITE_PLUGIN_PATH . 'admin/class-vx-admin-ajax.php';
+            require_once VORTEX360_LITE_PLUGIN_PATH . 'admin/class-vx-admin-tours.php';
+            require_once VORTEX360_LITE_PLUGIN_PATH . 'admin/class-vx-admin-media.php';
+            require_once VORTEX360_LITE_PLUGIN_PATH . 'admin/class-vx-admin-import-export.php';
+            require_once VORTEX360_LITE_PLUGIN_PATH . 'admin/class-vx-admin-settings.php';
+            require_once VORTEX360_LITE_PLUGIN_PATH . 'includes/class-vx-limits-lite.php';
+            require_once VORTEX360_LITE_PLUGIN_PATH . 'includes/class-vx-upgrade-notices.php';
+            require_once VORTEX360_LITE_PLUGIN_PATH . 'includes/class-vx-pro-integration.php';
         }
         
         // Load public classes
@@ -154,9 +193,9 @@ class Vortex360_Lite {
         
         // Initialize admin if in admin area
         if (is_admin()) {
-            new Vortex360_Lite_Admin();
-            new Vortex360_Lite_Admin_Menu();
-            new Vortex360_Lite_Admin_Ajax();
+            new VX_Admin(VORTEX360_LITE_VERSION);
+            new VX_Admin_Import_Export();
+            new VX_Admin_Settings();
         }
         
         // Initialize public
