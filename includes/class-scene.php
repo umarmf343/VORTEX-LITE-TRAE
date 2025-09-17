@@ -208,7 +208,7 @@ class Vortex360_Lite_Scene {
         $sanitized_data = $this->database->sanitize_scene_data($data);
 
         if ($should_update_tour) {
-            $sanitized_data['tour_id'] = $validated_tour_id ? $validated_tour_id : (int) $scene->tour_id;
+            $sanitized_data['tour_id'] = $validated_tour_id;
         } else {
             unset($sanitized_data['tour_id']);
         }

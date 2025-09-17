@@ -240,7 +240,7 @@ class Vortex360_Lite_Hotspot {
         $sanitized_data = $this->database->sanitize_hotspot_data($data);
 
         if ($should_update_scene) {
-            $sanitized_data['scene_id'] = $validated_scene_id ? $validated_scene_id : (int) $hotspot->scene_id;
+            $sanitized_data['scene_id'] = $validated_scene_id;
         } else {
             unset($sanitized_data['scene_id']);
         }
