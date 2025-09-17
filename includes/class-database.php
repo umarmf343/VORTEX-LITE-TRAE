@@ -297,23 +297,32 @@ class Vortex360_Lite_Database {
      * @return array Sanitized data array
      */
     public function sanitize_hotspot_data($data) {
+        $normalized_type = $this->normalize_hotspot_type($data['type'] ?? '');
+        $content_value   = wp_kses_post($data['content'] ?? '');
+
         return array(
             'scene_id' => absint($data['scene_id'] ?? 0),
-            'type' => $this->normalize_hotspot_type($data['type'] ?? ''),
+            'type' => $normalized_type,
             'title' => sanitize_text_field($data['title'] ?? ''),
-            'content' => wp_kses_post($data['content'] ?? ''),
-            'target_scene_id' => !empty($data['target_scene_id'])
-                                ? absint($data['target_scene_id']) : null,
-            'target_url' => !empty($data['target_url'])
-                           ? esc_url_raw($data['target_url']) : null,
-            'media_url' => !empty($data['media_url']) 
-                          ? esc_url_raw($data['media_url']) : null,
+            'content' => $content_value,
+            'target_scene_id' => (isset($data['target_scene_id']) && $data['target_scene_id'] !== '')
+                ? absint($data['target_scene_id'])
+                : null,
+            'target_url' => ('link' === $normalized_type && !empty($data['target_url']))
+                ? esc_url_raw($data['target_url'])
+                : null,
+            'media_url' => ('image' === $normalized_type && !empty($data['media_url']))
+                ? esc_url_raw($data['media_url'])
+                : null,
             'pitch' => floatval($data['pitch'] ?? 0),
             'yaw' => floatval($data['yaw'] ?? 0),
             'css_class' => sanitize_html_class($data['css_class'] ?? ''),
             'icon' => sanitize_text_field($data['icon'] ?? ''),
-            'settings' => is_array($data['settings'] ?? null) 
-                         ? wp_json_encode($data['settings']) : '{}',
+            'settings' => is_array($data['settings'] ?? null)
+                ? wp_json_encode($data['settings'])
+                : ((is_string($data['settings'] ?? null) && $data['settings'] !== '')
+                    ? wp_kses_post($data['settings'])
+                    : '{}'),
             'is_active' => (bool) ($data['is_active'] ?? true)
         );
     }
@@ -327,19 +336,19 @@ class Vortex360_Lite_Database {
     private function normalize_hotspot_type($type) {
         $type = strtolower($type ?: 'info');
 
-        $map = array(
-            'info' => 'text',
-            'text' => 'text',
-            'link' => 'url',
-            'url' => 'url',
-            'image' => 'image',
-            'scene' => 'text'
-        );
-
-        if (!array_key_exists($type, $map)) {
-            return 'text';
+        if (in_array($type, array('link', 'url'), true)) {
+            return 'link';
         }
 
-        return $map[$type];
+        if ('image' === $type) {
+            return 'image';
+        }
+
+        if (in_array($type, array('info', 'text'), true)) {
+            return 'info';
+        }
+
+        // Default to info for unsupported types to maintain Lite compatibility.
+        return 'info';
     }
 }

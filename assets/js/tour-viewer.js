@@ -187,19 +187,24 @@
                 config.type = 'info';
                 config.clickHandlerFunc = this.handleInfoHotspot.bind(this, hotspot);
                 break;
-                
+
             case 'link':
                 config.type = 'info';
                 config.clickHandlerFunc = this.handleLinkHotspot.bind(this, hotspot);
                 break;
-                
-            case 'video':
-            case 'audio':
+
             case 'image':
                 config.type = 'info';
                 config.clickHandlerFunc = this.handleMediaHotspot.bind(this, hotspot);
                 break;
-                
+
+            // Media jump hotspots are not supported in Lite.
+            case 'video':
+            case 'audio':
+                config.type = 'info';
+                config.clickHandlerFunc = this.handleInfoHotspot.bind(this, hotspot);
+                break;
+
             default:
                 config.type = 'info';
                 config.clickHandlerFunc = this.handleGenericHotspot.bind(this, hotspot);

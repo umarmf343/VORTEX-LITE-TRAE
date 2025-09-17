@@ -152,10 +152,31 @@ class Vortex360_Lite_Scene {
                 'code' => 'PERMISSION_DENIED'
             );
         }
-        
+
+        if (isset($data['tour_id'])) {
+            $new_tour_id = absint($data['tour_id']);
+            $current_tour_id = (int) $scene->tour_id;
+
+            if ($new_tour_id && $new_tour_id !== $current_tour_id) {
+                $current_scene_count = $this->get_scene_count($new_tour_id);
+
+                if ($current_scene_count >= VORTEX360_LITE_SCENE_LIMIT) {
+                    return array(
+                        'success' => false,
+                        'error' => sprintf(
+                            /* translators: %d = maximum number of scenes allowed */
+                            __("Lite version allows a maximum of %d scenes per tour. Upgrade to Pro for additional scenes.", 'vortex360-lite'),
+                            VORTEX360_LITE_SCENE_LIMIT
+                        ),
+                        'code' => 'LITE_SCENE_LIMIT'
+                    );
+                }
+            }
+        }
+
         // Sanitize data
         $sanitized_data = $this->database->sanitize_scene_data($data);
-        
+
         // Remove tour_id from update data (shouldn't be changed)
         unset($sanitized_data['tour_id']);
         
