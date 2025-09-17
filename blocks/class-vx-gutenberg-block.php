@@ -11,12 +11,32 @@ if (!defined('ABSPATH')) {
 }
 
 class VX_Gutenberg_Block {
+
+    /**
+     * Single instance of the Gutenberg block bootstrap.
+     *
+     * @var VX_Gutenberg_Block|null
+     */
+    private static $instance = null;
     
     /**
      * Constructor
      */
-    public function __construct() {
+    private function __construct() {
         $this->init_hooks();
+    }
+
+    /**
+     * Get the singleton instance.
+     *
+     * @return VX_Gutenberg_Block
+     */
+    public static function instance() {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
     }
     
     /**
@@ -358,9 +378,11 @@ class VX_Gutenberg_Block {
     }
 }
 
-// Initialize the Gutenberg block
-new VX_Gutenberg_Block();
+// Initialize the Gutenberg block when block APIs are available
+if (function_exists('register_block_type')) {
+    $vx_gutenberg_block = VX_Gutenberg_Block::instance();
 
-// Add AJAX handlers
-add_action('wp_ajax_vx_get_tour_preview', array('VX_Gutenberg_Block', 'ajax_get_tour_preview'));
-add_action('wp_ajax_nopriv_vx_get_tour_preview', array('VX_Gutenberg_Block', 'ajax_get_tour_preview'));
+    // Add AJAX handlers
+    add_action('wp_ajax_vx_get_tour_preview', array($vx_gutenberg_block, 'ajax_get_tour_preview'));
+    add_action('wp_ajax_nopriv_vx_get_tour_preview', array($vx_gutenberg_block, 'ajax_get_tour_preview'));
+}

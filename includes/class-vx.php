@@ -159,6 +159,41 @@ class VX {
         require_once plugin_dir_path(dirname(__FILE__)) . 'includes/class-vx-shortcode.php';
         require_once plugin_dir_path(dirname(__FILE__)) . 'includes/class-vx-rest.php';
 
+        $plugin_base_path = plugin_dir_path(dirname(__FILE__));
+
+        $gutenberg_block_file = $plugin_base_path . 'blocks/class-vx-gutenberg-block.php';
+        if (file_exists($gutenberg_block_file)) {
+            if (function_exists('register_block_type')) {
+                require_once $gutenberg_block_file;
+            } else {
+                add_action(
+                    'init',
+                    static function () use ($gutenberg_block_file) {
+                        if (function_exists('register_block_type') && file_exists($gutenberg_block_file)) {
+                            require_once $gutenberg_block_file;
+                        }
+                    },
+                    5
+                );
+            }
+        }
+
+        $elementor_integration_file = $plugin_base_path . 'elementor/class-vx-elementor-integration.php';
+        if (file_exists($elementor_integration_file)) {
+            if (did_action('elementor/loaded') || class_exists('\\Elementor\\Plugin')) {
+                require_once $elementor_integration_file;
+            } else {
+                add_action(
+                    'elementor/loaded',
+                    static function () use ($elementor_integration_file) {
+                        if (file_exists($elementor_integration_file)) {
+                            require_once $elementor_integration_file;
+                        }
+                    }
+                );
+            }
+        }
+
         $this->loader = new VX_Loader();
     }
 
