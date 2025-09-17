@@ -11,12 +11,32 @@ if (!defined('ABSPATH')) {
 }
 
 class VX_Elementor_Integration {
+
+    /**
+     * Holds the single instance of the integration.
+     *
+     * @var VX_Elementor_Integration|null
+     */
+    private static $instance = null;
     
     /**
      * Constructor
      */
-    public function __construct() {
+    private function __construct() {
         $this->init_hooks();
+    }
+
+    /**
+     * Retrieve the singleton instance.
+     *
+     * @return VX_Elementor_Integration
+     */
+    public static function instance() {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
     }
     
     /**
@@ -34,7 +54,7 @@ class VX_Elementor_Integration {
      * Check if Elementor is active
      */
     public static function is_elementor_active() {
-        return did_action('elementor/loaded');
+        return did_action('elementor/loaded') || class_exists('\\Elementor\\Plugin');
     }
     
     /**
@@ -366,10 +386,16 @@ class VX_Elementor_Integration {
     }
 }
 
-// Initialize Elementor integration if Elementor is active
-if (VX_Elementor_Integration::is_elementor_active()) {
-    new VX_Elementor_Integration();
-    
+// Initialize Elementor integration when Elementor is ready
+$vx_elementor_bootstrap = static function () {
+    VX_Elementor_Integration::instance();
+
     // Add Elementor support to tour post type
     add_action('init', array('VX_Elementor_Integration', 'add_elementor_support'), 20);
+};
+
+if (did_action('elementor/loaded')) {
+    $vx_elementor_bootstrap();
+} else {
+    add_action('elementor/loaded', $vx_elementor_bootstrap);
 }
