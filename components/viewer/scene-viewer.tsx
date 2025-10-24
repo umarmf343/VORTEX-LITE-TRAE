@@ -46,6 +46,19 @@ import {
 import WebGLCapabilities from "three/examples/jsm/capabilities/WebGL.js"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 
+const isWebGLAvailable = () => {
+  try {
+    const canvas = document.createElement("canvas")
+    return !!(
+      window.WebGLRenderingContext &&
+      (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"))
+    )
+  } catch (error) {
+    console.warn("Unable to determine WebGL support", error)
+    return false
+  }
+}
+
 const measurementModes = ["distance", "area", "volume"] as const
 type MeasurementMode = (typeof measurementModes)[number]
 
@@ -415,9 +428,14 @@ export function SceneViewer({
     const container = viewerRef.current
     if (!container) return
 
-    if (!WebGLCapabilities.isWebGL2Available()) {
-      setRenderError("WebGL 2 is not available in this browser or device.")
+    const hasWebGL2 = WebGLCapabilities.isWebGL2Available()
+    if (!hasWebGL2 && !isWebGLAvailable()) {
+      setRenderError("WebGL is not available in this browser or device.")
       return
+    }
+
+    if (!hasWebGL2) {
+      console.info("WebGL 2 not available; falling back to WebGL 1 renderer")
     }
 
     let renderer: WebGLRenderer
