@@ -123,3 +123,50 @@
     @apply bg-background text-foreground;
   }
 }
+
+.psv-custom-hotspot {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.psv-custom-hotspot-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.psv-annotation-marker {
+  background: rgba(0, 0, 0, 0.7);
+  color: #ffffff;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.375rem;
+  max-width: 12rem;
+  font-size: 0.75rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+.psv-measure-label {
+  background: rgba(15, 23, 42, 0.85);
+  color: #e2e8f0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+.psv-measure-point {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+  background: rgba(59, 130, 246, 0.9);
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+}

@@ -1,16 +1,55 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useMemo, useCallback } from "react"
 import type { Annotation, BrandingConfig, Hotspot, Measurement, Scene } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Ruler, MessageSquare, Play, Pause, Volume2, ImageIcon, Sun, Moon, Maximize2, Layers } from "lucide-react"
+import "photo-sphere-viewer/dist/photo-sphere-viewer.css"
+import "photo-sphere-viewer/dist/plugins/markers.css"
+import type { ClickData } from "photo-sphere-viewer"
+import type { MarkerProperties } from "photo-sphere-viewer/dist/plugins/markers"
 
 const measurementModes = ["distance", "area", "volume"] as const
 type MeasurementMode = (typeof measurementModes)[number]
 
 const viewModes = ["360", "first-person", "dollhouse", "floor-plan"] as const
 type SceneViewMode = (typeof viewModes)[number]
+
+const HOTSPOT_ICON_MAP: Record<Hotspot["type"], string> = {
+  info: "i",
+  link: "⇨",
+  cta: "★",
+  video: "▶",
+  audio: "♪",
+  image: "🖼",
+}
+
+const clampPercentage = (value: number) => Math.max(0, Math.min(100, value))
+
+const percentageToSpherical = (x: number, y: number) => {
+  const longitude = (clampPercentage(x) / 100) * Math.PI * 2 - Math.PI
+  const latitude = Math.PI / 2 - (clampPercentage(y) / 100) * Math.PI
+  return { longitude, latitude }
+}
+
+const sphericalToPercentage = (longitude: number, latitude: number) => {
+  const x = ((longitude + Math.PI) / (Math.PI * 2)) * 100
+  const y = ((Math.PI / 2 - latitude) / Math.PI) * 100
+  return { x: clampPercentage(x), y: clampPercentage(y) }
+}
+
+const escapeHtml = (value: string) =>
+  value.replace(/[&<>"']/g, (char) => {
+    const entities: Record<string, string> = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    }
+    return entities[char] || char
+  })
 
 interface SceneViewerProps {
   scene: Scene
@@ -61,7 +100,27 @@ export function SceneViewer({
   const [transitionEffect, setTransitionEffect] = useState<"fade" | "slide">(sceneTransition)
   const imageRef = useRef<HTMLDivElement>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
+  const viewerContainerRef = useRef<HTMLDivElement>(null)
+  const viewerRef = useRef<any>(null)
+  const markersPluginRef = useRef<any>(null)
+  const stereoPluginRef = useRef<any>(null)
+  const gyroscopePluginRef = useRef<any>(null)
+  const markersPluginClassRef = useRef<any>(null)
+  const stereoPluginClassRef = useRef<any>(null)
+  const gyroscopePluginClassRef = useRef<any>(null)
   const sceneStartTime = useRef(Date.now())
+
+  const is360View = currentViewMode === "360"
+
+  const currentImageUrl = useMemo(() => {
+    if (dayNightMode === "night" && dayNightImages?.night) {
+      return dayNightImages.night
+    }
+    if (dayNightMode === "day" && dayNightImages?.day) {
+      return dayNightImages.day
+    }
+    return scene.imageUrl
+  }, [dayNightMode, dayNightImages, scene.imageUrl])
 
   useEffect(() => {
     setMeasurements(scene.measurements)
@@ -75,7 +134,7 @@ export function SceneViewer({
   }, [scene.id])
 
   useEffect(() => {
-    if (!enableGyroscope || !vrMode) return
+    if (!enableGyroscope || !vrMode || is360View) return
 
     const handleDeviceOrientation = (event: DeviceOrientationEvent) => {
       const alpha = event.alpha || 0
@@ -84,15 +143,15 @@ export function SceneViewer({
 
     window.addEventListener("deviceorientation", handleDeviceOrientation)
     return () => window.removeEventListener("deviceorientation", handleDeviceOrientation)
-  }, [enableGyroscope, vrMode])
+  }, [enableGyroscope, vrMode, is360View])
 
   useEffect(() => {
-    if (!autoRotate) return
+    if (!autoRotate || is360View) return
     const interval = setInterval(() => {
       setRotation((prev) => (prev + 1) % 360)
     }, 50)
     return () => clearInterval(interval)
-  }, [autoRotate])
+  }, [autoRotate, is360View])
 
   useEffect(() => {
     if (audioRef.current && backgroundAudio) {
@@ -108,14 +167,278 @@ export function SceneViewer({
     }
   }, [scene.id, onSceneEngagement])
 
-  const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!imageRef.current) return
+  useEffect(() => {
+    if (!is360View) {
+      viewerRef.current?.destroy?.()
+      viewerRef.current = null
+      markersPluginRef.current = null
+      stereoPluginRef.current = null
+      gyroscopePluginRef.current = null
+      return
+    }
 
-    const rect = imageRef.current.getBoundingClientRect()
-    const x = ((e.clientX - rect.left) / rect.width) * 100
-    const y = ((e.clientY - rect.top) / rect.height) * 100
+    let isCancelled = false
 
-    if (measuring) {
+    const initViewer = async () => {
+      try {
+        const [{ Viewer }, markersModule, stereoModule, gyroscopeModule] = await Promise.all([
+          import("photo-sphere-viewer"),
+          import("photo-sphere-viewer/dist/plugins/markers"),
+          import("photo-sphere-viewer/dist/plugins/stereo"),
+          enableGyroscope ? import("photo-sphere-viewer/dist/plugins/gyroscope") : Promise.resolve(null),
+        ])
+
+        if (!viewerContainerRef.current || isCancelled) {
+          return
+        }
+
+        viewerRef.current?.destroy?.()
+
+        const plugins: Array<[any, any?]> = [
+          [markersModule.MarkersPlugin, { markers: [] }],
+          [stereoModule.StereoPlugin],
+        ]
+
+        markersPluginClassRef.current = markersModule.MarkersPlugin
+        stereoPluginClassRef.current = stereoModule.StereoPlugin
+
+        if (enableGyroscope && gyroscopeModule) {
+          plugins.push([gyroscopeModule.GyroscopePlugin, { moveMode: "smooth" }])
+          gyroscopePluginClassRef.current = gyroscopeModule.GyroscopePlugin
+        } else {
+          gyroscopePluginClassRef.current = null
+        }
+
+        const viewer = new Viewer({
+          container: viewerContainerRef.current,
+          panorama: scene.imageUrl || "/placeholder.svg",
+          mousewheelCtrlKey: true,
+          touchmoveTwoFingers: true,
+          navbar: ["zoom", "move", "fullscreen"],
+          plugins,
+        })
+
+        viewerRef.current = viewer
+        markersPluginRef.current = markersPluginClassRef.current ? viewer.getPlugin(markersPluginClassRef.current) : null
+        stereoPluginRef.current = stereoPluginClassRef.current ? viewer.getPlugin(stereoPluginClassRef.current) : null
+        gyroscopePluginRef.current =
+          enableGyroscope && gyroscopePluginClassRef.current ? viewer.getPlugin(gyroscopePluginClassRef.current) : null
+      } catch {
+        viewerRef.current = null
+        markersPluginRef.current = null
+        stereoPluginRef.current = null
+        gyroscopePluginRef.current = null
+      }
+    }
+
+    initViewer()
+
+    return () => {
+      isCancelled = true
+      viewerRef.current?.destroy?.()
+      viewerRef.current = null
+      markersPluginRef.current = null
+      stereoPluginRef.current = null
+      gyroscopePluginRef.current = null
+    }
+  }, [is360View, scene.id, scene.imageUrl, enableGyroscope])
+
+  useEffect(() => {
+    if (!is360View) return
+    const viewer = viewerRef.current
+    if (!viewer) return
+
+    viewer
+      .setPanorama(currentImageUrl || "/placeholder.svg", {
+        transition: transitionEffect === "fade",
+      })
+      .catch(() => {})
+  }, [currentImageUrl, is360View, transitionEffect])
+
+  useEffect(() => {
+    if (!is360View) return
+    const viewer = viewerRef.current
+    if (!viewer) return
+
+    if (autoRotate) {
+      viewer.startAutorotate()
+    } else {
+      viewer.stopAutorotate()
+    }
+
+    return () => {
+      viewer.stopAutorotate()
+    }
+  }, [autoRotate, is360View])
+
+  useEffect(() => {
+    if (!is360View) return
+    const stereoPlugin = stereoPluginRef.current
+    if (!stereoPlugin) return
+
+    if (vrMode) {
+      Promise.resolve(stereoPlugin.start?.()).catch(() => {})
+    } else {
+      stereoPlugin.stop?.()
+    }
+  }, [vrMode, is360View])
+
+  useEffect(() => {
+    if (!is360View) return
+    const gyroscopePlugin = gyroscopePluginRef.current
+    if (!gyroscopePlugin) return
+
+    if (enableGyroscope && vrMode) {
+      Promise.resolve(gyroscopePlugin.start?.()).catch(() => {})
+    } else {
+      gyroscopePlugin.stop?.()
+    }
+  }, [enableGyroscope, vrMode, is360View])
+
+  useEffect(() => {
+    if (!is360View) return
+    const viewer = viewerRef.current
+    if (!viewer) return
+
+    const handleViewerInteraction = (_event: unknown, data: ClickData) => {
+      if (!data) return
+      const { x, y } = sphericalToPercentage(data.longitude, data.latitude)
+      if (measuring) {
+        applyMeasurementPoint(x, y)
+      } else if (showAnnotationInput) {
+        applyAnnotationPoint(x, y)
+      }
+    }
+
+    viewer.on("click", handleViewerInteraction)
+    return () => {
+      viewer.off?.("click", handleViewerInteraction)
+    }
+  }, [is360View, measuring, showAnnotationInput, applyMeasurementPoint, applyAnnotationPoint])
+
+  useEffect(() => {
+    if (!is360View) return
+    const markersPlugin = markersPluginRef.current
+    if (!markersPlugin) return
+
+    const markers: MarkerProperties[] = []
+
+    scene.hotspots.forEach((hotspot) => {
+      const { longitude, latitude } = percentageToSpherical(hotspot.x, hotspot.y)
+      const icon = escapeHtml(HOTSPOT_ICON_MAP[hotspot.type] ?? "•")
+      markers.push({
+        id: `hotspot-${hotspot.id}`,
+        longitude,
+        latitude,
+        html: `<div class="psv-custom-hotspot" style="background:${branding.primaryColor}"><span class="psv-custom-hotspot-icon">${icon}</span></div>`,
+        anchor: "center",
+        tooltip: hotspot.title,
+        data: { type: "hotspot", hotspot },
+      })
+    })
+
+    if (showAnnotations) {
+      annotations.forEach((annotation) => {
+        const { longitude, latitude } = percentageToSpherical(annotation.x, annotation.y)
+        markers.push({
+          id: `annotation-${annotation.id}`,
+          longitude,
+          latitude,
+          html: `<div class="psv-annotation-marker" style="border-left-color:${annotation.color}">${escapeHtml(annotation.text)}</div>`,
+          anchor: "center",
+          data: { type: "annotation", annotation },
+        })
+      })
+    }
+
+    measurements.forEach((measurement) => {
+      const start = percentageToSpherical(measurement.startX, measurement.startY)
+      const end = percentageToSpherical(measurement.endX, measurement.endY)
+      markers.push({
+        id: `${measurement.id}-line`,
+        polylineRad: [
+          [start.longitude, start.latitude],
+          [end.longitude, end.latitude],
+        ],
+        svgStyle: {
+          stroke: branding.secondaryColor,
+          strokeWidth: "3",
+          fill: "none",
+        },
+        data: { type: "measurement", measurement },
+      })
+
+      const midpointLongitude = (start.longitude + end.longitude) / 2
+      const midpointLatitude = (start.latitude + end.latitude) / 2
+      const distanceLabel = `${measurement.distance.toFixed(1)} ${measurement.unit}`
+
+      markers.push({
+        id: `${measurement.id}-label`,
+        longitude: midpointLongitude,
+        latitude: midpointLatitude,
+        html: `<div class="psv-measure-label">${escapeHtml(distanceLabel)}</div>`,
+        anchor: "center",
+        data: { type: "measurement-label", measurement },
+      })
+    })
+
+    if (measureStart) {
+      const start = percentageToSpherical(measureStart.x, measureStart.y)
+      markers.push({
+        id: "measurement-start",
+        longitude: start.longitude,
+        latitude: start.latitude,
+        html: '<div class="psv-measure-point"></div>',
+        anchor: "center",
+      })
+    }
+
+    areaPoints.forEach((point, index) => {
+      const spherical = percentageToSpherical(point.x, point.y)
+      markers.push({
+        id: `area-point-${index}`,
+        longitude: spherical.longitude,
+        latitude: spherical.latitude,
+        html: '<div class="psv-measure-point"></div>',
+        anchor: "center",
+      })
+    })
+
+    volumePoints.forEach((point, index) => {
+      const spherical = percentageToSpherical(point.x, point.y)
+      markers.push({
+        id: `volume-point-${index}`,
+        longitude: spherical.longitude,
+        latitude: spherical.latitude,
+        html: '<div class="psv-measure-point"></div>',
+        anchor: "center",
+      })
+    })
+
+    markersPlugin.setMarkers(markers)
+  }, [annotations, areaPoints, branding, is360View, measureStart, measurements, scene.hotspots, showAnnotations, volumePoints])
+
+  const calculatePolygonArea = (points: Array<{ x: number; y: number }>) => {
+    let area = 0
+    for (let i = 0; i < points.length; i++) {
+      const j = (i + 1) % points.length
+      area += points[i].x * points[j].y
+      area -= points[j].x * points[i].y
+    }
+    return Math.abs(area / 2) * 10
+  }
+
+  const calculateVolume = (points: Array<{ x: number; y: number; z: number }>) => {
+    if (points.length < 4) return 0
+    const baseArea = calculatePolygonArea(points.map((p) => ({ x: p.x, y: p.y })))
+    const avgHeight = points.reduce((sum, p) => sum + p.z, 0) / points.length
+    return baseArea * avgHeight
+  }
+
+  const applyMeasurementPoint = useCallback(
+    (x: number, y: number) => {
+      if (!measuring) return
+
       if (measurementType === "distance") {
         if (!measureStart) {
           setMeasureStart({ x, y })
@@ -171,48 +494,81 @@ export function SceneViewer({
           onMeasure?.(newMeasurement)
         }
       }
+    },
+    [
+      measuring,
+      measurementType,
+      measureStart,
+      areaPoints,
+      volumePoints,
+      calculatePolygonArea,
+      calculateVolume,
+      onMeasure,
+    ],
+  )
+
+  const applyAnnotationPoint = useCallback(
+    (x: number, y: number) => {
+      if (!showAnnotationInput || !annotationText.trim()) return
+
+      const newAnnotation: Annotation = {
+        id: `annotation-${Date.now()}`,
+        x,
+        y,
+        text: annotationText,
+        color: annotationColor,
+      }
+      setAnnotations((prev) => [...prev, newAnnotation])
+      setAnnotationText("")
+      setShowAnnotationInput(false)
+    },
+    [annotationColor, annotationText, showAnnotationInput],
+  )
+
+  const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!imageRef.current) return
+
+    const rect = imageRef.current.getBoundingClientRect()
+    const x = ((e.clientX - rect.left) / rect.width) * 100
+    const y = ((e.clientY - rect.top) / rect.height) * 100
+
+    if (measuring) {
+      applyMeasurementPoint(x, y)
     } else if (showAnnotationInput) {
-      if (annotationText.trim()) {
-        const newAnnotation: Annotation = {
-          id: `annotation-${Date.now()}`,
-          x,
-          y,
-          text: annotationText,
-          color: annotationColor,
-        }
-        setAnnotations((prev) => [...prev, newAnnotation])
-        setAnnotationText("")
-        setShowAnnotationInput(false)
+      applyAnnotationPoint(x, y)
+    }
+  }
+
+  const handleHotspotClick = useCallback(
+    (hotspot: Hotspot) => {
+      setSelectedHotspot(hotspot)
+      if (hotspot.type === "video" || hotspot.type === "audio" || hotspot.type === "image") {
+        setMediaModal({ type: hotspot.type, url: hotspot.mediaUrl || "" })
+      } else {
+        setMediaModal(null)
+      }
+      onHotspotClick?.(hotspot)
+    },
+    [onHotspotClick],
+  )
+
+  useEffect(() => {
+    if (!is360View) return
+    const markersPlugin = markersPluginRef.current
+    if (!markersPlugin) return
+
+    const handleMarkerSelect = (_event: unknown, marker: { config?: MarkerProperties }) => {
+      const markerData = marker?.config?.data
+      if (markerData?.type === "hotspot" && markerData.hotspot) {
+        handleHotspotClick(markerData.hotspot as Hotspot)
       }
     }
-  }
 
-  const calculatePolygonArea = (points: Array<{ x: number; y: number }>) => {
-    let area = 0
-    for (let i = 0; i < points.length; i++) {
-      const j = (i + 1) % points.length
-      area += points[i].x * points[j].y
-      area -= points[j].x * points[i].y
+    markersPlugin.on("select-marker", handleMarkerSelect)
+    return () => {
+      markersPlugin.off?.("select-marker", handleMarkerSelect)
     }
-    return Math.abs(area / 2) * 10
-  }
-
-  const calculateVolume = (points: Array<{ x: number; y: number; z: number }>) => {
-    if (points.length < 4) return 0
-    const baseArea = calculatePolygonArea(points.map((p) => ({ x: p.x, y: p.y })))
-    const avgHeight = points.reduce((sum, p) => sum + p.z, 0) / points.length
-    return baseArea * avgHeight
-  }
-
-  const handleHotspotClick = (hotspot: Hotspot) => {
-    setSelectedHotspot(hotspot)
-    if (hotspot.type === "video" || hotspot.type === "audio" || hotspot.type === "image") {
-      setMediaModal({ type: hotspot.type, url: hotspot.mediaUrl || "" })
-    }
-    onHotspotClick?.(hotspot)
-  }
-
-  const currentImageUrl = dayNightMode === "night" && dayNightImages?.night ? dayNightImages.night : scene.imageUrl
+  }, [is360View, handleHotspotClick])
 
   const handleFullscreen = () => {
     if (imageRef.current) {
@@ -281,14 +637,22 @@ export function SceneViewer({
       {/* Viewer */}
       <div
         ref={imageRef}
-        className={`flex-1 relative overflow-hidden cursor-crosshair ${vrMode ? "flex" : ""}`}
-        onClick={handleImageClick}
-        style={{
-          transform: autoRotate || vrMode ? `rotateY(${rotation}deg)` : "none",
-          transition: transitionEffect === "fade" ? "opacity 0.5s ease-in-out" : "transform 0.5s ease-in-out",
-        }}
+        className={`flex-1 relative overflow-hidden ${
+          is360View ? "cursor-grab" : "cursor-crosshair"
+        } ${!is360View && vrMode ? "flex" : ""}`}
+        onClick={is360View ? undefined : handleImageClick}
+        style={
+          is360View
+            ? undefined
+            : {
+                transform: autoRotate || vrMode ? `rotateY(${rotation}deg)` : "none",
+                transition: transitionEffect === "fade" ? "opacity 0.5s ease-in-out" : "transform 0.5s ease-in-out",
+              }
+        }
       >
-        {vrMode ? (
+        {is360View ? (
+          <div ref={viewerContainerRef} className="w-full h-full bg-black" />
+        ) : vrMode ? (
           <div className="flex w-full h-full">
             <div className="w-1/2 overflow-hidden">{renderViewMode()}</div>
             <div className="w-1/2 overflow-hidden">{renderViewMode()}</div>
@@ -297,100 +661,105 @@ export function SceneViewer({
           renderViewMode()
         )}
 
-        {/* Hotspots */}
-        {scene.hotspots.map((hotspot) => (
-          <button
-            key={hotspot.id}
-            className="absolute w-8 h-8 rounded-full transform -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-125 flex items-center justify-center"
-            style={{
-              left: `${hotspot.x}%`,
-              top: `${hotspot.y}%`,
-              backgroundColor: branding.primaryColor,
-              opacity: 0.8,
-            }}
-            onClick={(e) => {
-              e.stopPropagation()
-              handleHotspotClick(hotspot)
-            }}
-            title={hotspot.title}
-          >
-            {hotspot.type === "video" && <Play className="w-4 h-4 text-white" />}
-            {hotspot.type === "audio" && <Volume2 className="w-4 h-4 text-white" />}
-            {hotspot.type === "image" && <ImageIcon className="w-4 h-4 text-white" />}
-            <div
-              className="absolute inset-0 rounded-full animate-pulse"
-              style={{ backgroundColor: branding.primaryColor, opacity: 0.3 }}
-            />
-          </button>
-        ))}
+        {!is360View && (
+          <>
+            {/* Hotspots */}
+            {scene.hotspots.map((hotspot) => (
+              <button
+                key={hotspot.id}
+                className="absolute w-8 h-8 rounded-full transform -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-125 flex items-center justify-center"
+                style={{
+                  left: `${hotspot.x}%`,
+                  top: `${hotspot.y}%`,
+                  backgroundColor: branding.primaryColor,
+                  opacity: 0.8,
+                }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleHotspotClick(hotspot)
+                }}
+                title={hotspot.title}
+              >
+                {hotspot.type === "video" && <Play className="w-4 h-4 text-white" />}
+                {hotspot.type === "audio" && <Volume2 className="w-4 h-4 text-white" />}
+                {hotspot.type === "image" && <ImageIcon className="w-4 h-4 text-white" />}
+                <div
+                  className="absolute inset-0 rounded-full animate-pulse"
+                  style={{ backgroundColor: branding.primaryColor, opacity: 0.3 }}
+                />
+              </button>
+            ))}
 
-        {/* Measurement Lines */}
-        {measurements.map((m) => (
-          <svg key={m.id} className="absolute inset-0 w-full h-full pointer-events-none">
-            <line
-              x1={`${m.startX}%`}
-              y1={`${m.startY}%`}
-              x2={`${m.endX}%`}
-              y2={`${m.endY}%`}
-              stroke={branding.secondaryColor}
-              strokeWidth="2"
-            />
-            <circle cx={`${m.startX}%`} cy={`${m.startY}%`} r="4" fill={branding.secondaryColor} />
-            <circle cx={`${m.endX}%`} cy={`${m.endY}%`} r="4" fill={branding.secondaryColor} />
-            <text
-              x={`${(m.startX + m.endX) / 2}%`}
-              y={`${(m.startY + m.endY) / 2 - 5}%`}
-              fill={branding.secondaryColor}
-              fontSize="12"
-              textAnchor="middle"
-            >
-              {m.distance.toFixed(1)} {m.unit}
-            </text>
-          </svg>
-        ))}
+            {/* Measurement Lines */}
+            {measurements.map((m) => (
+              <svg key={m.id} className="absolute inset-0 w-full h-full pointer-events-none">
+                <line
+                  x1={`${m.startX}%`}
+                  y1={`${m.startY}%`}
+                  x2={`${m.endX}%`}
+                  y2={`${m.endY}%`}
+                  stroke={branding.secondaryColor}
+                  strokeWidth="2"
+                />
+                <circle cx={`${m.startX}%`} cy={`${m.startY}%`} r="4" fill={branding.secondaryColor} />
+                <circle cx={`${m.endX}%`} cy={`${m.endY}%`} r="4" fill={branding.secondaryColor} />
+                <text
+                  x={`${(m.startX + m.endX) / 2}%`}
+                  y={`${(m.startY + m.endY) / 2 - 5}%`}
+                  fill={branding.secondaryColor}
+                  fontSize="12"
+                  textAnchor="middle"
+                >
+                  {m.distance.toFixed(1)} {m.unit}
+                </text>
+              </svg>
+            ))}
 
-        {/* Area Measurement Points */}
-        {areaPoints.map((point, idx) => (
-          <div
-            key={idx}
-            className="absolute w-3 h-3 rounded-full transform -translate-x-1/2 -translate-y-1/2"
-            style={{
-              left: `${point.x}%`,
-              top: `${point.y}%`,
-              backgroundColor: branding.secondaryColor,
-            }}
-          />
-        ))}
+            {/* Area Measurement Points */}
+            {areaPoints.map((point, idx) => (
+              <div
+                key={idx}
+                className="absolute w-3 h-3 rounded-full transform -translate-x-1/2 -translate-y-1/2"
+                style={{
+                  left: `${point.x}%`,
+                  top: `${point.y}%`,
+                  backgroundColor: branding.secondaryColor,
+                }}
+              />
+            ))}
 
-        {/* Volume Measurement Points */}
-        {volumePoints.map((point, idx) => (
-          <div
-            key={`vol-${idx}`}
-            className="absolute w-4 h-4 rounded-full transform -translate-x-1/2 -translate-y-1/2 border-2"
-            style={{
-              left: `${point.x}%`,
-              top: `${point.y}%`,
-              borderColor: branding.secondaryColor,
-              backgroundColor: "transparent",
-            }}
-          />
-        ))}
+            {/* Volume Measurement Points */}
+            {volumePoints.map((point, idx) => (
+              <div
+                key={`vol-${idx}`}
+                className="absolute w-4 h-4 rounded-full transform -translate-x-1/2 -translate-y-1/2 border-2"
+                style={{
+                  left: `${point.x}%`,
+                  top: `${point.y}%`,
+                  borderColor: branding.secondaryColor,
+                  backgroundColor: "transparent",
+                }}
+              />
+            ))}
 
-        {/* Annotations */}
-        {showAnnotations &&
-          annotations.map((annotation) => (
-            <div
-              key={annotation.id}
-              className="absolute transform -translate-x-1/2 -translate-y-1/2 p-2 rounded bg-black/70 text-white text-xs max-w-xs"
-              style={{
-                left: `${annotation.x}%`,
-                top: `${annotation.y}%`,
-                borderLeft: `3px solid ${annotation.color}`,
-              }}
-            >
-              {annotation.text}
-            </div>
-          ))}
+            {/* Annotations */}
+            {showAnnotations &&
+              annotations.map((annotation) => (
+                <div
+                  key={annotation.id}
+                  className="absolute transform -translate-x-1/2 -translate-y-1/2 p-2 rounded bg-black/70 text-white text-xs max-w-xs"
+                  style={{
+                    left: `${annotation.x}%`,
+                    top: `${annotation.y}%`,
+                    borderLeft: `3px solid ${annotation.color}`,
+                  }}
+                >
+                  {annotation.text}
+                </div>
+              ))}
+
+          </>
+        )}
 
         {/* Annotation Input */}
         {showAnnotationInput && (
