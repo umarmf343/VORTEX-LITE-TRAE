@@ -1,4 +1,10 @@
-export type SceneViewMode = "360" | "first-person" | "orbit" | "dollhouse" | "floor-plan"
+export type SceneViewMode =
+  | "360"
+  | "first-person"
+  | "walkthrough"
+  | "orbit"
+  | "dollhouse"
+  | "floor-plan"
 
 export interface Property {
   id: string
