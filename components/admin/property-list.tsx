@@ -3,6 +3,7 @@ import type { Property } from "@/lib/types"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Eye, Edit, Trash2, BarChart3 } from "lucide-react"
+import { formatCurrency } from "@/lib/utils"
 
 interface PropertyListProps {
   properties: Property[]
@@ -27,7 +28,7 @@ export function PropertyList({ properties, onView, onEdit, onDelete, onStats }: 
               <h3 className="font-semibold text-lg">{property.name}</h3>
               <p className="text-gray-600 text-sm mb-2">{property.address}</p>
               <div className="flex gap-4 text-sm text-gray-600 mb-3">
-                <span>${(property.price / 1000000).toFixed(1)}M</span>
+                <span>{formatCurrency(property.price)}</span>
                 <span>{property.bedrooms} bed</span>
                 <span>{property.bathrooms} bath</span>
                 <span>{property.sqft.toLocaleString()} sqft</span>

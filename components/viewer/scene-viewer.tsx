@@ -130,7 +130,7 @@ export function SceneViewer({
             distance: Number.parseFloat((distance * 10).toFixed(2)),
             unit: "ft",
           }
-          setMeasurements([...measurements, newMeasurement])
+          setMeasurements((prev) => [...prev, newMeasurement])
           setMeasureStart(null)
           onMeasure?.(newMeasurement)
         }
@@ -148,7 +148,7 @@ export function SceneViewer({
             distance: area,
             unit: "ft",
           }
-          setMeasurements([...measurements, newMeasurement])
+          setMeasurements((prev) => [...prev, newMeasurement])
           setAreaPoints([])
           onMeasure?.(newMeasurement)
         }
@@ -166,7 +166,7 @@ export function SceneViewer({
             distance: volume,
             unit: "ft",
           }
-          setMeasurements([...measurements, newMeasurement])
+          setMeasurements((prev) => [...prev, newMeasurement])
           setVolumePoints([])
           onMeasure?.(newMeasurement)
         }
@@ -180,7 +180,7 @@ export function SceneViewer({
           text: annotationText,
           color: annotationColor,
         }
-        setAnnotations([...annotations, newAnnotation])
+        setAnnotations((prev) => [...prev, newAnnotation])
         setAnnotationText("")
         setShowAnnotationInput(false)
       }

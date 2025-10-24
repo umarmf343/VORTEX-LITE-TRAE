@@ -11,6 +11,7 @@ import { LeadsDashboard } from "@/components/admin/leads-dashboard"
 import { CaptureServices } from "@/components/admin/capture-services"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { formatCurrency } from "@/lib/utils"
 import { Building2, BarChart3, Users, Zap, FileText, Calendar, Share2, Code, Map, ShoppingCart } from "lucide-react"
 import PropertyReports from "@/components/admin/property-reports"
 import BookingSystem from "@/components/admin/booking-system"
@@ -234,7 +235,7 @@ export default function Page() {
                 </div>
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="text-2xl font-bold text-white">${(property.price / 1000000).toFixed(1)}M</div>
+                    <div className="text-2xl font-bold text-white">{formatCurrency(property.price)}</div>
                     <div className="text-right text-sm text-slate-400">
                       <div>
                         {property.bedrooms} bed • {property.bathrooms} bath

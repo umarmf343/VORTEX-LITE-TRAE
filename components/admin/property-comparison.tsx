@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Check, X } from "lucide-react"
 import { useEffect, useState } from "react"
+import { formatCurrency } from "@/lib/utils"
 
 interface PropertyComparisonProps {
   properties: Property[]
@@ -56,18 +57,22 @@ export function PropertyComparison({ properties, onClose }: PropertyComparisonPr
         <h3 className="text-lg font-semibold mb-4">Select Properties to Compare</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           {properties.map((prop) => (
-            <Button
-              key={prop.id}
-              variant={selectedProperties.includes(prop.id) ? "default" : "outline"}
-              onClick={() => {
-                if (selectedProperties.includes(prop.id)) {
-                  setSelectedProperties(selectedProperties.filter((id) => id !== prop.id))
-                } else if (selectedProperties.length < 4) {
-                  setSelectedProperties([...selectedProperties, prop.id])
-                }
-              }}
-              className="text-xs"
-            >
+              <Button
+                key={prop.id}
+                variant={selectedProperties.includes(prop.id) ? "default" : "outline"}
+                onClick={() => {
+                  setSelectedProperties((prev) => {
+                    if (prev.includes(prop.id)) {
+                      return prev.filter((id) => id !== prop.id)
+                    }
+                    if (prev.length >= 4) {
+                      return prev
+                    }
+                    return [...prev, prop.id]
+                  })
+                }}
+                className="text-xs"
+              >
               {prop.name.split(" ")[0]}
             </Button>
           ))}
@@ -83,7 +88,7 @@ export function PropertyComparison({ properties, onClose }: PropertyComparisonPr
                 {comparisonProperties.map((prop) => (
                   <th key={prop.id} className="border border-gray-300 p-3 text-center font-semibold">
                     <div className="text-sm">{prop.name}</div>
-                    <div className="text-xs text-gray-600">${(prop.price / 1000000).toFixed(1)}M</div>
+                    <div className="text-xs text-gray-600">{formatCurrency(prop.price)}</div>
                   </th>
                 ))}
               </tr>
@@ -94,7 +99,7 @@ export function PropertyComparison({ properties, onClose }: PropertyComparisonPr
                   <td className="border border-gray-300 p-3 font-medium">{feature.label}</td>
                   {comparisonProperties.map((prop) => (
                     <td key={prop.id} className="border border-gray-300 p-3 text-center">
-                      {feature.key === "price" && `$${(prop.price / 1000000).toFixed(1)}M`}
+                      {feature.key === "price" && formatCurrency(prop.price)}
                       {feature.key === "bedrooms" && prop.bedrooms}
                       {feature.key === "bathrooms" && prop.bathrooms}
                       {feature.key === "sqft" && prop.sqft.toLocaleString()}
