@@ -31,6 +31,10 @@ import {
   ArrowDown,
   Trash2,
   MapPin,
+  Image,
+  Navigation,
+  Video,
+  MousePointerClick,
 } from "lucide-react"
 
 type SharePlatform = "facebook" | "twitter" | "linkedin" | "email"
@@ -69,6 +73,7 @@ export function TourPlayer({
     pitch: number
     key: number
   } | null>(null)
+  const [activeHotspot, setActiveHotspot] = useState<Hotspot | null>(null)
   const sceneEngagement = useRef<Record<string, number>>({})
   const tourTimeoutRef = useRef<number | null>(null)
   const TOUR_STEP_DURATION = 8000
@@ -100,6 +105,7 @@ export function TourPlayer({
     setIsTourPlaying(false)
     setActiveTourIndex(0)
     setPendingOrientation(null)
+    setActiveHotspot(null)
     if (tourTimeoutRef.current) {
       window.clearTimeout(tourTimeoutRef.current)
       tourTimeoutRef.current = null
@@ -113,6 +119,19 @@ export function TourPlayer({
   }, [products, selectedProduct])
 
   const currentScene = property.scenes[currentSceneIndex]
+  const mediaHotspots = useMemo(
+    () =>
+      currentScene.hotspots.filter((hotspot) => ["video", "audio", "image"].includes(hotspot.type)),
+    [currentScene.hotspots],
+  )
+  const sceneViewPoints = useMemo(
+    () => tourPoints.filter((point) => point.sceneId === currentScene.id),
+    [currentScene.id, tourPoints],
+  )
+
+  useEffect(() => {
+    setActiveHotspot(null)
+  }, [currentScene.id])
 
   const handleTourPointCreate = (point: TourPoint) => {
     setTourPoints((prev) => {
@@ -153,6 +172,7 @@ export function TourPlayer({
   }
 
   const handleHotspotClick = (hotspot: Hotspot) => {
+    setActiveHotspot(hotspot)
     const productMatch = productHotspotMap.get(hotspot.id)
 
     if (hotspot.type === "link" && hotspot.targetSceneId) {
@@ -175,6 +195,11 @@ export function TourPlayer({
 
   const handleProductPurchase = (product: WooCommerceProduct) => {
     alert(`Purchase initiated for ${product.name}. We will redirect you to checkout shortly.`)
+  }
+
+  const handleHotspotMediaPreview = (hotspot: Hotspot) => {
+    if (!hotspot.mediaUrl) return
+    window.open(hotspot.mediaUrl, "_blank", "noopener,noreferrer")
   }
 
   useEffect(() => {
@@ -359,6 +384,161 @@ export function TourPlayer({
                   </div>
                 </button>
               ))}
+            </div>
+          </Card>
+
+          {/* Immersive Highlights */}
+          <Card className="p-4 bg-gradient-to-br from-gray-900 to-gray-950 border-gray-800">
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center gap-2 text-white font-semibold">
+                  <Image className="w-4 h-4 text-blue-400" />
+                  Panoramic Scene
+                </div>
+                <div className="mt-2 relative h-28 rounded-lg overflow-hidden border border-gray-800/80">
+                  <img
+                    src={currentScene.imageUrl || currentScene.thumbnail || "/placeholder.svg"}
+                    alt={`${currentScene.name} panorama`}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                    <p className="text-[11px] text-gray-200">
+                      Drag inside the viewer to explore this immersive 360° capture.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between gap-2 text-white font-semibold">
+                  <span className="flex items-center gap-2">
+                    <Navigation className="w-4 h-4 text-emerald-400" />
+                    Smooth Navigation
+                  </span>
+                  <span className="text-[11px] text-gray-400 uppercase">Scene {currentSceneIndex + 1}</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={Math.max(property.scenes.length - 1, 0)}
+                  value={currentSceneIndex}
+                  onChange={(event) => setCurrentSceneIndex(Number(event.target.value))}
+                  className="w-full mt-3 accent-blue-500"
+                  aria-label="Scene navigation"
+                />
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {property.scenes.map((scene, idx) => (
+                    <button
+                      key={`scene-chip-${scene.id}`}
+                      type="button"
+                      onClick={() => setCurrentSceneIndex(idx)}
+                      className={`px-2 py-1 rounded-full text-[11px] tracking-wide uppercase transition ${
+                        idx === currentSceneIndex
+                          ? "bg-blue-500/20 text-blue-200 border border-blue-500/60"
+                          : "bg-gray-800/80 text-gray-300 border border-gray-800 hover:border-blue-500/40"
+                      }`}
+                    >
+                      {scene.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center gap-2 text-white font-semibold">
+                  <MapPin className="w-4 h-4 text-purple-400" />
+                  View Points
+                </div>
+                {sceneViewPoints.length > 0 ? (
+                  <div className="mt-2 space-y-2">
+                    {sceneViewPoints.map((point) => (
+                      <button
+                        key={point.id}
+                        type="button"
+                        onClick={() => {
+                          const index = property.scenes.findIndex((scene) => scene.id === point.sceneId)
+                          if (index !== -1) {
+                            setCurrentSceneIndex(index)
+                            setPendingOrientation({
+                              sceneId: point.sceneId,
+                              yaw: point.yaw,
+                              pitch: point.pitch,
+                              key: Date.now(),
+                            })
+                          }
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-lg bg-gray-800/70 border border-gray-800 hover:border-blue-500/40 transition"
+                      >
+                        <p className="text-sm font-medium text-gray-100">{point.note || point.sceneName}</p>
+                        <p className="text-[11px] text-gray-400">{point.sceneName}</p>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-400 mt-2">
+                    Capture a favorite angle from this scene to create a personalized viewpoint.
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <div className="flex items-center gap-2 text-white font-semibold">
+                  <Video className="w-4 h-4 text-pink-400" />
+                  Multimedia Hotspots
+                </div>
+                {mediaHotspots.length > 0 ? (
+                  <ul className="mt-2 space-y-2">
+                    {mediaHotspots.map((hotspot) => (
+                      <li
+                        key={hotspot.id}
+                        className="flex items-center justify-between gap-3 rounded-lg bg-gray-800/70 border border-gray-800 px-3 py-2"
+                      >
+                        <div>
+                          <p className="text-sm font-medium text-gray-100">{hotspot.title}</p>
+                          <p className="text-[11px] text-gray-400 capitalize">{hotspot.type} hotspot</p>
+                        </div>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="text-xs"
+                          onClick={() => {
+                            setActiveHotspot(hotspot)
+                            handleHotspotMediaPreview(hotspot)
+                          }}
+                          disabled={!hotspot.mediaUrl}
+                        >
+                          Open
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-gray-400 mt-2">
+                    This scene does not have multimedia hotspots yet. Add video, audio, or gallery callouts to enrich the tour.
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <div className="flex items-center gap-2 text-white font-semibold">
+                  <MousePointerClick className="w-4 h-4 text-amber-400" />
+                  Interactive Hotspot
+                </div>
+                <div className="mt-2 rounded-lg border border-gray-800 bg-gray-900/70 p-3">
+                  {activeHotspot ? (
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-gray-100">{activeHotspot.title}</p>
+                      <p className="text-[11px] text-gray-400">{activeHotspot.description}</p>
+                      <p className="text-[11px] text-gray-500 uppercase">Type: {activeHotspot.type}</p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-400">
+                      Hover or tap hotspots inside the panorama to reveal contextual details instantly.
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
           </Card>
 
