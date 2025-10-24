@@ -183,8 +183,8 @@ export const mockProperties: Property[] = [
     tags: ["family-home", "suburban", "pool", "modern"],
     floorPlanId: "floor-002",
     dayNightImages: {
-      day: "/modern-suburban-day.jpg",
-      night: "/modern-suburban-night.jpg",
+      day: "/modern-suburban-home-exterior.jpg",
+      night: "/suburban-home-front.jpg",
     },
     branding: {
       primaryColor: "#1a3a52",
@@ -433,7 +433,7 @@ export const mockFloorPlans: FloorPlan[] = [
   {
     id: "floor-002",
     name: "Family Home Floor Plan",
-    imageUrl: "/family-home-floor-plan.jpg",
+    imageUrl: "/floor-plan-layout.jpg",
     scale: 1,
     rooms: [
       {
