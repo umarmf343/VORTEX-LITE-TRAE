@@ -1,8 +1,8 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useMemo, useRef, useState } from "react"
-import type { Annotation, BrandingConfig, Hotspot, Measurement, Scene } from "@/lib/types"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import type { Annotation, BrandingConfig, Hotspot, Measurement, Scene as SceneType } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import {
   Ruler,
@@ -19,6 +19,21 @@ import {
   RotateCcw,
   RotateCw,
 } from "lucide-react"
+import {
+  MathUtils,
+  Mesh,
+  MeshBasicMaterial,
+  PerspectiveCamera,
+  Raycaster,
+  Scene as ThreeScene,
+  SphereGeometry,
+  Spherical,
+  Texture,
+  TextureLoader,
+  Vector2,
+  Vector3,
+  WebGLRenderer,
+} from "three"
 
 const measurementModes = ["distance", "area", "volume"] as const
 type MeasurementMode = (typeof measurementModes)[number]
@@ -26,8 +41,74 @@ type MeasurementMode = (typeof measurementModes)[number]
 const viewModes = ["360", "first-person", "dollhouse", "floor-plan"] as const
 type SceneViewMode = (typeof viewModes)[number]
 
+type ProjectedPoint = { x: number; y: number; visible: boolean }
+
+interface ThreeContext {
+  renderer: WebGLRenderer
+  camera: PerspectiveCamera
+  scene: ThreeScene
+  mesh: Mesh<SphereGeometry, MeshBasicMaterial> | null
+}
+
+const percentToLonLat = (xPercent: number, yPercent: number) => {
+  const lon = (xPercent / 100) * 360 - 180
+  const lat = 90 - (yPercent / 100) * 180
+  return { lon, lat }
+}
+
+const lonLatToPercent = (lon: number, lat: number) => {
+  const normalizedLon = ((lon + 540) % 360) - 180
+  const clampedLat = Math.max(-90, Math.min(90, lat))
+  return {
+    x: ((normalizedLon + 180) / 360) * 100,
+    y: ((90 - clampedLat) / 180) * 100,
+  }
+}
+
+const pointsEqual = (a: ProjectedPoint, b: ProjectedPoint, tolerance = 0.2) =>
+  Math.abs(a.x - b.x) <= tolerance && Math.abs(a.y - b.y) <= tolerance && a.visible === b.visible
+
+const recordEqual = (a: Record<string, ProjectedPoint>, b: Record<string, ProjectedPoint>) => {
+  const keysA = Object.keys(a)
+  const keysB = Object.keys(b)
+  if (keysA.length !== keysB.length) return false
+  for (const key of keysA) {
+    const pointA = a[key]
+    const pointB = b[key]
+    if (!pointA || !pointB) return false
+    if (!pointsEqual(pointA, pointB)) return false
+  }
+  return true
+}
+
+const measurementRecordEqual = (
+  a: Record<string, { start: ProjectedPoint; end: ProjectedPoint }>,
+  b: Record<string, { start: ProjectedPoint; end: ProjectedPoint }>,
+) => {
+  const keysA = Object.keys(a)
+  const keysB = Object.keys(b)
+  if (keysA.length !== keysB.length) return false
+  for (const key of keysA) {
+    const valueA = a[key]
+    const valueB = b[key]
+    if (!valueA || !valueB) return false
+    if (!pointsEqual(valueA.start, valueB.start) || !pointsEqual(valueA.end, valueB.end)) {
+      return false
+    }
+  }
+  return true
+}
+
+const projectedArrayEqual = (a: ProjectedPoint[], b: ProjectedPoint[]) => {
+  if (a.length !== b.length) return false
+  for (let i = 0; i < a.length; i++) {
+    if (!pointsEqual(a[i], b[i])) return false
+  }
+  return true
+}
+
 interface SceneViewerProps {
-  scene: Scene
+  scene: SceneType
   onHotspotClick?: (hotspot: Hotspot) => void
   onMeasure?: (measurement: Measurement) => void
   onSceneEngagement?: (sceneId: string, dwellTime: number) => void
@@ -59,7 +140,6 @@ export function SceneViewer({
   const [annotations, setAnnotations] = useState<Annotation[]>(scene.annotations)
   const [showAnnotations, setShowAnnotations] = useState(true)
   const [autoRotate, setAutoRotate] = useState(false)
-  const [rotation, setRotation] = useState(0)
   const [autoRotateSpeed, setAutoRotateSpeed] = useState(1)
   const [autoRotateDirection, setAutoRotateDirection] = useState<1 | -1>(1)
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null)
@@ -76,11 +156,37 @@ export function SceneViewer({
   const [showViewModes, setShowViewModes] = useState(false)
   const [currentViewMode, setCurrentViewMode] = useState<SceneViewMode>("360")
   const [volumePoints, setVolumePoints] = useState<Array<{ x: number; y: number; z: number }>>([])
-  const [transitionEffect, setTransitionEffect] = useState<"fade" | "slide">(sceneTransition)
-  const imageRef = useRef<HTMLDivElement>(null)
+  const viewerRef = useRef<HTMLDivElement>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
   const sceneStartTime = useRef(Date.now())
   const productHotspotSet = useMemo(() => new Set(productHotspotIds ?? []), [productHotspotIds])
+  const threeContextRef = useRef<ThreeContext | null>(null)
+  const textureRef = useRef<Texture | null>(null)
+  const raycasterRef = useRef<Raycaster | null>(null)
+  const pointerVectorRef = useRef(new Vector2())
+  const sphericalRef = useRef(new Spherical())
+  const cameraTargetRef = useRef(new Vector3())
+  const currentTextureUrlRef = useRef<string | null>(null)
+  const hotspotsRef = useRef<Hotspot[]>(scene.hotspots)
+  const lonRef = useRef(0)
+  const latRef = useRef(0)
+  const pointerDownRef = useRef({ x: 0, y: 0, lon: 0, lat: 0 })
+  const isInteractingRef = useRef(false)
+  const animationFrameRef = useRef<number>()
+  const autoRotateRef = useRef(autoRotate)
+  const autoRotateSpeedRef = useRef(autoRotateSpeed)
+  const autoRotateDirectionRef = useRef(autoRotateDirection)
+  const measurementsRef = useRef<Measurement[]>(scene.measurements)
+  const annotationsRef = useRef<Annotation[]>(scene.annotations)
+  const areaPointsRef = useRef<Array<{ x: number; y: number }>>([])
+  const volumePointsRef = useRef<Array<{ x: number; y: number; z: number }>>([])
+  const [projectedHotspots, setProjectedHotspots] = useState<Record<string, ProjectedPoint>>({})
+  const [projectedAnnotations, setProjectedAnnotations] = useState<Record<string, ProjectedPoint>>({})
+  const [projectedMeasurements, setProjectedMeasurements] = useState<
+    Record<string, { start: ProjectedPoint; end: ProjectedPoint }>
+  >({})
+  const [projectedAreaPoints, setProjectedAreaPoints] = useState<ProjectedPoint[]>([])
+  const [projectedVolumePoints, setProjectedVolumePoints] = useState<ProjectedPoint[]>([])
 
   useEffect(() => {
     setMeasurements(scene.measurements)
@@ -90,31 +196,334 @@ export function SceneViewer({
     setVolumePoints([])
     setShowAnnotationInput(false)
     setAnnotationText("")
+    lonRef.current = 0
+    latRef.current = 0
+    hotspotsRef.current = scene.hotspots
+    measurementsRef.current = scene.measurements
+    annotationsRef.current = scene.annotations
+    areaPointsRef.current = []
+    volumePointsRef.current = []
+    setProjectedHotspots({})
+    setProjectedAnnotations({})
+    setProjectedMeasurements({})
+    setProjectedAreaPoints([])
+    setProjectedVolumePoints([])
     sceneStartTime.current = Date.now()
   }, [scene.id])
 
   useEffect(() => {
-    if (!enableGyroscope || !vrMode) return
+    autoRotateRef.current = autoRotate
+  }, [autoRotate])
+
+  useEffect(() => {
+    autoRotateSpeedRef.current = autoRotateSpeed
+  }, [autoRotateSpeed])
+
+  useEffect(() => {
+    autoRotateDirectionRef.current = autoRotateDirection
+  }, [autoRotateDirection])
+
+  useEffect(() => {
+    measurementsRef.current = measurements
+  }, [measurements])
+
+  useEffect(() => {
+    annotationsRef.current = annotations
+  }, [annotations])
+
+  useEffect(() => {
+    areaPointsRef.current = areaPoints
+  }, [areaPoints])
+
+  useEffect(() => {
+    volumePointsRef.current = volumePoints
+  }, [volumePoints])
+
+  useEffect(() => {
+    if (!enableGyroscope || !vrMode || currentViewMode !== "360") return
 
     const handleDeviceOrientation = (event: DeviceOrientationEvent) => {
-      const alpha = event.alpha || 0
-      setRotation(alpha)
+      if (typeof event.alpha === "number") {
+        lonRef.current = event.alpha
+      }
+      if (typeof event.beta === "number") {
+        const lat = event.beta - 90
+        latRef.current = Math.max(-85, Math.min(85, lat))
+      }
     }
 
     window.addEventListener("deviceorientation", handleDeviceOrientation)
     return () => window.removeEventListener("deviceorientation", handleDeviceOrientation)
-  }, [enableGyroscope, vrMode])
+  }, [enableGyroscope, vrMode, currentViewMode])
+
+  const updateProjectedElements = useCallback(() => {
+    if (currentViewMode !== "360") return
+    const context = threeContextRef.current
+    const container = viewerRef.current
+    if (!context || !container) return
+
+    const camera = context.camera
+    const cameraDirection = new Vector3()
+    camera.getWorldDirection(cameraDirection)
+
+    const projectPercent = (x: number, y: number): ProjectedPoint => {
+      const { lon, lat } = percentToLonLat(x, y)
+      const phi = MathUtils.degToRad(90 - lat)
+      const theta = MathUtils.degToRad(lon)
+      const point = new Vector3().setFromSphericalCoords(500, phi, theta)
+      const directionToPoint = point.clone().normalize()
+      const visible = cameraDirection.dot(directionToPoint) > 0
+      const projected = point.clone().project(camera)
+      return {
+        x: (projected.x * 0.5 + 0.5) * 100,
+        y: (-projected.y * 0.5 + 0.5) * 100,
+        visible,
+      }
+    }
+
+    const nextHotspots: Record<string, ProjectedPoint> = {}
+    for (const hotspot of hotspotsRef.current) {
+      nextHotspots[hotspot.id] = projectPercent(hotspot.x, hotspot.y)
+    }
+    setProjectedHotspots((prev) => (recordEqual(prev, nextHotspots) ? prev : nextHotspots))
+
+    const nextAnnotations: Record<string, ProjectedPoint> = {}
+    for (const annotation of annotationsRef.current) {
+      nextAnnotations[annotation.id] = projectPercent(annotation.x, annotation.y)
+    }
+    setProjectedAnnotations((prev) => (recordEqual(prev, nextAnnotations) ? prev : nextAnnotations))
+
+    const nextMeasurements: Record<string, { start: ProjectedPoint; end: ProjectedPoint }> = {}
+    for (const measurement of measurementsRef.current) {
+      const start = projectPercent(measurement.startX, measurement.startY)
+      const end = projectPercent(measurement.endX, measurement.endY)
+      nextMeasurements[measurement.id] = { start, end }
+    }
+    setProjectedMeasurements((prev) => (measurementRecordEqual(prev, nextMeasurements) ? prev : nextMeasurements))
+
+    const nextAreaPoints = areaPointsRef.current.map((point) => projectPercent(point.x, point.y))
+    setProjectedAreaPoints((prev) => (projectedArrayEqual(prev, nextAreaPoints) ? prev : nextAreaPoints))
+
+    const nextVolumePoints = volumePointsRef.current.map((point) => projectPercent(point.x, point.y))
+    setProjectedVolumePoints((prev) => (projectedArrayEqual(prev, nextVolumePoints) ? prev : nextVolumePoints))
+  }, [currentViewMode])
 
   useEffect(() => {
-    if (!autoRotate) return
-    const interval = setInterval(() => {
-      setRotation((prev) => {
-        const next = prev + autoRotateDirection * autoRotateSpeed
-        return ((next % 360) + 360) % 360
-      })
-    }, 50)
-    return () => clearInterval(interval)
-  }, [autoRotate, autoRotateDirection, autoRotateSpeed])
+    if (currentViewMode !== "360") {
+      setProjectedHotspots({})
+      setProjectedAnnotations({})
+      setProjectedMeasurements({})
+      setProjectedAreaPoints([])
+      setProjectedVolumePoints([])
+    }
+  }, [currentViewMode])
+
+  useEffect(() => {
+    if (currentViewMode !== "360") {
+      if (threeContextRef.current) {
+        const context = threeContextRef.current
+        context.renderer.dispose()
+        threeContextRef.current = null
+        raycasterRef.current = null
+      }
+      return
+    }
+
+    const container = viewerRef.current
+    if (!container) return
+
+    const renderer = new WebGLRenderer({ antialias: true })
+    renderer.setPixelRatio(window.devicePixelRatio || 1)
+    renderer.setSize(container.clientWidth, container.clientHeight)
+    renderer.domElement.style.width = "100%"
+    renderer.domElement.style.height = "100%"
+    renderer.domElement.style.display = "block"
+    renderer.domElement.style.touchAction = "none"
+    container.appendChild(renderer.domElement)
+
+    const camera = new PerspectiveCamera(75, container.clientWidth / container.clientHeight, 1, 1100)
+    cameraTargetRef.current.set(0, 0, 0)
+    camera.lookAt(cameraTargetRef.current)
+
+    const scene3D = new ThreeScene()
+    const geometry = new SphereGeometry(500, 60, 40)
+    geometry.scale(-1, 1, 1)
+    const material = new MeshBasicMaterial({ color: 0xffffff })
+    const mesh = new Mesh(geometry, material)
+    scene3D.add(mesh)
+
+    const context: ThreeContext = { renderer, camera, scene: scene3D, mesh }
+    threeContextRef.current = context
+
+    const raycaster = new Raycaster()
+    raycasterRef.current = raycaster
+
+    const loader = new TextureLoader()
+    const resolveImage = () =>
+      dayNightMode === "night" && dayNightImages?.night ? dayNightImages.night : scene.imageUrl || "/placeholder.svg"
+    const initialImageUrl = resolveImage()
+
+    loader.load(
+      initialImageUrl,
+      (texture) => {
+        textureRef.current?.dispose()
+        textureRef.current = texture
+        currentTextureUrlRef.current = initialImageUrl
+        material.map = texture
+        material.needsUpdate = true
+      },
+      undefined,
+      () => {
+        material.map = null
+        material.needsUpdate = true
+        currentTextureUrlRef.current = null
+      },
+    )
+
+    const handlePointerDown = (event: PointerEvent) => {
+      isInteractingRef.current = true
+      pointerDownRef.current = { x: event.clientX, y: event.clientY, lon: lonRef.current, lat: latRef.current }
+      container.setPointerCapture(event.pointerId)
+    }
+
+    const handlePointerMove = (event: PointerEvent) => {
+      if (!isInteractingRef.current) return
+      const deltaX = event.clientX - pointerDownRef.current.x
+      const deltaY = event.clientY - pointerDownRef.current.y
+      lonRef.current = pointerDownRef.current.lon - deltaX * 0.1
+      latRef.current = Math.max(-85, Math.min(85, pointerDownRef.current.lat + deltaY * 0.1))
+    }
+
+    const handlePointerUp = (event: PointerEvent) => {
+      isInteractingRef.current = false
+      if (container.hasPointerCapture(event.pointerId)) {
+        container.releasePointerCapture(event.pointerId)
+      }
+    }
+
+    const handlePointerLeave = () => {
+      isInteractingRef.current = false
+    }
+
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault()
+      const currentContext = threeContextRef.current
+      if (!currentContext) return
+      const { camera: currentCamera } = currentContext
+      currentCamera.fov = Math.max(30, Math.min(100, currentCamera.fov + event.deltaY * 0.05))
+      currentCamera.updateProjectionMatrix()
+    }
+
+    const handleContextMenu = (event: Event) => {
+      event.preventDefault()
+    }
+
+    container.addEventListener("pointerdown", handlePointerDown)
+    container.addEventListener("pointermove", handlePointerMove)
+    container.addEventListener("pointerup", handlePointerUp)
+    container.addEventListener("pointerleave", handlePointerLeave)
+    container.addEventListener("wheel", handleWheel, { passive: false })
+    container.addEventListener("contextmenu", handleContextMenu)
+
+    const resizeObserver = new ResizeObserver(() => {
+      const currentContext = threeContextRef.current
+      if (!currentContext) return
+      const { renderer: ctxRenderer, camera: ctxCamera } = currentContext
+      ctxRenderer.setSize(container.clientWidth, container.clientHeight)
+      ctxCamera.aspect = container.clientWidth / container.clientHeight
+      ctxCamera.updateProjectionMatrix()
+    })
+
+    resizeObserver.observe(container)
+
+    const animate = () => {
+      const currentContext = threeContextRef.current
+      if (!currentContext) return
+      const { renderer: ctxRenderer, camera: ctxCamera, scene: ctxScene } = currentContext
+
+      if (autoRotateRef.current && !isInteractingRef.current) {
+        lonRef.current += autoRotateDirectionRef.current * autoRotateSpeedRef.current * 0.2
+      }
+
+      latRef.current = Math.max(-85, Math.min(85, latRef.current))
+      const phi = MathUtils.degToRad(90 - latRef.current)
+      const theta = MathUtils.degToRad(lonRef.current)
+      cameraTargetRef.current.set(
+        500 * Math.sin(phi) * Math.cos(theta),
+        500 * Math.cos(phi),
+        500 * Math.sin(phi) * Math.sin(theta),
+      )
+      ctxCamera.lookAt(cameraTargetRef.current)
+
+      ctxRenderer.render(ctxScene, ctxCamera)
+      updateProjectedElements()
+      animationFrameRef.current = requestAnimationFrame(animate)
+    }
+
+    animate()
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
+      resizeObserver.disconnect()
+      container.removeEventListener("pointerdown", handlePointerDown)
+      container.removeEventListener("pointermove", handlePointerMove)
+      container.removeEventListener("pointerup", handlePointerUp)
+      container.removeEventListener("pointerleave", handlePointerLeave)
+      container.removeEventListener("wheel", handleWheel)
+      container.removeEventListener("contextmenu", handleContextMenu)
+      const currentContext = threeContextRef.current
+      if (currentContext) {
+        currentContext.renderer.dispose()
+        if (currentContext.mesh) {
+          currentContext.mesh.geometry.dispose()
+          currentContext.mesh.material.dispose()
+          currentContext.scene.remove(currentContext.mesh)
+        }
+      }
+      textureRef.current?.dispose()
+      currentTextureUrlRef.current = null
+      if (renderer.domElement.parentElement === container) {
+        container.removeChild(renderer.domElement)
+      }
+      threeContextRef.current = null
+      raycasterRef.current = null
+    }
+  }, [currentViewMode, scene.id, updateProjectedElements])
+
+  useEffect(() => {
+    if (currentViewMode !== "360") return
+    const context = threeContextRef.current
+    if (!context || !context.mesh) return
+
+    const loader = new TextureLoader()
+    const imageUrl =
+      dayNightMode === "night" && dayNightImages?.night ? dayNightImages.night : scene.imageUrl || "/placeholder.svg"
+
+    if (currentTextureUrlRef.current === imageUrl) {
+      return
+    }
+
+    loader.load(
+      imageUrl,
+      (texture) => {
+        textureRef.current?.dispose()
+        textureRef.current = texture
+        const material = context.mesh?.material as MeshBasicMaterial
+        material.map = texture
+        material.needsUpdate = true
+        currentTextureUrlRef.current = imageUrl
+      },
+      undefined,
+      () => {
+        const material = context.mesh?.material as MeshBasicMaterial
+        material.map = null
+        material.needsUpdate = true
+        currentTextureUrlRef.current = null
+      },
+    )
+  }, [currentViewMode, dayNightMode, dayNightImages, scene.imageUrl])
 
   useEffect(() => {
     if (audioRef.current && backgroundAudio) {
@@ -130,12 +539,49 @@ export function SceneViewer({
     }
   }, [scene.id, onSceneEngagement])
 
-  const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!imageRef.current) return
+  const getPointerPercent = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      if (!viewerRef.current) return null
 
-    const rect = imageRef.current.getBoundingClientRect()
-    const x = ((e.clientX - rect.left) / rect.width) * 100
-    const y = ((e.clientY - rect.top) / rect.height) * 100
+      if (currentViewMode === "360") {
+        const context = threeContextRef.current
+        const raycaster = raycasterRef.current
+        if (!context || !raycaster || !context.mesh) return null
+
+        const rect = viewerRef.current.getBoundingClientRect()
+        const pointer = pointerVectorRef.current
+        pointer.set(
+          ((event.clientX - rect.left) / rect.width) * 2 - 1,
+          -((event.clientY - rect.top) / rect.height) * 2 + 1,
+        )
+        raycaster.setFromCamera(pointer, context.camera)
+        const intersections = raycaster.intersectObject(context.mesh, false)
+        if (intersections.length === 0) return null
+
+        const point = intersections[0].point
+        const spherical = sphericalRef.current
+        spherical.setFromVector3(point)
+        let lon = MathUtils.radToDeg(spherical.theta)
+        if (lon > 180) lon -= 360
+        if (lon < -180) lon += 360
+        const lat = 90 - MathUtils.radToDeg(spherical.phi)
+        return lonLatToPercent(lon, lat)
+      }
+
+      const rect = viewerRef.current.getBoundingClientRect()
+      return {
+        x: ((event.clientX - rect.left) / rect.width) * 100,
+        y: ((event.clientY - rect.top) / rect.height) * 100,
+      }
+    },
+    [currentViewMode],
+  )
+
+  const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const percent = getPointerPercent(e)
+    if (!percent) return
+
+    const { x, y } = percent
 
     if (measuring) {
       if (measurementType === "distance") {
@@ -237,9 +683,9 @@ export function SceneViewer({
   const currentImageUrl = dayNightMode === "night" && dayNightImages?.night ? dayNightImages.night : scene.imageUrl
 
   const handleFullscreen = () => {
-    if (imageRef.current) {
+    if (viewerRef.current) {
       if (!isFullscreen) {
-        imageRef.current.requestFullscreen?.()
+        viewerRef.current.requestFullscreen?.()
       } else {
         document.exitFullscreen?.()
       }
@@ -267,6 +713,9 @@ export function SceneViewer({
   }
 
   const renderViewMode = () => {
+    if (currentViewMode === "360") {
+      return <div className="w-full h-full bg-black" />
+    }
     if (currentViewMode === "first-person") {
       return (
         <div className="w-full h-full flex items-center justify-center bg-black">
@@ -298,35 +747,52 @@ export function SceneViewer({
     return <img src={currentImageUrl || "/placeholder.svg"} alt={scene.name} className="w-full h-full object-cover" />
   }
 
+  const viewerCursorClass =
+    measuring || showAnnotationInput
+      ? "cursor-crosshair"
+      : currentViewMode === "360"
+        ? "cursor-grab"
+        : "cursor-crosshair"
+  const viewerFlexClass = currentViewMode !== "360" && vrMode ? "flex" : ""
+
   return (
     <div className="w-full h-full flex flex-col bg-black">
       {/* Viewer */}
       <div
-        ref={imageRef}
-        className={`flex-1 relative overflow-hidden cursor-crosshair ${vrMode ? "flex" : ""}`}
+        ref={viewerRef}
+        className={`flex-1 relative overflow-hidden ${viewerCursorClass} ${viewerFlexClass} ${
+          currentViewMode === "360" ? "bg-black" : ""
+        }`}
         onClick={handleImageClick}
-        style={{
-          transform: autoRotate || vrMode ? `rotateY(${rotation}deg)` : "none",
-          transition: transitionEffect === "fade" ? "opacity 0.5s ease-in-out" : "transform 0.5s ease-in-out",
-        }}
       >
-        {vrMode ? (
-          <div className="flex w-full h-full">
-            <div className="w-1/2 overflow-hidden">{renderViewMode()}</div>
-            <div className="w-1/2 overflow-hidden">{renderViewMode()}</div>
-          </div>
-        ) : (
-          renderViewMode()
-        )}
+        {currentViewMode !== "360" ? (
+          vrMode ? (
+            <div className="flex w-full h-full">
+              <div className="w-1/2 overflow-hidden">{renderViewMode()}</div>
+              <div className="w-1/2 overflow-hidden">{renderViewMode()}</div>
+            </div>
+          ) : (
+            renderViewMode()
+          )
+        ) : null}
 
         {/* Hotspots */}
         {scene.hotspots.map((hotspot) => {
           const isProductHotspot = productHotspotSet.has(hotspot.id)
+          const projected = projectedHotspots[hotspot.id]
+          if (currentViewMode === "360" && (!projected || !projected.visible)) {
+            return null
+          }
+          const positionStyle =
+            currentViewMode === "360"
+              ? { left: `${projected?.x ?? 0}%`, top: `${projected?.y ?? 0}%` }
+              : { left: `${hotspot.x}%`, top: `${hotspot.y}%` }
+
           return (
             <div
               key={hotspot.id}
               className="absolute transform -translate-x-1/2 -translate-y-1/2"
-              style={{ left: `${hotspot.x}%`, top: `${hotspot.y}%` }}
+              style={positionStyle}
             >
               <button
                 className="relative flex h-8 w-8 items-center justify-center rounded-full transition-all hover:scale-125"
@@ -352,72 +818,158 @@ export function SceneViewer({
           )
         })}
         {/* Measurement Lines */}
-        {measurements.map((m) => (
-          <svg key={m.id} className="absolute inset-0 w-full h-full pointer-events-none">
-            <line
-              x1={`${m.startX}%`}
-              y1={`${m.startY}%`}
-              x2={`${m.endX}%`}
-              y2={`${m.endY}%`}
-              stroke={branding.secondaryColor}
-              strokeWidth="2"
-            />
-            <circle cx={`${m.startX}%`} cy={`${m.startY}%`} r="4" fill={branding.secondaryColor} />
-            <circle cx={`${m.endX}%`} cy={`${m.endY}%`} r="4" fill={branding.secondaryColor} />
-            <text
-              x={`${(m.startX + m.endX) / 2}%`}
-              y={`${(m.startY + m.endY) / 2 - 5}%`}
-              fill={branding.secondaryColor}
-              fontSize="12"
-              textAnchor="middle"
-            >
-              {m.distance.toFixed(1)} {m.unit}
-            </text>
-          </svg>
-        ))}
+        {measurements.map((m) => {
+          if (currentViewMode === "360") {
+            const projection = projectedMeasurements[m.id]
+            if (!projection || !projection.start.visible || !projection.end.visible) {
+              return null
+            }
+            const midX = (projection.start.x + projection.end.x) / 2
+            const midY = (projection.start.y + projection.end.y) / 2
+            return (
+              <svg key={m.id} className="absolute inset-0 w-full h-full pointer-events-none">
+                <line
+                  x1={`${projection.start.x}%`}
+                  y1={`${projection.start.y}%`}
+                  x2={`${projection.end.x}%`}
+                  y2={`${projection.end.y}%`}
+                  stroke={branding.secondaryColor}
+                  strokeWidth="2"
+                />
+                <circle cx={`${projection.start.x}%`} cy={`${projection.start.y}%`} r="4" fill={branding.secondaryColor} />
+                <circle cx={`${projection.end.x}%`} cy={`${projection.end.y}%`} r="4" fill={branding.secondaryColor} />
+                <text
+                  x={`${midX}%`}
+                  y={`${midY - 2}%`}
+                  fill={branding.secondaryColor}
+                  fontSize="12"
+                  textAnchor="middle"
+                >
+                  {m.distance.toFixed(1)} {m.unit}
+                </text>
+              </svg>
+            )
+          }
+
+          return (
+            <svg key={m.id} className="absolute inset-0 w-full h-full pointer-events-none">
+              <line
+                x1={`${m.startX}%`}
+                y1={`${m.startY}%`}
+                x2={`${m.endX}%`}
+                y2={`${m.endY}%`}
+                stroke={branding.secondaryColor}
+                strokeWidth="2"
+              />
+              <circle cx={`${m.startX}%`} cy={`${m.startY}%`} r="4" fill={branding.secondaryColor} />
+              <circle cx={`${m.endX}%`} cy={`${m.endY}%`} r="4" fill={branding.secondaryColor} />
+              <text
+                x={`${(m.startX + m.endX) / 2}%`}
+                y={`${(m.startY + m.endY) / 2 - 5}%`}
+                fill={branding.secondaryColor}
+                fontSize="12"
+                textAnchor="middle"
+              >
+                {m.distance.toFixed(1)} {m.unit}
+              </text>
+            </svg>
+          )
+        })}
 
         {/* Area Measurement Points */}
-        {areaPoints.map((point, idx) => (
-          <div
-            key={idx}
-            className="absolute w-3 h-3 rounded-full transform -translate-x-1/2 -translate-y-1/2"
-            style={{
-              left: `${point.x}%`,
-              top: `${point.y}%`,
-              backgroundColor: branding.secondaryColor,
-            }}
-          />
-        ))}
+        {(currentViewMode === "360" ? projectedAreaPoints : areaPoints).map((point, idx) => {
+          if (currentViewMode === "360") {
+            const projectedPoint = point as ProjectedPoint
+            if (!projectedPoint.visible) {
+              return null
+            }
+            return (
+              <div
+                key={idx}
+                className="absolute w-3 h-3 rounded-full transform -translate-x-1/2 -translate-y-1/2"
+                style={{
+                  left: `${projectedPoint.x}%`,
+                  top: `${projectedPoint.y}%`,
+                  backgroundColor: branding.secondaryColor,
+                }}
+              />
+            )
+          }
+
+          const flatPoint = point as { x: number; y: number }
+          return (
+            <div
+              key={idx}
+              className="absolute w-3 h-3 rounded-full transform -translate-x-1/2 -translate-y-1/2"
+              style={{
+                left: `${flatPoint.x}%`,
+                top: `${flatPoint.y}%`,
+                backgroundColor: branding.secondaryColor,
+              }}
+            />
+          )
+        })}
 
         {/* Volume Measurement Points */}
-        {volumePoints.map((point, idx) => (
-          <div
-            key={`vol-${idx}`}
-            className="absolute w-4 h-4 rounded-full transform -translate-x-1/2 -translate-y-1/2 border-2"
-            style={{
-              left: `${point.x}%`,
-              top: `${point.y}%`,
-              borderColor: branding.secondaryColor,
-              backgroundColor: "transparent",
-            }}
-          />
-        ))}
+        {(currentViewMode === "360" ? projectedVolumePoints : volumePoints).map((point, idx) => {
+          if (currentViewMode === "360") {
+            const projectedPoint = point as ProjectedPoint
+            if (!projectedPoint.visible) {
+              return null
+            }
+            return (
+              <div
+                key={`vol-${idx}`}
+                className="absolute w-4 h-4 rounded-full transform -translate-x-1/2 -translate-y-1/2 border-2"
+                style={{
+                  left: `${projectedPoint.x}%`,
+                  top: `${projectedPoint.y}%`,
+                  borderColor: branding.secondaryColor,
+                  backgroundColor: "transparent",
+                }}
+              />
+            )
+          }
+
+          const flatPoint = point as { x: number; y: number }
+          return (
+            <div
+              key={`vol-${idx}`}
+              className="absolute w-4 h-4 rounded-full transform -translate-x-1/2 -translate-y-1/2 border-2"
+              style={{
+                left: `${flatPoint.x}%`,
+                top: `${flatPoint.y}%`,
+                borderColor: branding.secondaryColor,
+                backgroundColor: "transparent",
+              }}
+            />
+          )
+        })}
 
         {/* Annotations */}
         {showAnnotations &&
-          annotations.map((annotation) => (
-            <div
-              key={annotation.id}
-              className="absolute transform -translate-x-1/2 -translate-y-1/2 p-2 rounded bg-black/70 text-white text-xs max-w-xs"
-              style={{
-                left: `${annotation.x}%`,
-                top: `${annotation.y}%`,
-                borderLeft: `3px solid ${annotation.color}`,
-              }}
-            >
-              {annotation.text}
-            </div>
-          ))}
+          annotations.map((annotation) => {
+            const projected = projectedAnnotations[annotation.id]
+            if (currentViewMode === "360" && (!projected || !projected.visible)) {
+              return null
+            }
+            const positionStyle =
+              currentViewMode === "360"
+                ? { left: `${projected?.x ?? 0}%`, top: `${projected?.y ?? 0}%` }
+                : { left: `${annotation.x}%`, top: `${annotation.y}%` }
+            return (
+              <div
+                key={annotation.id}
+                className="absolute transform -translate-x-1/2 -translate-y-1/2 p-2 rounded bg-black/70 text-white text-xs max-w-xs"
+                style={{
+                  ...positionStyle,
+                  borderLeft: `3px solid ${annotation.color}`,
+                }}
+              >
+                {annotation.text}
+              </div>
+            )
+          })}
 
         {/* Annotation Input */}
         {showAnnotationInput && (
