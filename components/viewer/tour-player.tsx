@@ -18,6 +18,8 @@ import { ChevronLeft, ChevronRight, Phone, Mail, Share2, Heart } from "lucide-re
 
 type SharePlatform = "facebook" | "twitter" | "linkedin" | "email"
 
+const sharePlatforms: SharePlatform[] = ["facebook", "twitter", "linkedin", "email"]
+
 interface TourPlayerProps {
   property: Property
   floorPlan?: FloorPlan | null
@@ -238,7 +240,7 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
               </Button>
               {showShareMenu && (
                 <div className="absolute top-12 left-0 right-0 bg-gray-800 border border-gray-700 rounded shadow-lg z-10">
-                  {["facebook", "twitter", "linkedin", "email"].map((platform) => (
+                  {sharePlatforms.map((platform) => (
                     <button
                       key={platform}
                       onClick={() => {
