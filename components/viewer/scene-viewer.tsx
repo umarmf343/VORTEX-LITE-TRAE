@@ -43,6 +43,7 @@ import {
   Vector3,
   WebGLRenderer,
 } from "three"
+import type { WebGLRendererParameters } from "three"
 import WebGLCapabilities from "three/examples/jsm/capabilities/WebGL.js"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 
@@ -59,15 +60,24 @@ const WEBGL_CONTEXT_ATTRIBUTES: WebGLContextAttributes = {
   powerPreference: "default",
 }
 
+const RELAXED_WEBGL_CONTEXT_ATTRIBUTES: WebGLContextAttributes = {
+  ...WEBGL_CONTEXT_ATTRIBUTES,
+  failIfMajorPerformanceCaveat: false,
+}
+
 const releaseContext = (gl: WebGLRenderingContext | WebGL2RenderingContext | null) => {
   if (!gl) return
   const loseContext = gl.getExtension("WEBGL_lose_context") as { loseContext: () => void } | null
   loseContext?.loseContext()
 }
 
-const tryCreateContext = (canvas: HTMLCanvasElement, type: WebGLContextType) => {
+const tryCreateContext = (
+  canvas: HTMLCanvasElement,
+  type: WebGLContextType,
+  attributes: WebGLContextAttributes,
+) => {
   try {
-    return canvas.getContext(type, WEBGL_CONTEXT_ATTRIBUTES) as
+    return canvas.getContext(type, attributes) as
       | WebGLRenderingContext
       | WebGL2RenderingContext
       | null
@@ -84,7 +94,9 @@ const isWebGLAvailable = () => {
     const contextTypes: WebGLContextType[] = ["webgl2", "webgl", "experimental-webgl"]
 
     for (const type of contextTypes) {
-      const context = tryCreateContext(canvas, type)
+      const context =
+        tryCreateContext(canvas, type, WEBGL_CONTEXT_ATTRIBUTES) ||
+        tryCreateContext(canvas, type, RELAXED_WEBGL_CONTEXT_ATTRIBUTES)
       if (context) {
         releaseContext(context)
         return true
@@ -477,13 +489,33 @@ export function SceneViewer({
       console.info("WebGL 2 not available; falling back to WebGL 1 renderer")
     }
 
-    let renderer: WebGLRenderer
-    try {
-      renderer = new WebGLRenderer({ antialias: true })
-    } catch (error) {
-      console.error("Failed to create WebGLRenderer", error)
+    let renderer: WebGLRenderer | null = null
+    let rendererError: unknown = null
+
+    const createRenderer = (params: WebGLRendererParameters) => {
+      try {
+        return new WebGLRenderer(params)
+      } catch (error) {
+        rendererError = error
+        return null
+      }
+    }
+
+    renderer =
+      createRenderer({ antialias: true, failIfMajorPerformanceCaveat: true }) ??
+      createRenderer({ antialias: true, failIfMajorPerformanceCaveat: false })
+
+    if (!renderer) {
+      console.error("Failed to create WebGLRenderer", rendererError)
       setRenderError("Unable to initialize the 3D viewer on this device.")
       return
+    }
+
+    if (rendererError) {
+      console.warn(
+        "WebGLRenderer fell back to a context that may have reduced performance due to GPU limitations.",
+        rendererError,
+      )
     }
 
     setRenderError(null)
