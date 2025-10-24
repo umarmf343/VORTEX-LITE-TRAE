@@ -43,7 +43,7 @@ import {
   Vector3,
   WebGLRenderer,
 } from "three"
-import WebGL from "three/examples/jsm/capabilities/WebGL.js"
+import WebGLCapabilities from "three/examples/jsm/capabilities/WebGL.js"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 
 const measurementModes = ["distance", "area", "volume"] as const
@@ -415,7 +415,7 @@ export function SceneViewer({
     const container = viewerRef.current
     if (!container) return
 
-    if (!WebGL.isWebGLAvailable()) {
+    if (!WebGLCapabilities.isWebGLAvailable()) {
       setRenderError("WebGL is not available in this browser or device.")
       return
     }
