@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useData } from "@/lib/data-context"
 import type { CrossPlatformShare, LeadCapturePayload } from "@/lib/types"
 import { TourPlayer } from "@/components/viewer/tour-player"
@@ -81,6 +81,28 @@ export default function Page() {
   const [viewMode, setViewMode] = useState<ViewMode>("home")
   const [selectedProperty, setSelectedProperty] = useState(properties[0])
   const [selectedAnalyticsProperty, setSelectedAnalyticsProperty] = useState(properties[0])
+
+  useEffect(() => {
+    if (properties.length === 0) {
+      setSelectedProperty(undefined)
+      setSelectedAnalyticsProperty(undefined)
+      return
+    }
+
+    setSelectedProperty((current) => {
+      if (current && properties.some((property) => property.id === current.id)) {
+        return current
+      }
+      return properties[0]
+    })
+
+    setSelectedAnalyticsProperty((current) => {
+      if (current && properties.some((property) => property.id === current.id)) {
+        return current
+      }
+      return properties[0]
+    })
+  }, [properties])
 
   if (!selectedProperty || !selectedAnalyticsProperty) {
     return (

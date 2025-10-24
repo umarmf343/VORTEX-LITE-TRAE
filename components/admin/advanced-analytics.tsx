@@ -15,6 +15,10 @@ interface AdvancedAnalyticsProps {
 export function AdvancedAnalytics({ property, visitors, leads }: AdvancedAnalyticsProps) {
   const propertyVisitors = visitors.filter((v) => v.propertyId === property.id)
   const propertyLeads = leads.filter((l) => l.propertyId === property.id)
+  const totalVisitors = propertyVisitors.length
+  const totalDuration = propertyVisitors.reduce((sum, v) => sum + v.duration, 0)
+  const avgDuration = totalVisitors > 0 ? Number((totalDuration / totalVisitors).toFixed(1)) : 0
+  const conversionRate = totalVisitors > 0 ? Number(((propertyLeads.length / totalVisitors) * 100).toFixed(1)) : 0
 
   const scenePopularityData = property.scenes.map((scene) => ({
     name: scene.name,
@@ -45,11 +49,11 @@ export function AdvancedAnalytics({ property, visitors, leads }: AdvancedAnalyti
       property: property.name,
       generatedAt: new Date().toISOString(),
       summary: {
-        totalVisits: propertyVisitors.length,
+        totalVisits: totalVisitors,
         uniqueVisitors: new Set(propertyVisitors.map((v) => v.sessionId)).size,
-        avgDuration: (propertyVisitors.reduce((sum, v) => sum + v.duration, 0) / propertyVisitors.length).toFixed(1),
+        avgDuration,
         leadsGenerated: propertyLeads.length,
-        conversionRate: ((propertyLeads.length / propertyVisitors.length) * 100).toFixed(1),
+        conversionRate,
       },
       scenePopularity: scenePopularityData,
       hotspotEngagement: hotspotEngagementData,
@@ -63,7 +67,10 @@ export function AdvancedAnalytics({ property, visitors, leads }: AdvancedAnalyti
     const link = document.createElement("a")
     link.href = url
     link.download = `${property.name}-report-${new Date().toISOString().split("T")[0]}.json`
+    document.body.appendChild(link)
     link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
   }
 
   return (

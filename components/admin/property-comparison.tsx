@@ -4,7 +4,7 @@ import type { Property } from "@/lib/types"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Check, X } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 interface PropertyComparisonProps {
   properties: Property[]
@@ -13,6 +13,30 @@ interface PropertyComparisonProps {
 
 export function PropertyComparison({ properties, onClose }: PropertyComparisonProps) {
   const [selectedProperties, setSelectedProperties] = useState<string[]>(properties.slice(0, 2).map((p) => p.id))
+
+  useEffect(() => {
+    setSelectedProperties((prev) => {
+      if (properties.length === 0) {
+        return []
+      }
+
+      const availableIds = properties.map((property) => property.id)
+      const retained = prev.filter((id) => availableIds.includes(id))
+      const minimumSelection = Math.min(availableIds.length, Math.max(2, retained.length))
+      const isSameSelection =
+        retained.length === prev.length && retained.every((id, index) => id === prev[index])
+
+      if (retained.length >= minimumSelection) {
+        return isSameSelection ? prev : retained
+      }
+
+      const additions = availableIds
+        .filter((id) => !retained.includes(id))
+        .slice(0, minimumSelection - retained.length)
+
+      return [...retained, ...additions]
+    })
+  }, [properties])
 
   const comparisonProperties = properties.filter((p) => selectedProperties.includes(p.id))
 

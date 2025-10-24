@@ -29,8 +29,8 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
   const [currentSceneIndex, setCurrentSceneIndex] = useState(0)
   const [showLeadForm, setShowLeadForm] = useState(false)
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", message: "" })
-  const [sessionStart] = useState(Date.now())
-  const [isFavorite, setIsFavorite] = useState(property.isFavorite || false)
+  const [sessionStart, setSessionStart] = useState(Date.now())
+  const [isFavorite, setIsFavorite] = useState(property.isFavorite ?? false)
   const [showShareMenu, setShowShareMenu] = useState(false)
   const [showFloorPlan, setShowFloorPlan] = useState(false)
   const sceneEngagement = useRef<Record<string, number>>({})
@@ -38,7 +38,11 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
   useEffect(() => {
     setShowFloorPlan(false)
     setCurrentSceneIndex(0)
-  }, [property.id])
+    setSessionStart(Date.now())
+    setIsFavorite(property.isFavorite ?? false)
+    setShowShareMenu(false)
+    sceneEngagement.current = {}
+  }, [property.id, property.isFavorite])
 
   const currentScene = property.scenes[currentSceneIndex]
 
@@ -85,7 +89,7 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
       email: `mailto:?subject=${encodeURIComponent(property.name)}&body=${encodeURIComponent(text + "\n" + url)}`,
     }
     if (shareUrls[platform]) {
-      window.open(shareUrls[platform], "_blank")
+      window.open(shareUrls[platform], "_blank", "noopener,noreferrer")
     }
   }
 

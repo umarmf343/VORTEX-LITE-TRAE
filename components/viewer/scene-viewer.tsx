@@ -64,6 +64,17 @@ export function SceneViewer({
   const sceneStartTime = useRef(Date.now())
 
   useEffect(() => {
+    setMeasurements(scene.measurements)
+    setAnnotations(scene.annotations)
+    setMeasureStart(null)
+    setAreaPoints([])
+    setVolumePoints([])
+    setShowAnnotationInput(false)
+    setAnnotationText("")
+    sceneStartTime.current = Date.now()
+  }, [scene.id])
+
+  useEffect(() => {
     if (!enableGyroscope || !vrMode) return
 
     const handleDeviceOrientation = (event: DeviceOrientationEvent) => {
