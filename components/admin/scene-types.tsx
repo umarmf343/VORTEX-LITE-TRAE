@@ -13,11 +13,21 @@ interface SceneTypesProps {
   onRemoveSceneType?: (sceneId: string) => void
 }
 
+const sceneTypeOptions: ReadonlyArray<SceneTypeConfig["type"]> = [
+  "equirectangular",
+  "sphere",
+  "cube",
+  "cylinder",
+]
+
+const isSceneType = (value: string): value is SceneTypeConfig["type"] =>
+  (sceneTypeOptions as readonly string[]).includes(value)
+
 export function SceneTypes({ propertyId, scenes = [], onAddSceneType, onRemoveSceneType }: SceneTypesProps) {
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({
     sceneId: "",
-    type: "equirectangular" as const,
+    type: "equirectangular" as SceneTypeConfig["type"],
     imageUrl: "",
     description: "",
   })
@@ -71,7 +81,11 @@ export function SceneTypes({ propertyId, scenes = [], onAddSceneType, onRemoveSc
             />
             <select
               value={formData.type}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+              onChange={(e) => {
+                if (isSceneType(e.target.value)) {
+                  setFormData({ ...formData, type: e.target.value })
+                }
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded"
             >
               <option value="equirectangular">Equirectangular (Standard)</option>

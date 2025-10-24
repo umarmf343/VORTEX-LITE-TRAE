@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useData } from "@/lib/data-context"
-import type { CrossPlatformShare } from "@/lib/types"
+import type { CrossPlatformShare, LeadCapturePayload } from "@/lib/types"
 import { TourPlayer } from "@/components/viewer/tour-player"
 import { PropertyList } from "@/components/admin/property-list"
 import { AnalyticsDashboard } from "@/components/admin/analytics-dashboard"
@@ -111,7 +111,7 @@ export default function Page() {
   const propertySceneTypes = getSceneTypesForProperty(selectedAnalyticsProperty.id)
   const selectedBranding = brandingSettings[selectedAnalyticsProperty.id]
 
-  const handleLeadCapture = (leadData: any) => {
+  const handleLeadCapture = (leadData: LeadCapturePayload) => {
     const newLead = {
       id: `lead-${Date.now()}`,
       propertyId: leadData.propertyId,

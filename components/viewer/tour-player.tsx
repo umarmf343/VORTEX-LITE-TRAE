@@ -2,18 +2,27 @@
 
 import type React from "react"
 import { useEffect, useState, useRef } from "react"
-import type { FloorPlan, Property, Room } from "@/lib/types"
+import type {
+  FloorPlan,
+  Hotspot,
+  LeadCapturePayload,
+  Property,
+  Room,
+  SceneEngagementPayload,
+} from "@/lib/types"
 import { SceneViewer } from "./scene-viewer"
 import { FloorPlanViewer } from "./floor-plan-viewer"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ChevronLeft, ChevronRight, Phone, Mail, Share2, Heart } from "lucide-react"
 
+type SharePlatform = "facebook" | "twitter" | "linkedin" | "email"
+
 interface TourPlayerProps {
   property: Property
   floorPlan?: FloorPlan | null
-  onLeadCapture?: (lead: any) => void
-  onEngagementTrack?: (engagement: any) => void
+  onLeadCapture?: (lead: LeadCapturePayload) => void
+  onEngagementTrack?: (engagement: SceneEngagementPayload) => void
 }
 
 export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTrack }: TourPlayerProps) {
@@ -33,7 +42,7 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
 
   const currentScene = property.scenes[currentSceneIndex]
 
-  const handleHotspotClick = (hotspot: any) => {
+  const handleHotspotClick = (hotspot: Hotspot) => {
     if (hotspot.type === "link" && hotspot.targetSceneId) {
       const sceneIndex = property.scenes.findIndex((s) => s.id === hotspot.targetSceneId)
       if (sceneIndex !== -1) {
@@ -66,10 +75,10 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
     setFormData({ name: "", email: "", phone: "", message: "" })
   }
 
-  const handleShare = (platform: string) => {
+  const handleShare = (platform: SharePlatform) => {
     const url = window.location.href
     const text = `Check out this amazing property: ${property.name}`
-    const shareUrls: Record<string, string> = {
+    const shareUrls: Record<SharePlatform, string> = {
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
       twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,

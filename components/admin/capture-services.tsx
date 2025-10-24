@@ -15,17 +15,38 @@ interface CaptureServicesProps {
   onCreateService?: (service: CaptureService) => void
 }
 
+type CaptureServiceFormData = {
+  propertyId: string
+  clientName: string
+  clientEmail: string
+  clientPhone: string
+  propertyAddress: string
+  serviceType: CaptureService["serviceType"]
+  notes: string
+}
+
+const serviceTypeOptions: ReadonlyArray<CaptureService["serviceType"]> = ["basic", "premium", "vr"]
+
+const isCaptureServiceType = (value: string): value is CaptureService["serviceType"] =>
+  (serviceTypeOptions as readonly string[]).includes(value)
+
 export function CaptureServices({ services, properties = [], onUpdateService, onCreateService }: CaptureServicesProps) {
   const [showForm, setShowForm] = useState(false)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CaptureServiceFormData>({
     propertyId: properties[0]?.id || "",
     clientName: "",
     clientEmail: "",
     clientPhone: "",
     propertyAddress: "",
-    serviceType: "premium" as const,
+    serviceType: "premium",
     notes: "",
   })
+
+  const handleServiceTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    if (isCaptureServiceType(event.target.value)) {
+      setFormData({ ...formData, serviceType: event.target.value })
+    }
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -118,11 +139,7 @@ export function CaptureServices({ services, properties = [], onUpdateService, on
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Service Type</label>
-              <select
-                value={formData.serviceType}
-                onChange={(e) => setFormData({ ...formData, serviceType: e.target.value as any })}
-                className="w-full px-3 py-2 border rounded"
-              >
+              <select value={formData.serviceType} onChange={handleServiceTypeChange} className="w-full px-3 py-2 border rounded">
                 <option value="basic">Basic (360° Photos)</option>
                 <option value="premium">Premium (360° + Video)</option>
                 <option value="vr">VR (Full 3D Model)</option>

@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react"
-import type { FloorPlan, Room } from "@/lib/types"
+import type { BrandingConfig, FloorPlan, Room } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ZoomIn, ZoomOut, Download } from "lucide-react"
@@ -8,7 +8,7 @@ import { ZoomIn, ZoomOut, Download } from "lucide-react"
 interface FloorPlanViewerProps {
   floorPlan: FloorPlan
   onRoomClick?: (room: Room) => void
-  branding: any
+  branding: BrandingConfig
 }
 
 export function FloorPlanViewer({ floorPlan, onRoomClick, branding }: FloorPlanViewerProps) {
@@ -69,7 +69,7 @@ export function FloorPlanViewer({ floorPlan, onRoomClick, branding }: FloorPlanV
                   height={room.height}
                   fill={room.color}
                   opacity="0.2"
-                  stroke={room.color}
+                  stroke={selectedRoom?.id === room.id ? branding.primaryColor : room.color}
                   strokeWidth="2"
                   className="pointer-events-auto cursor-pointer hover:opacity-40 transition-opacity"
                   onClick={() => handleRoomClick(room)}

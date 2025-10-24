@@ -2,16 +2,22 @@
 
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
-import type { Scene, Hotspot, Measurement, Annotation } from "@/lib/types"
+import type { Annotation, BrandingConfig, Hotspot, Measurement, Scene } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Ruler, MessageSquare, Play, Pause, Volume2, ImageIcon, Sun, Moon, Maximize2, Layers } from "lucide-react"
+
+const measurementModes = ["distance", "area", "volume"] as const
+type MeasurementMode = (typeof measurementModes)[number]
+
+const viewModes = ["360", "first-person", "dollhouse", "floor-plan"] as const
+type SceneViewMode = (typeof viewModes)[number]
 
 interface SceneViewerProps {
   scene: Scene
   onHotspotClick?: (hotspot: Hotspot) => void
   onMeasure?: (measurement: Measurement) => void
   onSceneEngagement?: (sceneId: string, dwellTime: number) => void
-  branding: any
+  branding: BrandingConfig
   dayNightImages?: { day: string; night: string }
   enableVR?: boolean
   enableGyroscope?: boolean
@@ -42,7 +48,7 @@ export function SceneViewer({
   const [mediaModal, setMediaModal] = useState<{ type: string; url: string } | null>(null)
   const [dayNightMode, setDayNightMode] = useState<"day" | "night">("day")
   const [vrMode, setVrMode] = useState(false)
-  const [measurementType, setMeasurementType] = useState<"distance" | "area" | "volume">("distance")
+  const [measurementType, setMeasurementType] = useState<MeasurementMode>("distance")
   const [annotationText, setAnnotationText] = useState("")
   const [showAnnotationInput, setShowAnnotationInput] = useState(false)
   const [annotationColor, setAnnotationColor] = useState("#ff0000")
@@ -50,7 +56,7 @@ export function SceneViewer({
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [areaPoints, setAreaPoints] = useState<Array<{ x: number; y: number }>>([])
   const [showViewModes, setShowViewModes] = useState(false)
-  const [currentViewMode, setCurrentViewMode] = useState<"360" | "first-person" | "dollhouse" | "floor-plan">("360")
+  const [currentViewMode, setCurrentViewMode] = useState<SceneViewMode>("360")
   const [volumePoints, setVolumePoints] = useState<Array<{ x: number; y: number; z: number }>>([])
   const [transitionEffect, setTransitionEffect] = useState<"fade" | "slide">(sceneTransition)
   const imageRef = useRef<HTMLDivElement>(null)
@@ -205,6 +211,25 @@ export function SceneViewer({
         document.exitFullscreen?.()
       }
       setIsFullscreen(!isFullscreen)
+    }
+  }
+
+  const isMeasurementMode = (value: string): value is MeasurementMode =>
+    (measurementModes as readonly string[]).includes(value)
+
+  const isSceneViewMode = (value: string): value is SceneViewMode =>
+    (viewModes as readonly string[]).includes(value)
+
+  const handleMeasurementModeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    if (isMeasurementMode(event.target.value)) {
+      setMeasurementType(event.target.value)
+    }
+  }
+
+  const handleViewModeSelect = (mode: string) => {
+    if (isSceneViewMode(mode)) {
+      setCurrentViewMode(mode)
+      setShowViewModes(false)
     }
   }
 
@@ -402,7 +427,7 @@ export function SceneViewer({
           {measuring && (
             <select
               value={measurementType}
-              onChange={(e) => setMeasurementType(e.target.value as any)}
+              onChange={handleMeasurementModeChange}
               className="px-2 py-1 bg-gray-800 text-white rounded text-sm border border-gray-700"
             >
               <option value="distance">Distance</option>
@@ -464,13 +489,10 @@ export function SceneViewer({
             </Button>
             {showViewModes && (
               <div className="absolute top-10 left-0 bg-gray-800 border border-gray-700 rounded shadow-lg z-10">
-                {["360", "first-person", "dollhouse", "floor-plan"].map((mode) => (
+                {viewModes.map((mode) => (
                   <button
                     key={mode}
-                    onClick={() => {
-                      setCurrentViewMode(mode as any)
-                      setShowViewModes(false)
-                    }}
+                    onClick={() => handleViewModeSelect(mode)}
                     className={`w-full text-left px-4 py-2 hover:bg-gray-700 text-sm capitalize ${
                       currentViewMode === mode ? "bg-gray-700 text-blue-400" : "text-gray-300"
                     }`}
