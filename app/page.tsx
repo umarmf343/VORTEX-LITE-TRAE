@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, type FormEvent } from "react"
 import { useData } from "@/lib/data-context"
 import type { CSSCustomization, CrossPlatformShare, LeadCapturePayload, Property } from "@/lib/types"
 import { TourPlayer } from "@/components/viewer/tour-player"
@@ -12,7 +12,19 @@ import { CaptureServices } from "@/components/admin/capture-services"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/lib/utils"
-import { Building2, BarChart3, Users, Zap, FileText, Calendar, Share2, Code, Map, ShoppingCart } from "lucide-react"
+import {
+  Building2,
+  BarChart3,
+  Users,
+  Zap,
+  FileText,
+  Calendar,
+  Share2,
+  Code,
+  Map,
+  ShoppingCart,
+  Search,
+} from "lucide-react"
 import PropertyReports from "@/components/admin/property-reports"
 import BookingSystem from "@/components/admin/booking-system"
 import CrossPlatformSharing from "@/components/admin/cross-platform-sharing"
@@ -47,6 +59,26 @@ type ViewMode =
   | "woocommerce"
   | "3d-models"
   | "scene-types"
+
+const MARKETPLACES = [
+  { value: "US", label: "United States" },
+  { value: "CA", label: "Canada" },
+  { value: "GB", label: "United Kingdom" },
+  { value: "DE", label: "Germany" },
+  { value: "FR", label: "France" },
+  { value: "ES", label: "Spain" },
+  { value: "IT", label: "Italy" },
+  { value: "IN", label: "India" },
+  { value: "JP", label: "Japan" },
+  { value: "AU", label: "Australia" },
+  { value: "AT", label: "Austria" },
+  { value: "BR", label: "Brazil" },
+  { value: "MX", label: "Mexico" },
+  { value: "AE", label: "United Arab Emirates" },
+  { value: "SG", label: "Singapore" },
+] as const
+
+type MarketplaceValue = (typeof MARKETPLACES)[number]["value"]
 
 const ADMIN_VIEW_MODES: readonly ViewMode[] = [
   "admin",
@@ -104,6 +136,9 @@ export default function Page() {
   const [selectedAnalyticsProperty, setSelectedAnalyticsProperty] = useState<Property | undefined>(
     properties[0],
   )
+  const [searchInput, setSearchInput] = useState("")
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchMarketplace, setSearchMarketplace] = useState<MarketplaceValue>(MARKETPLACES[0].value)
 
   useEffect(() => {
     if (properties.length === 0) {
@@ -126,6 +161,12 @@ export default function Page() {
       return properties[0]
     })
   }, [properties])
+
+  const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const trimmed = searchInput.trim()
+    setSearchQuery(trimmed)
+  }
 
   if (!selectedProperty || !selectedAnalyticsProperty) {
     return (
@@ -185,6 +226,20 @@ export default function Page() {
 
   // Home View
   if (viewMode === "home") {
+    const normalizedQuery = searchQuery.toLowerCase()
+    const filteredProperties =
+      normalizedQuery.length > 0
+        ? properties.filter((property) => {
+            const nameMatch = property.name.toLowerCase().includes(normalizedQuery)
+            const addressMatch = property.address.toLowerCase().includes(normalizedQuery)
+            const descriptionMatch = property.description.toLowerCase().includes(normalizedQuery)
+            const tagMatch = property.tags?.some((tag) => tag.toLowerCase().includes(normalizedQuery))
+            return nameMatch || addressMatch || descriptionMatch || Boolean(tagMatch)
+          })
+        : properties
+    const selectedMarketplaceLabel =
+      MARKETPLACES.find((marketplace) => marketplace.value === searchMarketplace)?.label || searchMarketplace
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         {/* Header */}
@@ -212,13 +267,66 @@ export default function Page() {
             <p className="text-slate-400">Explore our premium real estate listings with immersive 360° virtual tours</p>
           </div>
 
+          <form
+            onSubmit={handleSearchSubmit}
+            className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center"
+          >
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
+              <input
+                id="rankbeam-seed-keyword"
+                type="text"
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+                placeholder="e.g. mindfulness journal"
+                className="w-full rounded-full border border-white/10 bg-slate-900/60 px-10 py-3 text-sm text-white placeholder:text-white/60 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/60"
+              />
+            </div>
+            <div className="flex flex-col gap-1 sm:w-52">
+              <label className="sr-only" htmlFor="rankbeam-marketplace">
+                Marketplace
+              </label>
+              <select
+                id="rankbeam-marketplace"
+                value={searchMarketplace}
+                onChange={(event) => setSearchMarketplace(event.target.value as MarketplaceValue)}
+                className="rounded-full border border-white/10 bg-slate-900/80 px-4 py-3 text-sm text-white focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/60"
+              >
+                {MARKETPLACES.map((marketplace) => (
+                  <option key={marketplace.value} value={marketplace.value}>
+                    {marketplace.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <Button
+              type="submit"
+              className="h-full rounded-full px-8 py-3 font-semibold"
+              aria-label="Start keyword search"
+            >
+              Go
+            </Button>
+          </form>
+
+          {searchQuery && (
+            <p className="mt-2 text-sm text-slate-300">
+              Showing {filteredProperties.length} {filteredProperties.length === 1 ? "property" : "properties"} for
+              <span className="text-white"> "{searchQuery}"</span> in {selectedMarketplaceLabel}.
+            </p>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {properties.map((property) => (
-              <Card
-                key={property.id}
-                className="overflow-hidden hover:shadow-xl transition-all cursor-pointer group bg-slate-800 border-slate-700"
-                onClick={() => {
-                  setSelectedProperty(property)
+            {filteredProperties.length === 0 ? (
+              <Card className="col-span-full bg-slate-800/60 border border-white/10 p-6 text-center text-slate-200">
+                No properties match "{searchQuery}" in {selectedMarketplaceLabel}.
+              </Card>
+            ) : (
+              filteredProperties.map((property) => (
+                <Card
+                  key={property.id}
+                  className="overflow-hidden hover:shadow-xl transition-all cursor-pointer group bg-slate-800 border-slate-700"
+                  onClick={() => {
+                    setSelectedProperty(property)
                   setViewMode("tour")
                 }}
               >
@@ -255,7 +363,8 @@ export default function Page() {
                   </Button>
                 </div>
               </Card>
-            ))}
+              ))
+            )}
           </div>
         </main>
 
