@@ -14,6 +14,7 @@ import { SceneViewer } from "./scene-viewer"
 import { FloorPlanViewer } from "./floor-plan-viewer"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { formatCurrency } from "@/lib/utils"
 import { ChevronLeft, ChevronRight, Phone, Mail, Share2, Heart } from "lucide-react"
 
 type SharePlatform = "facebook" | "twitter" | "linkedin" | "email"
@@ -114,7 +115,7 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
             <p className="text-gray-400 text-sm">{property.address}</p>
           </div>
           <div className="text-right">
-            <div className="text-3xl font-bold text-white">${(property.price / 1000000).toFixed(1)}M</div>
+            <div className="text-3xl font-bold text-white">{formatCurrency(property.price)}</div>
             <div className="text-gray-400 text-sm">
               {property.bedrooms} bed • {property.bathrooms} bath • {property.sqft.toLocaleString()} sqft
             </div>

@@ -59,16 +59,39 @@ export function CrossPlatformSharing({ propertyId, sharing }: CrossPlatformShari
     },
   ]
 
-  const handleCopyLink = (platform: string) => {
+  const handleCopyLink = async (platform: string) => {
     const link = sharing.shareLinks?.[platform] || `https://baladshelter.com/property/${propertyId}`
-    navigator.clipboard.writeText(link)
-    setCopiedLink(platform)
-    setTimeout(() => setCopiedLink(null), 2000)
+    try {
+      if (!navigator?.clipboard) {
+        throw new Error("Clipboard API is not available")
+      }
+      await navigator.clipboard.writeText(link)
+      setCopiedLink(platform)
+      setTimeout(() => setCopiedLink(null), 2000)
+    } catch (error) {
+      console.error("Failed to copy sharing link", error)
+      setCopiedLink(null)
+    }
   }
 
   const handleOpenLink = (platform: string) => {
     const link = sharing.shareLinks?.[platform] || `https://baladshelter.com/property/${propertyId}`
-    window.open(link, "_blank")
+    if (typeof window !== "undefined") {
+      window.open(link, "_blank", "noopener,noreferrer")
+    }
+  }
+
+  const copyEmbedCode = async () => {
+    const embed = `<iframe src="https://baladshelter.com/property/${propertyId}" width="100%" height="600" frameborder="0"></iframe>`
+    try {
+      if (!navigator?.clipboard) {
+        throw new Error("Clipboard API is not available")
+      }
+      await navigator.clipboard.writeText(embed)
+      alert("Embed code copied!")
+    } catch (error) {
+      console.error("Failed to copy embed code", error)
+    }
   }
 
   return (
@@ -138,15 +161,7 @@ export function CrossPlatformSharing({ propertyId, sharing }: CrossPlatformShari
             {`<iframe src="https://baladshelter.com/property/${propertyId}" width="100%" height="600" frameborder="0"></iframe>`}
           </code>
         </div>
-        <Button
-          onClick={() => {
-            navigator.clipboard.writeText(
-              `<iframe src="https://baladshelter.com/property/${propertyId}" width="100%" height="600" frameborder="0"></iframe>`,
-            )
-            alert("Embed code copied!")
-          }}
-          className="mt-4"
-        >
+        <Button onClick={copyEmbedCode} className="mt-4">
           Copy Embed Code
         </Button>
       </Card>

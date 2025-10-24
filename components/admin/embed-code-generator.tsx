@@ -22,10 +22,18 @@ export function EmbedCodeGenerator({ propertyId, propertyName }: EmbedCodeGenera
   style="border: none; border-radius: 8px;"
 ></iframe>`
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(embedCode)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+  const handleCopy = async () => {
+    try {
+      if (!navigator?.clipboard) {
+        throw new Error("Clipboard API is not available")
+      }
+      await navigator.clipboard.writeText(embedCode)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (error) {
+      console.error("Failed to copy embed code", error)
+      setCopied(false)
+    }
   }
 
   return (
