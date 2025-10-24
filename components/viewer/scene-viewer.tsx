@@ -46,13 +46,52 @@ import {
 import WebGLCapabilities from "three/examples/jsm/capabilities/WebGL.js"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 
+type WebGLContextType = "webgl2" | "webgl" | "experimental-webgl"
+
+const WEBGL_CONTEXT_ATTRIBUTES: WebGLContextAttributes = {
+  alpha: false,
+  depth: true,
+  stencil: false,
+  antialias: true,
+  premultipliedAlpha: true,
+  preserveDrawingBuffer: false,
+  failIfMajorPerformanceCaveat: true,
+  powerPreference: "default",
+}
+
+const releaseContext = (gl: WebGLRenderingContext | WebGL2RenderingContext | null) => {
+  if (!gl) return
+  const loseContext = gl.getExtension("WEBGL_lose_context") as { loseContext: () => void } | null
+  loseContext?.loseContext()
+}
+
+const tryCreateContext = (canvas: HTMLCanvasElement, type: WebGLContextType) => {
+  try {
+    return canvas.getContext(type, WEBGL_CONTEXT_ATTRIBUTES) as
+      | WebGLRenderingContext
+      | WebGL2RenderingContext
+      | null
+  } catch (error) {
+    return null
+  }
+}
+
 const isWebGLAvailable = () => {
+  if (typeof document === "undefined") return false
+
   try {
     const canvas = document.createElement("canvas")
-    return !!(
-      window.WebGLRenderingContext &&
-      (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"))
-    )
+    const contextTypes: WebGLContextType[] = ["webgl2", "webgl", "experimental-webgl"]
+
+    for (const type of contextTypes) {
+      const context = tryCreateContext(canvas, type)
+      if (context) {
+        releaseContext(context)
+        return true
+      }
+    }
+
+    return false
   } catch (error) {
     console.warn("Unable to determine WebGL support", error)
     return false
