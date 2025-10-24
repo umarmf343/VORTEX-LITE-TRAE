@@ -476,6 +476,10 @@ export function SceneViewer({
       return
     }
 
+    if (renderError) {
+      return
+    }
+
     const container = viewerRef.current
     if (!container) return
 
@@ -507,7 +511,9 @@ export function SceneViewer({
 
     if (!renderer) {
       console.error("Failed to create WebGLRenderer", rendererError)
-      setRenderError("Unable to initialize the 3D viewer on this device.")
+      const defaultMessage = "Unable to initialize the 3D viewer on this device."
+      const errorMessage = rendererError instanceof Error ? rendererError.message : null
+      setRenderError(errorMessage ? `${defaultMessage} (${errorMessage})` : defaultMessage)
       return
     }
 
@@ -726,11 +732,14 @@ export function SceneViewer({
       orbitControls?.dispose()
       const currentContext = threeContextRef.current
       if (currentContext) {
-        currentContext.renderer.dispose()
-        if (currentContext.mesh) {
-          currentContext.mesh.geometry.dispose()
-          currentContext.mesh.material.dispose()
-          currentContext.scene.remove(currentContext.mesh)
+        const { renderer: ctxRenderer, mesh: ctxMesh, scene: ctxScene } = currentContext
+        const webglContext = ctxRenderer.getContext() ?? null
+        ctxRenderer.dispose()
+        releaseContext(webglContext)
+        if (ctxMesh) {
+          ctxMesh.geometry.dispose()
+          ctxMesh.material.dispose()
+          ctxScene.remove(ctxMesh)
         }
       }
       textureRef.current?.dispose()
@@ -741,7 +750,15 @@ export function SceneViewer({
       threeContextRef.current = null
       raycasterRef.current = null
     }
-  }, [currentViewMode, dayNightImages, dayNightMode, scene.id, scene.imageUrl, updateProjectedElements])
+  }, [
+    currentViewMode,
+    dayNightImages,
+    dayNightMode,
+    renderError,
+    scene.id,
+    scene.imageUrl,
+    updateProjectedElements,
+  ])
 
   useEffect(() => {
     if (!sphericalViewModes.includes(currentViewMode)) return
