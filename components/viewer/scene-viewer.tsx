@@ -415,8 +415,8 @@ export function SceneViewer({
     const container = viewerRef.current
     if (!container) return
 
-    if (!WebGLCapabilities.isWebGLAvailable()) {
-      setRenderError("WebGL is not available in this browser or device.")
+    if (!WebGLCapabilities.isWebGL2Available()) {
+      setRenderError("WebGL 2 is not available in this browser or device.")
       return
     }
 
