@@ -123,3 +123,37 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes scene-fade-out {
+  0% {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.65);
+  }
+  100% {
+    opacity: 0;
+    background-color: rgba(0, 0, 0, 0);
+  }
+}
+
+@keyframes scene-slide-left {
+  0% {
+    opacity: 0.9;
+    transform: translateX(0);
+    background: linear-gradient(90deg, rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0));
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, rgba(15, 23, 42, 0), rgba(15, 23, 42, 0));
+  }
+}
+
+@layer utilities {
+  .scene-transition-fade {
+    animation: scene-fade-out 0.65s ease-in-out forwards;
+  }
+
+  .scene-transition-slide {
+    animation: scene-slide-left 0.65s ease-in-out forwards;
+  }
+}

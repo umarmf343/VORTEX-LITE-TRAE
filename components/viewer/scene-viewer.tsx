@@ -2,7 +2,15 @@
 
 import type React from "react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import type { Annotation, BrandingConfig, Hotspot, Measurement, Scene as SceneType } from "@/lib/types"
+import type {
+  Annotation,
+  BrandingConfig,
+  Hotspot,
+  Measurement,
+  Scene as SceneType,
+  SceneViewMode,
+  TourPoint,
+} from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import {
   Ruler,
@@ -18,6 +26,7 @@ import {
   ShoppingCart,
   RotateCcw,
   RotateCw,
+  MapPin,
 } from "lucide-react"
 import {
   MathUtils,
@@ -35,12 +44,13 @@ import {
   WebGLRenderer,
 } from "three"
 import { isWebGLAvailable } from "three/examples/jsm/capabilities/WebGL.js"
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 
 const measurementModes = ["distance", "area", "volume"] as const
 type MeasurementMode = (typeof measurementModes)[number]
 
-const viewModes = ["360", "first-person", "dollhouse", "floor-plan"] as const
-type SceneViewMode = (typeof viewModes)[number]
+const allViewModes: SceneViewMode[] = ["360", "first-person", "orbit", "dollhouse", "floor-plan"]
+const sphericalViewModes: SceneViewMode[] = ["360", "first-person", "orbit"]
 
 type ProjectedPoint = { x: number; y: number; visible: boolean }
 
@@ -120,6 +130,9 @@ interface SceneViewerProps {
   backgroundAudio?: string
   sceneTransition?: "fade" | "slide"
   productHotspotIds?: string[]
+  onTourPointCreate?: (tourPoint: TourPoint) => void
+  targetOrientation?: { sceneId: string; yaw: number; pitch: number; key: number } | null
+  availableViewModes?: SceneViewMode[]
 }
 
 export function SceneViewer({
@@ -134,6 +147,9 @@ export function SceneViewer({
   backgroundAudio,
   sceneTransition = "fade",
   productHotspotIds,
+  onTourPointCreate,
+  targetOrientation,
+  availableViewModes,
 }: SceneViewerProps) {
   const [measuring, setMeasuring] = useState(false)
   const [measureStart, setMeasureStart] = useState<{ x: number; y: number } | null>(null)
@@ -155,9 +171,21 @@ export function SceneViewer({
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [areaPoints, setAreaPoints] = useState<Array<{ x: number; y: number }>>([])
   const [showViewModes, setShowViewModes] = useState(false)
-  const [currentViewMode, setCurrentViewMode] = useState<SceneViewMode>("360")
+  const resolvedViewModes = useMemo<SceneViewMode[]>(
+    () => (availableViewModes?.length ? availableViewModes : allViewModes),
+    [availableViewModes],
+  )
+  const [currentViewMode, setCurrentViewMode] = useState<SceneViewMode>(() => {
+    const preferred = scene.defaultViewMode && resolvedViewModes.includes(scene.defaultViewMode)
+      ? scene.defaultViewMode
+      : resolvedViewModes[0] ?? "360"
+    return preferred
+  })
   const [volumePoints, setVolumePoints] = useState<Array<{ x: number; y: number; z: number }>>([])
   const [renderError, setRenderError] = useState<string | null>(null)
+  const [transitionActive, setTransitionActive] = useState(false)
+  const [transitionKey, setTransitionKey] = useState(0)
+  const [transitionStyle, setTransitionStyle] = useState<"fade" | "slide" | null>(sceneTransition)
   const viewerRef = useRef<HTMLDivElement>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
   const sceneStartTime = useRef(Date.now())
@@ -182,6 +210,7 @@ export function SceneViewer({
   const annotationsRef = useRef<Annotation[]>(scene.annotations)
   const areaPointsRef = useRef<Array<{ x: number; y: number }>>([])
   const volumePointsRef = useRef<Array<{ x: number; y: number; z: number }>>([])
+  const keyStateRef = useRef<Record<string, boolean>>({})
   const [projectedHotspots, setProjectedHotspots] = useState<Record<string, ProjectedPoint>>({})
   const [projectedAnnotations, setProjectedAnnotations] = useState<Record<string, ProjectedPoint>>({})
   const [projectedMeasurements, setProjectedMeasurements] = useState<
@@ -214,6 +243,33 @@ export function SceneViewer({
   }, [scene.id])
 
   useEffect(() => {
+    const preferred =
+      scene.defaultViewMode && resolvedViewModes.includes(scene.defaultViewMode)
+        ? scene.defaultViewMode
+        : resolvedViewModes[0] ?? "360"
+    setCurrentViewMode(preferred)
+  }, [scene.id, scene.defaultViewMode, resolvedViewModes])
+
+  useEffect(() => {
+    setTransitionStyle(sceneTransition)
+  }, [sceneTransition])
+
+  useEffect(() => {
+    setTransitionActive(true)
+    setTransitionKey((key) => key + 1)
+    const timeout = window.setTimeout(() => setTransitionActive(false), 650)
+    return () => window.clearTimeout(timeout)
+  }, [scene.id])
+
+  useEffect(() => {
+    if (!targetOrientation || targetOrientation.sceneId !== scene.id) {
+      return
+    }
+    lonRef.current = targetOrientation.yaw
+    latRef.current = targetOrientation.pitch
+  }, [scene.id, targetOrientation])
+
+  useEffect(() => {
     autoRotateRef.current = autoRotate
   }, [autoRotate])
 
@@ -242,7 +298,31 @@ export function SceneViewer({
   }, [volumePoints])
 
   useEffect(() => {
-    if (!enableGyroscope || !vrMode || currentViewMode !== "360") return
+    if (currentViewMode !== "first-person") {
+      keyStateRef.current = {}
+      return
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      keyStateRef.current[event.key.toLowerCase()] = true
+    }
+
+    const handleKeyUp = (event: KeyboardEvent) => {
+      delete keyStateRef.current[event.key.toLowerCase()]
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    window.addEventListener("keyup", handleKeyUp)
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+      window.removeEventListener("keyup", handleKeyUp)
+      keyStateRef.current = {}
+    }
+  }, [currentViewMode])
+
+  useEffect(() => {
+    if (!enableGyroscope || !vrMode || !sphericalViewModes.includes(currentViewMode)) return
 
     const handleDeviceOrientation = (event: DeviceOrientationEvent) => {
       if (typeof event.alpha === "number") {
@@ -259,7 +339,7 @@ export function SceneViewer({
   }, [enableGyroscope, vrMode, currentViewMode])
 
   const updateProjectedElements = useCallback(() => {
-    if (currentViewMode !== "360") return
+    if (!sphericalViewModes.includes(currentViewMode)) return
     const context = threeContextRef.current
     const container = viewerRef.current
     if (!context || !container) return
@@ -311,7 +391,7 @@ export function SceneViewer({
   }, [currentViewMode])
 
   useEffect(() => {
-    if (currentViewMode !== "360") {
+    if (!sphericalViewModes.includes(currentViewMode)) {
       setProjectedHotspots({})
       setProjectedAnnotations({})
       setProjectedMeasurements({})
@@ -321,7 +401,7 @@ export function SceneViewer({
   }, [currentViewMode])
 
   useEffect(() => {
-    if (currentViewMode !== "360") {
+    if (!sphericalViewModes.includes(currentViewMode)) {
       if (threeContextRef.current) {
         const context = threeContextRef.current
         context.renderer.dispose()
@@ -359,7 +439,12 @@ export function SceneViewer({
     renderer.domElement.style.touchAction = "none"
     container.appendChild(renderer.domElement)
 
-    const camera = new PerspectiveCamera(75, container.clientWidth / container.clientHeight, 1, 1100)
+    const camera = new PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.01, 1100)
+    if (currentViewMode === "orbit") {
+      camera.position.set(0.1, 0, 0)
+    } else {
+      camera.position.set(0, 0, 0)
+    }
     cameraTargetRef.current.set(0, 0, 0)
     camera.lookAt(cameraTargetRef.current)
 
@@ -398,6 +483,22 @@ export function SceneViewer({
       },
     )
 
+    let orbitControls: OrbitControls | null = null
+    const orbitEventHandlers: Array<{ event: string; handler: () => void }> = []
+    if (currentViewMode === "orbit") {
+      orbitControls = new OrbitControls(camera, renderer.domElement)
+      orbitControls.enablePan = false
+      orbitControls.enableZoom = false
+      orbitControls.rotateSpeed = 0.45
+      orbitControls.minDistance = 0.1
+      orbitControls.maxDistance = 0.1
+      orbitControls.enableDamping = true
+      orbitControls.dampingFactor = 0.08
+      orbitEventHandlers.push({ event: "start", handler: () => (isInteractingRef.current = true) })
+      orbitEventHandlers.push({ event: "end", handler: () => (isInteractingRef.current = false) })
+      orbitEventHandlers.forEach(({ event, handler }) => orbitControls?.addEventListener(event, handler))
+    }
+
     const handlePointerDown = (event: PointerEvent) => {
       isInteractingRef.current = true
       pointerDownRef.current = { x: event.clientX, y: event.clientY, lon: lonRef.current, lat: latRef.current }
@@ -408,8 +509,10 @@ export function SceneViewer({
       if (!isInteractingRef.current) return
       const deltaX = event.clientX - pointerDownRef.current.x
       const deltaY = event.clientY - pointerDownRef.current.y
-      lonRef.current = pointerDownRef.current.lon - deltaX * 0.1
-      latRef.current = Math.max(-85, Math.min(85, pointerDownRef.current.lat + deltaY * 0.1))
+      const sensitivity = currentViewMode === "first-person" ? 0.2 : 0.1
+      const latClamp = currentViewMode === "first-person" ? 75 : 85
+      lonRef.current = pointerDownRef.current.lon - deltaX * sensitivity
+      latRef.current = Math.max(-latClamp, Math.min(latClamp, pointerDownRef.current.lat + deltaY * sensitivity))
     }
 
     const handlePointerUp = (event: PointerEvent) => {
@@ -436,10 +539,12 @@ export function SceneViewer({
       event.preventDefault()
     }
 
-    container.addEventListener("pointerdown", handlePointerDown)
-    container.addEventListener("pointermove", handlePointerMove)
-    container.addEventListener("pointerup", handlePointerUp)
-    container.addEventListener("pointerleave", handlePointerLeave)
+    if (currentViewMode !== "orbit") {
+      container.addEventListener("pointerdown", handlePointerDown)
+      container.addEventListener("pointermove", handlePointerMove)
+      container.addEventListener("pointerup", handlePointerUp)
+      container.addEventListener("pointerleave", handlePointerLeave)
+    }
     container.addEventListener("wheel", handleWheel, { passive: false })
     container.addEventListener("contextmenu", handleContextMenu)
 
@@ -450,6 +555,7 @@ export function SceneViewer({
       ctxRenderer.setSize(container.clientWidth, container.clientHeight)
       ctxCamera.aspect = container.clientWidth / container.clientHeight
       ctxCamera.updateProjectionMatrix()
+      orbitControls?.update()
     })
 
     resizeObserver.observe(container)
@@ -459,19 +565,53 @@ export function SceneViewer({
       if (!currentContext) return
       const { renderer: ctxRenderer, camera: ctxCamera, scene: ctxScene } = currentContext
 
-      if (autoRotateRef.current && !isInteractingRef.current) {
-        lonRef.current += autoRotateDirectionRef.current * autoRotateSpeedRef.current * 0.2
-      }
+      if (currentViewMode === "orbit") {
+        if (orbitControls) {
+          orbitControls.autoRotate = autoRotateRef.current && !isInteractingRef.current
+          orbitControls.autoRotateSpeed = autoRotateDirectionRef.current * autoRotateSpeedRef.current * 0.25
+          orbitControls.update()
+        }
+        const cameraDirection = new Vector3()
+        ctxCamera.getWorldDirection(cameraDirection)
+        const sphericalDirection = sphericalRef.current
+        sphericalDirection.setFromVector3(cameraDirection)
+        let lon = MathUtils.radToDeg(sphericalDirection.theta)
+        if (lon > 180) lon -= 360
+        if (lon < -180) lon += 360
+        lonRef.current = lon
+        latRef.current = 90 - MathUtils.radToDeg(sphericalDirection.phi)
+      } else {
+        if (autoRotateRef.current && !isInteractingRef.current) {
+          lonRef.current += autoRotateDirectionRef.current * autoRotateSpeedRef.current * 0.2
+        }
+        if (currentViewMode === "first-person") {
+          const keys = keyStateRef.current
+          const movementSpeed = 0.6
+          if (keys["arrowleft"] || keys["a"]) {
+            lonRef.current += movementSpeed
+          }
+          if (keys["arrowright"] || keys["d"]) {
+            lonRef.current -= movementSpeed
+          }
+          if (keys["arrowup"] || keys["w"]) {
+            latRef.current -= movementSpeed
+          }
+          if (keys["arrowdown"] || keys["s"]) {
+            latRef.current += movementSpeed
+          }
+        }
 
-      latRef.current = Math.max(-85, Math.min(85, latRef.current))
-      const phi = MathUtils.degToRad(90 - latRef.current)
-      const theta = MathUtils.degToRad(lonRef.current)
-      cameraTargetRef.current.set(
-        500 * Math.sin(phi) * Math.cos(theta),
-        500 * Math.cos(phi),
-        500 * Math.sin(phi) * Math.sin(theta),
-      )
-      ctxCamera.lookAt(cameraTargetRef.current)
+        const latClamp = currentViewMode === "first-person" ? 75 : 85
+        latRef.current = Math.max(-latClamp, Math.min(latClamp, latRef.current))
+        const phi = MathUtils.degToRad(90 - latRef.current)
+        const theta = MathUtils.degToRad(lonRef.current)
+        cameraTargetRef.current.set(
+          500 * Math.sin(phi) * Math.cos(theta),
+          500 * Math.cos(phi),
+          500 * Math.sin(phi) * Math.sin(theta),
+        )
+        ctxCamera.lookAt(cameraTargetRef.current)
+      }
 
       ctxRenderer.render(ctxScene, ctxCamera)
       updateProjectedElements()
@@ -485,12 +625,16 @@ export function SceneViewer({
         cancelAnimationFrame(animationFrameRef.current)
       }
       resizeObserver.disconnect()
-      container.removeEventListener("pointerdown", handlePointerDown)
-      container.removeEventListener("pointermove", handlePointerMove)
-      container.removeEventListener("pointerup", handlePointerUp)
-      container.removeEventListener("pointerleave", handlePointerLeave)
+      if (currentViewMode !== "orbit") {
+        container.removeEventListener("pointerdown", handlePointerDown)
+        container.removeEventListener("pointermove", handlePointerMove)
+        container.removeEventListener("pointerup", handlePointerUp)
+        container.removeEventListener("pointerleave", handlePointerLeave)
+      }
       container.removeEventListener("wheel", handleWheel)
       container.removeEventListener("contextmenu", handleContextMenu)
+      orbitEventHandlers.forEach(({ event, handler }) => orbitControls?.removeEventListener(event, handler))
+      orbitControls?.dispose()
       const currentContext = threeContextRef.current
       if (currentContext) {
         currentContext.renderer.dispose()
@@ -508,10 +652,10 @@ export function SceneViewer({
       threeContextRef.current = null
       raycasterRef.current = null
     }
-  }, [currentViewMode, scene.id, updateProjectedElements])
+  }, [currentViewMode, dayNightImages, dayNightMode, scene.id, scene.imageUrl, updateProjectedElements])
 
   useEffect(() => {
-    if (currentViewMode !== "360") return
+    if (!sphericalViewModes.includes(currentViewMode)) return
     const context = threeContextRef.current
     if (!context || !context.mesh) return
 
@@ -561,7 +705,7 @@ export function SceneViewer({
     (event: React.MouseEvent<HTMLDivElement>) => {
       if (!viewerRef.current) return null
 
-      if (currentViewMode === "360") {
+      if (sphericalViewModes.includes(currentViewMode)) {
         const context = threeContextRef.current
         const raycaster = raycasterRef.current
         if (!context || !raycaster || !context.mesh) return null
@@ -715,7 +859,7 @@ export function SceneViewer({
     (measurementModes as readonly string[]).includes(value)
 
   const isSceneViewMode = (value: string): value is SceneViewMode =>
-    (viewModes as readonly string[]).includes(value)
+    (allViewModes as readonly string[]).includes(value as SceneViewMode)
 
   const handleMeasurementModeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     if (isMeasurementMode(event.target.value)) {
@@ -724,23 +868,17 @@ export function SceneViewer({
   }
 
   const handleViewModeSelect = (mode: string) => {
-    if (isSceneViewMode(mode)) {
+    if (isSceneViewMode(mode) && resolvedViewModes.includes(mode)) {
       setCurrentViewMode(mode)
       setShowViewModes(false)
     }
   }
 
   const renderViewMode = () => {
-    if (currentViewMode === "360") {
+    if (sphericalViewModes.includes(currentViewMode)) {
       return <div className="w-full h-full bg-black" />
     }
-    if (currentViewMode === "first-person") {
-      return (
-        <div className="w-full h-full flex items-center justify-center bg-black">
-          <img src={currentImageUrl || "/placeholder.svg"} alt={scene.name} className="w-full h-full object-cover" />
-        </div>
-      )
-    } else if (currentViewMode === "dollhouse") {
+    if (currentViewMode === "dollhouse") {
       return (
         <div className="w-full h-full flex items-center justify-center bg-gray-900 perspective">
           <div style={{ transform: "rotateX(45deg) rotateZ(45deg)", transformStyle: "preserve-3d" }}>
@@ -766,14 +904,14 @@ export function SceneViewer({
   }
 
   const viewerCursorClass =
-    renderError && currentViewMode === "360"
+    renderError && sphericalViewModes.includes(currentViewMode)
       ? "cursor-not-allowed"
       : measuring || showAnnotationInput
         ? "cursor-crosshair"
-        : currentViewMode === "360"
+        : sphericalViewModes.includes(currentViewMode)
           ? "cursor-grab"
           : "cursor-crosshair"
-  const viewerFlexClass = currentViewMode !== "360" && vrMode ? "flex" : ""
+  const viewerFlexClass = !sphericalViewModes.includes(currentViewMode) && vrMode ? "flex" : ""
 
   return (
     <div className="w-full h-full flex flex-col bg-black">
@@ -781,11 +919,11 @@ export function SceneViewer({
       <div
         ref={viewerRef}
         className={`flex-1 relative overflow-hidden ${viewerCursorClass} ${viewerFlexClass} ${
-          currentViewMode === "360" ? "bg-black" : ""
+          sphericalViewModes.includes(currentViewMode) ? "bg-black" : ""
         }`}
         onClick={handleImageClick}
       >
-        {renderError && currentViewMode === "360" ? (
+        {renderError && sphericalViewModes.includes(currentViewMode) ? (
           <>
             <img
               src={currentImageUrl || "/placeholder.svg"}
@@ -801,7 +939,7 @@ export function SceneViewer({
           </>
         ) : (
           <>
-            {currentViewMode !== "360" ? (
+            {!sphericalViewModes.includes(currentViewMode) ? (
               vrMode ? (
                 <div className="flex w-full h-full">
                   <div className="w-1/2 overflow-hidden">{renderViewMode()}</div>
@@ -812,15 +950,24 @@ export function SceneViewer({
               )
             ) : null}
 
+            {transitionActive && transitionStyle && (
+              <div
+                key={transitionKey}
+                className={`absolute inset-0 pointer-events-none ${
+                  transitionStyle === "slide" ? "scene-transition-slide" : "scene-transition-fade"
+                }`}
+              />
+            )}
+
             {/* Hotspots */}
             {scene.hotspots.map((hotspot) => {
               const isProductHotspot = productHotspotSet.has(hotspot.id)
               const projected = projectedHotspots[hotspot.id]
-              if (currentViewMode === "360" && (!projected || !projected.visible)) {
+              if (sphericalViewModes.includes(currentViewMode) && (!projected || !projected.visible)) {
                 return null
               }
               const positionStyle =
-                currentViewMode === "360"
+                sphericalViewModes.includes(currentViewMode)
                   ? { left: `${projected?.x ?? 0}%`, top: `${projected?.y ?? 0}%` }
                   : { left: `${hotspot.x}%`, top: `${hotspot.y}%` }
 
@@ -857,7 +1004,7 @@ export function SceneViewer({
           </>
         )}
         {measurements.map((m) => {
-          if (currentViewMode === "360") {
+          if (sphericalViewModes.includes(currentViewMode)) {
             const projection = projectedMeasurements[m.id]
             if (!projection || !projection.start.visible || !projection.end.visible) {
               return null
@@ -915,8 +1062,8 @@ export function SceneViewer({
         })}
 
         {/* Area Measurement Points */}
-        {(currentViewMode === "360" ? projectedAreaPoints : areaPoints).map((point, idx) => {
-          if (currentViewMode === "360") {
+        {(sphericalViewModes.includes(currentViewMode) ? projectedAreaPoints : areaPoints).map((point, idx) => {
+          if (sphericalViewModes.includes(currentViewMode)) {
             const projectedPoint = point as ProjectedPoint
             if (!projectedPoint.visible) {
               return null
@@ -949,8 +1096,8 @@ export function SceneViewer({
         })}
 
         {/* Volume Measurement Points */}
-        {(currentViewMode === "360" ? projectedVolumePoints : volumePoints).map((point, idx) => {
-          if (currentViewMode === "360") {
+        {(sphericalViewModes.includes(currentViewMode) ? projectedVolumePoints : volumePoints).map((point, idx) => {
+          if (sphericalViewModes.includes(currentViewMode)) {
             const projectedPoint = point as ProjectedPoint
             if (!projectedPoint.visible) {
               return null
@@ -988,11 +1135,11 @@ export function SceneViewer({
         {showAnnotations &&
           annotations.map((annotation) => {
             const projected = projectedAnnotations[annotation.id]
-            if (currentViewMode === "360" && (!projected || !projected.visible)) {
+            if (sphericalViewModes.includes(currentViewMode) && (!projected || !projected.visible)) {
               return null
             }
             const positionStyle =
-              currentViewMode === "360"
+              sphericalViewModes.includes(currentViewMode)
                 ? { left: `${projected?.x ?? 0}%`, top: `${projected?.y ?? 0}%` }
                 : { left: `${annotation.x}%`, top: `${annotation.y}%` }
             return (
@@ -1124,6 +1271,30 @@ export function SceneViewer({
           >
             Add Note
           </Button>
+          {onTourPointCreate && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                const suggestedLabel = `${scene.name} • ${Math.round(lonRef.current)}°`
+                const label = window.prompt("Label this tour point", suggestedLabel)
+                if (label !== null) {
+                  onTourPointCreate({
+                    id: `tour-point-${Date.now()}`,
+                    sceneId: scene.id,
+                    sceneName: scene.name,
+                    yaw: lonRef.current,
+                    pitch: latRef.current,
+                    note: label.trim(),
+                  })
+                }
+              }}
+              className="gap-2"
+            >
+              <MapPin className="w-4 h-4" />
+              Save Tour Point
+            </Button>
+          )}
           {dayNightImages && (
             <Button
               size="sm"
@@ -1152,7 +1323,7 @@ export function SceneViewer({
             </Button>
             {showViewModes && (
               <div className="absolute top-10 left-0 bg-gray-800 border border-gray-700 rounded shadow-lg z-10">
-                {viewModes.map((mode) => (
+                {resolvedViewModes.map((mode) => (
                   <button
                     key={mode}
                     onClick={() => handleViewModeSelect(mode)}

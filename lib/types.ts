@@ -1,3 +1,5 @@
+export type SceneViewMode = "360" | "first-person" | "orbit" | "dollhouse" | "floor-plan"
+
 export interface Property {
   id: string
   name: string
@@ -18,6 +20,8 @@ export interface Property {
   dayNightImages?: { day: string; night: string }
   isFavorite?: boolean
   tags?: string[]
+  sceneTransition?: "fade" | "slide"
+  supportedViewModes?: SceneViewMode[]
 }
 
 export interface Scene {
@@ -31,6 +35,7 @@ export interface Scene {
   thumbnail?: string
   dwellTime?: number
   viewCount?: number
+  defaultViewMode?: SceneViewMode
 }
 
 export interface Hotspot {
@@ -62,6 +67,15 @@ export interface Annotation {
   y: number
   text: string
   color: string
+}
+
+export interface TourPoint {
+  id: string
+  sceneId: string
+  sceneName: string
+  yaw: number
+  pitch: number
+  note?: string
 }
 
 export interface BrandingConfig {
