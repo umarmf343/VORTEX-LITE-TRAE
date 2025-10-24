@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useData } from "@/lib/data-context"
-import type { CrossPlatformShare, LeadCapturePayload } from "@/lib/types"
+import type { CSSCustomization, CrossPlatformShare, LeadCapturePayload, Property } from "@/lib/types"
 import { TourPlayer } from "@/components/viewer/tour-player"
 import { PropertyList } from "@/components/admin/property-list"
 import { AnalyticsDashboard } from "@/components/admin/analytics-dashboard"
@@ -47,6 +47,26 @@ type ViewMode =
   | "3d-models"
   | "scene-types"
 
+const ADMIN_VIEW_MODES: readonly ViewMode[] = [
+  "admin",
+  "comparison",
+  "merge",
+  "analytics",
+  "advanced-analytics",
+  "reports",
+  "booking",
+  "sharing",
+  "branding",
+  "technicians",
+  "woocommerce",
+  "3d-models",
+  "scene-types",
+  "leads",
+  "capture",
+  "embed",
+  "journey",
+] as const
+
 export default function Page() {
   const {
     properties,
@@ -79,8 +99,10 @@ export default function Page() {
     updateBranding,
   } = useData()
   const [viewMode, setViewMode] = useState<ViewMode>("home")
-  const [selectedProperty, setSelectedProperty] = useState(properties[0])
-  const [selectedAnalyticsProperty, setSelectedAnalyticsProperty] = useState(properties[0])
+  const [selectedProperty, setSelectedProperty] = useState<Property | undefined>(properties[0])
+  const [selectedAnalyticsProperty, setSelectedAnalyticsProperty] = useState<Property | undefined>(
+    properties[0],
+  )
 
   useEffect(() => {
     if (properties.length === 0) {
@@ -113,25 +135,32 @@ export default function Page() {
   }
 
   const selectedFloorPlan = getFloorPlan(selectedProperty.floorPlanId)
-  const selectedShareConfig =
-    getShareForProperty(selectedAnalyticsProperty.id) ||
-    ({
-      propertyId: selectedAnalyticsProperty.id,
-      platforms: {
-        googleStreetView: false,
-        vrbo: false,
-        realtorCom: false,
-        zillow: false,
-        facebook: false,
-        twitter: false,
-        linkedin: false,
-      },
-      shareLinks: {},
-    } as CrossPlatformShare)
+  const defaultShareConfig: CrossPlatformShare = {
+    propertyId: selectedAnalyticsProperty.id,
+    platforms: {
+      googleStreetView: false,
+      vrbo: false,
+      realtorCom: false,
+      zillow: false,
+      facebook: false,
+      twitter: false,
+      linkedin: false,
+    },
+    shareLinks: {},
+  }
+  const selectedShareConfig = getShareForProperty(selectedAnalyticsProperty.id) || defaultShareConfig
   const propertyProducts = getProductsForProperty(selectedAnalyticsProperty.id)
   const propertyModels = getModelsForProperty(selectedAnalyticsProperty.id)
   const propertySceneTypes = getSceneTypesForProperty(selectedAnalyticsProperty.id)
-  const selectedBranding = brandingSettings[selectedAnalyticsProperty.id]
+  const selectedBranding: CSSCustomization =
+    brandingSettings[selectedAnalyticsProperty.id] ||
+    {
+      propertyId: selectedAnalyticsProperty.id,
+      customCSS: "",
+      whiteLabel: false,
+      removeBranding: false,
+    }
+  const isAdminView = ADMIN_VIEW_MODES.includes(viewMode)
 
   const handleLeadCapture = (leadData: LeadCapturePayload) => {
     const newLead = {
@@ -257,7 +286,7 @@ export default function Page() {
   }
 
   // Admin Dashboard
-  if (viewMode === "admin") {
+  if (isAdminView) {
     return (
       <div className="min-h-screen bg-gray-50">
         <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
