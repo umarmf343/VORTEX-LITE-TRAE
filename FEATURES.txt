@@ -1,0 +1,60 @@
+ Votex360 Features
+
+#### 1. **Immersive 3D Virtual Tours & 360° Media Support**
+
+* Navigate spaces in first-person, dollhouse, or floor plan views.
+* Embed 360° panoramic images and videos (self-hosted, YouTube, Vimeo) with support for cube, sphere, and cylinder scene types.
+* Experience high-resolution details that showcase finishes and features up close, enhancing trust in the presentation.
+* Support for VR headsets like Google Cardboard and Oculus Rift, with gyroscope navigation for mobile devices.
+
+#### 2. **AI-Powered Property Intelligence & Interactive Hotspots**
+
+* Automatically generate room-by-room labels and dimensions.
+* Add multimedia-rich hotspots (text, images, videos, links, audio) with customizable icons and styles.
+* Enhance user engagement with on-hover and on-click interactions.
+* Provide color-coded, company-branded floor plans and detailed property reports for listings.
+
+#### 3. **Measurement Tools & Scene Navigation**
+
+* Accurately measure distances, areas, and volumes within the 3D model.
+* Seamless scene switching with fade or slide transitions.
+* Auto-rotation with adjustable speed and direction.
+* Scene thumbnails and floor plan integration for easy navigation.
+
+#### 4. **High-Resolution Visuals & Multimedia Integration**
+
+* Capture and share 4K print-quality photos.
+* Embed explainer videos and background audio.
+* Support for animated panoramas and day-to-night effects.
+* 3D model integration with lighting and texture controls.
+
+#### 5. **Merge Spaces & Cross-Platform Sharing**
+
+* Combine multiple floors or separate buildings into a single, easy-to-navigate digital twin.
+* Publish tours to platforms like Google Street View, VRBO, and Realtor.com.
+* Embed 3D spaces on websites and share via social media channels.
+
+#### 6. **E-commerce & Lead Generation**
+
+* WooCommerce integration for product hotspots.
+* Direct purchase options within the tour.
+* Lead capture forms and booking buttons for enhanced user interaction.
+
+#### 7. **Customization & Branding**
+
+* Custom CSS for styling.
+* White-label options for agency use.
+* Adjustable UI elements (controls, navigation, tooltips) for personalized user experience.
+
+#### 8. **Analytics & Performance Optimization**
+
+* Track user interactions and hotspot engagement.
+* Exportable reports for insights.
+* Optimized for mobile and desktop responsiveness.
+
+#### 9. **Capture Services On-Demand & Support**
+
+* Hire a Votex360 technician to scan your property, with data processing and quality control handled by the company.
+* Available in select countries, primarily in North America and Western Europe.
+* Comprehensive documentation and responsive customer support to assist users.
+
