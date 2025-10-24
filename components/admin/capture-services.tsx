@@ -76,7 +76,17 @@ export function CaptureServices({ services, properties = [], onUpdateService, on
   }
 
   useEffect(() => {
-    setFormData((prev) => ({ ...prev, propertyId: properties[0]?.id || "" }))
+    setFormData((prev) => {
+      if (properties.length === 0) {
+        return prev.propertyId === "" ? prev : { ...prev, propertyId: "" }
+      }
+
+      if (prev.propertyId && properties.some((property) => property.id === prev.propertyId)) {
+        return prev
+      }
+
+      return { ...prev, propertyId: properties[0]!.id }
+    })
   }, [properties])
 
   return (

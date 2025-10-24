@@ -43,7 +43,10 @@ export function FloorPlanViewer({ floorPlan, onRoomClick, branding }: FloorPlanV
     const link = document.createElement("a")
     link.href = url
     link.download = `${floorPlan.name}-floor-plan.json`
+    document.body.appendChild(link)
     link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
   }
 
   return (
@@ -51,6 +54,7 @@ export function FloorPlanViewer({ floorPlan, onRoomClick, branding }: FloorPlanV
       {/* Floor Plan Canvas */}
       <div className="flex-1 overflow-auto relative bg-white">
         <div
+          className="relative inline-block"
           style={{
             transform: `scale(${zoom})`,
             transformOrigin: "top left",
@@ -59,7 +63,7 @@ export function FloorPlanViewer({ floorPlan, onRoomClick, branding }: FloorPlanV
         >
           <img src={floorPlan.imageUrl || "/placeholder.svg"} alt={floorPlan.name} className="w-full h-auto" />
           {/* Room Overlays */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none">
+          <svg className="absolute inset-0 w-full h-full">
             {roomsWithLabels.map((room) => (
               <g key={room.id}>
                 <rect
