@@ -43,7 +43,6 @@ import {
   Vector3,
   WebGLRenderer,
 } from "three"
-import type { WebGLRendererParameters } from "three"
 import WebGLCapabilities from "three/examples/jsm/capabilities/WebGL.js"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 
@@ -65,6 +64,11 @@ const RELAXED_WEBGL_CONTEXT_ATTRIBUTES: WebGLContextAttributes = {
   failIfMajorPerformanceCaveat: false,
 }
 
+const CONTEXT_ATTRIBUTE_SETS: readonly WebGLContextAttributes[] = [
+  WEBGL_CONTEXT_ATTRIBUTES,
+  RELAXED_WEBGL_CONTEXT_ATTRIBUTES,
+]
+
 const releaseContext = (gl: WebGLRenderingContext | WebGL2RenderingContext | null) => {
   if (!gl) return
   const loseContext = gl.getExtension("WEBGL_lose_context") as { loseContext: () => void } | null
@@ -84,6 +88,44 @@ const tryCreateContext = (
   } catch (error) {
     return null
   }
+}
+
+const createRendererWithContextFallback = (
+  contextTypes: readonly WebGLContextType[],
+): {
+  renderer: WebGLRenderer | null
+  error: unknown
+} => {
+  const canvas = document.createElement("canvas")
+  let lastError: unknown = null
+
+  for (const type of contextTypes) {
+    for (const attributes of CONTEXT_ATTRIBUTE_SETS) {
+      const context = tryCreateContext(canvas, type, attributes)
+      if (!context) continue
+
+      try {
+        const renderer = new WebGLRenderer({
+          canvas,
+          context: context as WebGLRenderingContext,
+          alpha: attributes.alpha,
+          depth: attributes.depth,
+          stencil: attributes.stencil,
+          antialias: attributes.antialias ?? true,
+          premultipliedAlpha: attributes.premultipliedAlpha,
+          preserveDrawingBuffer: attributes.preserveDrawingBuffer,
+          failIfMajorPerformanceCaveat: attributes.failIfMajorPerformanceCaveat,
+          powerPreference: attributes.powerPreference ?? "default",
+        })
+        return { renderer, error: lastError }
+      } catch (error) {
+        lastError = error
+        releaseContext(context)
+      }
+    }
+  }
+
+  return { renderer: null, error: lastError }
 }
 
 const isWebGLAvailable = () => {
@@ -484,6 +526,10 @@ export function SceneViewer({
     if (!container) return
 
     const hasWebGL2 = WebGLCapabilities.isWebGL2Available()
+    const contextPriority: WebGLContextType[] = hasWebGL2
+      ? ["webgl2", "webgl", "experimental-webgl"]
+      : ["webgl", "experimental-webgl"]
+
     if (!hasWebGL2 && !isWebGLAvailable()) {
       setRenderError("WebGL is not available in this browser or device.")
       return
@@ -496,18 +542,9 @@ export function SceneViewer({
     let renderer: WebGLRenderer | null = null
     let rendererError: unknown = null
 
-    const createRenderer = (params: WebGLRendererParameters) => {
-      try {
-        return new WebGLRenderer(params)
-      } catch (error) {
-        rendererError = error
-        return null
-      }
-    }
-
-    renderer =
-      createRenderer({ antialias: true, failIfMajorPerformanceCaveat: true }) ??
-      createRenderer({ antialias: true, failIfMajorPerformanceCaveat: false })
+    const { renderer: createdRenderer, error } = createRendererWithContextFallback(contextPriority)
+    renderer = createdRenderer
+    rendererError = error
 
     if (!renderer) {
       console.error("Failed to create WebGLRenderer", rendererError)
