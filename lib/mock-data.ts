@@ -563,7 +563,7 @@ export const mockWooCommerceProducts: WooCommerceProduct[] = [
     name: "Smart Lighting Package",
     price: 499,
     sku: "SL-500",
-    image: "/smart-lighting-package.jpg",
+    image: "/open-concept-living-area.jpg",
     hotspotId: "hotspot-002",
   },
   {
@@ -572,7 +572,7 @@ export const mockWooCommerceProducts: WooCommerceProduct[] = [
     name: "Outdoor Furniture Set",
     price: 899,
     sku: "OF-899",
-    image: "/outdoor-furniture-set.jpg",
+    image: "/backyard-with-pool.png",
     hotspotId: "hotspot-008",
   },
 ]
