@@ -151,6 +151,7 @@ export default function Page() {
   }
   const selectedShareConfig = getShareForProperty(selectedAnalyticsProperty.id) || defaultShareConfig
   const propertyProducts = getProductsForProperty(selectedAnalyticsProperty.id)
+  const tourProducts = getProductsForProperty(selectedProperty.id)
   const propertyModels = getModelsForProperty(selectedAnalyticsProperty.id)
   const propertySceneTypes = getSceneTypesForProperty(selectedAnalyticsProperty.id)
   const selectedBranding: CSSCustomization =
@@ -281,6 +282,7 @@ export default function Page() {
           property={selectedProperty}
           onLeadCapture={handleLeadCapture}
           floorPlan={selectedFloorPlan}
+          products={tourProducts}
         />
       </div>
     )

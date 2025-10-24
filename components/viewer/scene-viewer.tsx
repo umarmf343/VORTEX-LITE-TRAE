@@ -1,10 +1,24 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef, useEffect } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import type { Annotation, BrandingConfig, Hotspot, Measurement, Scene } from "@/lib/types"
 import { Button } from "@/components/ui/button"
-import { Ruler, MessageSquare, Play, Pause, Volume2, ImageIcon, Sun, Moon, Maximize2, Layers } from "lucide-react"
+import {
+  Ruler,
+  MessageSquare,
+  Play,
+  Pause,
+  Volume2,
+  ImageIcon,
+  Sun,
+  Moon,
+  Maximize2,
+  Layers,
+  ShoppingCart,
+  RotateCcw,
+  RotateCw,
+} from "lucide-react"
 
 const measurementModes = ["distance", "area", "volume"] as const
 type MeasurementMode = (typeof measurementModes)[number]
@@ -23,6 +37,7 @@ interface SceneViewerProps {
   enableGyroscope?: boolean
   backgroundAudio?: string
   sceneTransition?: "fade" | "slide"
+  productHotspotIds?: string[]
 }
 
 export function SceneViewer({
@@ -36,6 +51,7 @@ export function SceneViewer({
   enableGyroscope,
   backgroundAudio,
   sceneTransition = "fade",
+  productHotspotIds,
 }: SceneViewerProps) {
   const [measuring, setMeasuring] = useState(false)
   const [measureStart, setMeasureStart] = useState<{ x: number; y: number } | null>(null)
@@ -44,6 +60,8 @@ export function SceneViewer({
   const [showAnnotations, setShowAnnotations] = useState(true)
   const [autoRotate, setAutoRotate] = useState(false)
   const [rotation, setRotation] = useState(0)
+  const [autoRotateSpeed, setAutoRotateSpeed] = useState(1)
+  const [autoRotateDirection, setAutoRotateDirection] = useState<1 | -1>(1)
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null)
   const [mediaModal, setMediaModal] = useState<{ type: string; url: string } | null>(null)
   const [dayNightMode, setDayNightMode] = useState<"day" | "night">("day")
@@ -62,6 +80,7 @@ export function SceneViewer({
   const imageRef = useRef<HTMLDivElement>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
   const sceneStartTime = useRef(Date.now())
+  const productHotspotSet = useMemo(() => new Set(productHotspotIds ?? []), [productHotspotIds])
 
   useEffect(() => {
     setMeasurements(scene.measurements)
@@ -89,10 +108,13 @@ export function SceneViewer({
   useEffect(() => {
     if (!autoRotate) return
     const interval = setInterval(() => {
-      setRotation((prev) => (prev + 1) % 360)
+      setRotation((prev) => {
+        const next = prev + autoRotateDirection * autoRotateSpeed
+        return ((next % 360) + 360) % 360
+      })
     }, 50)
     return () => clearInterval(interval)
-  }, [autoRotate])
+  }, [autoRotate, autoRotateDirection, autoRotateSpeed])
 
   useEffect(() => {
     if (audioRef.current && backgroundAudio) {
@@ -298,32 +320,37 @@ export function SceneViewer({
         )}
 
         {/* Hotspots */}
-        {scene.hotspots.map((hotspot) => (
-          <button
-            key={hotspot.id}
-            className="absolute w-8 h-8 rounded-full transform -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-125 flex items-center justify-center"
-            style={{
-              left: `${hotspot.x}%`,
-              top: `${hotspot.y}%`,
-              backgroundColor: branding.primaryColor,
-              opacity: 0.8,
-            }}
-            onClick={(e) => {
-              e.stopPropagation()
-              handleHotspotClick(hotspot)
-            }}
-            title={hotspot.title}
-          >
-            {hotspot.type === "video" && <Play className="w-4 h-4 text-white" />}
-            {hotspot.type === "audio" && <Volume2 className="w-4 h-4 text-white" />}
-            {hotspot.type === "image" && <ImageIcon className="w-4 h-4 text-white" />}
+        {scene.hotspots.map((hotspot) => {
+          const isProductHotspot = productHotspotSet.has(hotspot.id)
+          return (
             <div
-              className="absolute inset-0 rounded-full animate-pulse"
-              style={{ backgroundColor: branding.primaryColor, opacity: 0.3 }}
-            />
-          </button>
-        ))}
-
+              key={hotspot.id}
+              className="absolute transform -translate-x-1/2 -translate-y-1/2"
+              style={{ left: `${hotspot.x}%`, top: `${hotspot.y}%` }}
+            >
+              <button
+                className="relative flex h-8 w-8 items-center justify-center rounded-full transition-all hover:scale-125"
+                style={{ backgroundColor: branding.primaryColor, opacity: 0.8 }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleHotspotClick(hotspot)
+                }}
+                title={hotspot.title}
+              >
+                <div className="flex items-center gap-0.5">
+                  {hotspot.type === "video" && <Play className="w-4 h-4 text-white" />}
+                  {hotspot.type === "audio" && <Volume2 className="w-4 h-4 text-white" />}
+                  {hotspot.type === "image" && <ImageIcon className="w-4 h-4 text-white" />}
+                  {isProductHotspot && <ShoppingCart className="w-3 h-3 text-white" />}
+                </div>
+                <div
+                  className="absolute inset-0 rounded-full animate-pulse"
+                  style={{ backgroundColor: branding.primaryColor, opacity: 0.3 }}
+                />
+              </button>
+            </div>
+          )
+        })}
         {/* Measurement Lines */}
         {measurements.map((m) => (
           <svg key={m.id} className="absolute inset-0 w-full h-full pointer-events-none">
@@ -455,6 +482,41 @@ export function SceneViewer({
             {autoRotate ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
             Auto-Rotate
           </Button>
+          {autoRotate && (
+            <div className="flex items-center gap-2 text-xs text-gray-400">
+              <span>Speed</span>
+              <input
+                type="range"
+                min={0.5}
+                max={5}
+                step={0.5}
+                value={autoRotateSpeed}
+                onChange={(event) => setAutoRotateSpeed(Number.parseFloat(event.target.value))}
+                className="h-1 w-24 accent-blue-500"
+                aria-label="Auto rotate speed"
+              />
+              <span className="font-semibold text-white">{autoRotateSpeed.toFixed(1)}x</span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setAutoRotateDirection((direction) => (direction === 1 ? -1 : 1))}
+                className="gap-1 bg-transparent"
+                aria-label="Toggle rotation direction"
+              >
+                {autoRotateDirection === 1 ? (
+                  <>
+                    <RotateCw className="w-4 h-4" />
+                    CW
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="w-4 h-4" />
+                    CCW
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
           <Button
             size="sm"
             variant={showAnnotations ? "default" : "outline"}
