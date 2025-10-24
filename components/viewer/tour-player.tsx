@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type {
   FloorPlan,
   Hotspot,
@@ -129,6 +129,58 @@ export function TourPlayer({
     [currentScene.id, tourPoints],
   )
 
+  const findSceneIndexForHotspot = useCallback(
+    (hotspotId: string) =>
+      property.scenes.findIndex((scene) => scene.hotspots.some((entry) => entry.id === hotspotId)),
+    [property.scenes],
+  )
+
+  const getOrientationFromHotspot = useCallback((hotspot: Hotspot) => {
+    const yaw = (hotspot.x / 100) * 360 - 180
+    const pitch = 90 - (hotspot.y / 100) * 180
+    return { yaw, pitch }
+  }, [])
+
+  const activateHotspot = useCallback(
+    (hotspot: Hotspot) => {
+      setActiveHotspot(hotspot)
+      const productMatch = productHotspotMap.get(hotspot.id)
+      if (productMatch) {
+        setSelectedProduct(productMatch)
+      }
+    },
+    [productHotspotMap],
+  )
+
+  const focusHotspot = useCallback(
+    (hotspot: Hotspot) => {
+      const sceneIndex = findSceneIndexForHotspot(hotspot.id)
+      if (sceneIndex === -1) return
+
+      if (sceneIndex !== currentSceneIndex) {
+        setCurrentSceneIndex(sceneIndex)
+      }
+
+      const targetScene = property.scenes[sceneIndex]
+      const { yaw, pitch } = getOrientationFromHotspot(hotspot)
+
+      setPendingOrientation({
+        sceneId: targetScene.id,
+        yaw,
+        pitch,
+        key: Date.now(),
+      })
+    },
+    [currentSceneIndex, findSceneIndexForHotspot, getOrientationFromHotspot, property.scenes],
+  )
+
+  const activeHotspotScene = useMemo(() => {
+    if (!activeHotspot) return null
+    const sceneIndex = findSceneIndexForHotspot(activeHotspot.id)
+    if (sceneIndex === -1) return null
+    return property.scenes[sceneIndex]
+  }, [activeHotspot, findSceneIndexForHotspot, property.scenes])
+
   useEffect(() => {
     setActiveHotspot(null)
   }, [currentScene.id])
@@ -172,9 +224,7 @@ export function TourPlayer({
   }
 
   const handleHotspotClick = (hotspot: Hotspot) => {
-    setActiveHotspot(hotspot)
-    const productMatch = productHotspotMap.get(hotspot.id)
-
+    activateHotspot(hotspot)
     if (hotspot.type === "link" && hotspot.targetSceneId) {
       const sceneIndex = property.scenes.findIndex((s) => s.id === hotspot.targetSceneId)
       if (sceneIndex !== -1) {
@@ -182,10 +232,6 @@ export function TourPlayer({
       }
     } else if (hotspot.type === "cta") {
       setShowLeadForm(true)
-    }
-
-    if (productMatch) {
-      setSelectedProduct(productMatch)
     }
   }
 
@@ -197,10 +243,14 @@ export function TourPlayer({
     alert(`Purchase initiated for ${product.name}. We will redirect you to checkout shortly.`)
   }
 
-  const handleHotspotMediaPreview = (hotspot: Hotspot) => {
-    if (!hotspot.mediaUrl) return
-    window.open(hotspot.mediaUrl, "_blank", "noopener,noreferrer")
-  }
+  const handleHotspotMediaPreview = useCallback(
+    (hotspot: Hotspot) => {
+      activateHotspot(hotspot)
+      if (!hotspot.mediaUrl) return
+      window.open(hotspot.mediaUrl, "_blank", "noopener,noreferrer")
+    },
+    [activateHotspot],
+  )
 
   useEffect(() => {
     if (!isTourPlaying) {
@@ -488,30 +538,56 @@ export function TourPlayer({
                 </div>
                 {mediaHotspots.length > 0 ? (
                   <ul className="mt-2 space-y-2">
-                    {mediaHotspots.map((hotspot) => (
-                      <li
-                        key={hotspot.id}
-                        className="flex items-center justify-between gap-3 rounded-lg bg-gray-800/70 border border-gray-800 px-3 py-2"
-                      >
-                        <div>
-                          <p className="text-sm font-medium text-gray-100">{hotspot.title}</p>
-                          <p className="text-[11px] text-gray-400 capitalize">{hotspot.type} hotspot</p>
-                        </div>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          className="text-xs"
-                          onClick={() => {
-                            setActiveHotspot(hotspot)
-                            handleHotspotMediaPreview(hotspot)
-                          }}
-                          disabled={!hotspot.mediaUrl}
+                    {mediaHotspots.map((hotspot) => {
+                      const isActiveHotspot = activeHotspot?.id === hotspot.id
+                      return (
+                        <li
+                          key={hotspot.id}
+                          className={`rounded-lg border px-3 py-2 transition focus-within:ring-2 focus-within:ring-blue-500/60 ${
+                            isActiveHotspot
+                              ? "border-blue-500/60 bg-blue-500/10 shadow-lg shadow-blue-500/10"
+                              : "border-gray-800 bg-gray-800/70"
+                          }`}
                         >
-                          Open
-                        </Button>
-                      </li>
-                    ))}
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-medium text-gray-100">{hotspot.title}</p>
+                              <p className="text-[11px] text-gray-400 capitalize">
+                                {hotspot.type} hotspot
+                                {isActiveHotspot ? <span className="ml-1 text-blue-300">• Active</span> : null}
+                              </p>
+                            </div>
+                            <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center">
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                className="text-xs"
+                                onClick={() => {
+                                  activateHotspot(hotspot)
+                                  focusHotspot(hotspot)
+                                }}
+                              >
+                                Focus
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                className="text-xs"
+                                onClick={() => {
+                                  focusHotspot(hotspot)
+                                  handleHotspotMediaPreview(hotspot)
+                                }}
+                                disabled={!hotspot.mediaUrl}
+                              >
+                                Open
+                              </Button>
+                            </div>
+                          </div>
+                        </li>
+                      )
+                    })}
                   </ul>
                 ) : (
                   <p className="text-sm text-gray-400 mt-2">
@@ -527,10 +603,57 @@ export function TourPlayer({
                 </div>
                 <div className="mt-2 rounded-lg border border-gray-800 bg-gray-900/70 p-3">
                   {activeHotspot ? (
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-gray-100">{activeHotspot.title}</p>
-                      <p className="text-[11px] text-gray-400">{activeHotspot.description}</p>
-                      <p className="text-[11px] text-gray-500 uppercase">Type: {activeHotspot.type}</p>
+                    <div className="space-y-3">
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-gray-100">{activeHotspot.title}</p>
+                        <p className="text-[11px] text-gray-400">{activeHotspot.description}</p>
+                        <div className="text-[11px] text-gray-500 uppercase flex flex-wrap gap-x-2 gap-y-1">
+                          <span>Type: {activeHotspot.type}</span>
+                          {activeHotspotScene ? <span>Scene: {activeHotspotScene.name}</span> : null}
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-xs"
+                          onClick={() => focusHotspot(activeHotspot)}
+                        >
+                          Focus View
+                        </Button>
+                        {activeHotspot.mediaUrl && (
+                          <Button
+                            size="sm"
+                            className="text-xs"
+                            onClick={() => {
+                              focusHotspot(activeHotspot)
+                              handleHotspotMediaPreview(activeHotspot)
+                            }}
+                          >
+                            Open Media
+                          </Button>
+                        )}
+                        {activeHotspot.type === "link" && activeHotspot.targetSceneId ? (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-xs"
+                            onClick={() => handleHotspotClick(activeHotspot)}
+                          >
+                            Go to Scene
+                          </Button>
+                        ) : null}
+                        {activeHotspot.type === "cta" ? (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            className="text-xs"
+                            onClick={() => handleHotspotClick(activeHotspot)}
+                          >
+                            Contact Agent
+                          </Button>
+                        ) : null}
+                      </div>
                     </div>
                   ) : (
                     <p className="text-sm text-gray-400">
