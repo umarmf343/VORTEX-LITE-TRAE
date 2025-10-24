@@ -14,7 +14,7 @@ export interface Property {
   branding: BrandingConfig
   scenes: Scene[]
   stats: PropertyStats
-  floorPlan?: string
+  floorPlanId?: string
   dayNightImages?: { day: string; night: string }
   isFavorite?: boolean
   tags?: string[]
@@ -73,6 +73,35 @@ export interface BrandingConfig {
   contactPhone: string
   customCSS?: string
   whiteLabelMode?: boolean
+}
+
+export interface WooCommerceProduct {
+  id: string
+  propertyId: string
+  name: string
+  price: number
+  sku: string
+  image: string
+  hotspotId?: string
+}
+
+export interface Model3DAsset {
+  id: string
+  propertyId: string
+  name: string
+  url: string
+  format: "gltf" | "glb" | "obj"
+  sceneId?: string
+  scale: number
+}
+
+export interface SceneTypeConfig {
+  id: string
+  propertyId: string
+  sceneId: string
+  type: "cube" | "sphere" | "cylinder" | "equirectangular"
+  imageUrl: string
+  description?: string
 }
 
 export interface Visitor {
@@ -136,6 +165,7 @@ export interface CaptureService {
   serviceType: "basic" | "premium" | "vr"
   status: "pending" | "scheduled" | "completed" | "cancelled"
   scheduledDate?: Date
+  assignedTechnicianId?: string
   notes: string
   createdAt: Date
 }
@@ -311,14 +341,6 @@ export interface RoomLabel {
   area: number
   x: number
   y: number
-}
-
-export interface PropertyMergeConfig {
-  id: string
-  name: string
-  properties: string[]
-  floorOrder: string[]
-  createdAt: Date
 }
 
 export interface TechnicianProfile {

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useData } from "@/lib/data-context"
+import type { CrossPlatformShare } from "@/lib/types"
 import { TourPlayer } from "@/components/viewer/tour-player"
 import { PropertyList } from "@/components/admin/property-list"
 import { AnalyticsDashboard } from "@/components/admin/analytics-dashboard"
@@ -47,10 +48,68 @@ type ViewMode =
   | "scene-types"
 
 export default function Page() {
-  const { properties, leads, visitors, addLead, updateLead } = useData()
+  const {
+    properties,
+    leads,
+    visitors,
+    captureServices,
+    bookingSlots,
+    propertyMerges,
+    technicians,
+    brandingSettings,
+    addLead,
+    updateLead,
+    updateCaptureService,
+    createCaptureService,
+    assignTechnician,
+    bookSlot,
+    createPropertyMerge,
+    deletePropertyMerge,
+    getShareForProperty,
+    getProductsForProperty,
+    addProduct,
+    removeProduct,
+    getModelsForProperty,
+    addModelAsset,
+    removeModelAsset,
+    getSceneTypesForProperty,
+    addSceneTypeConfig,
+    removeSceneTypeConfig,
+    getFloorPlan,
+    updateBranding,
+  } = useData()
   const [viewMode, setViewMode] = useState<ViewMode>("home")
   const [selectedProperty, setSelectedProperty] = useState(properties[0])
   const [selectedAnalyticsProperty, setSelectedAnalyticsProperty] = useState(properties[0])
+
+  if (!selectedProperty || !selectedAnalyticsProperty) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white">
+        No properties available.
+      </div>
+    )
+  }
+
+  const selectedFloorPlan = getFloorPlan(selectedProperty.floorPlanId)
+  const selectedShareConfig =
+    getShareForProperty(selectedAnalyticsProperty.id) ||
+    ({
+      propertyId: selectedAnalyticsProperty.id,
+      platforms: {
+        googleStreetView: false,
+        vrbo: false,
+        realtorCom: false,
+        zillow: false,
+        facebook: false,
+        twitter: false,
+        linkedin: false,
+      },
+      shareLinks: {},
+    } as CrossPlatformShare)
+  const propertyProducts = getProductsForProperty(selectedAnalyticsProperty.id)
+  const propertyModels = getModelsForProperty(selectedAnalyticsProperty.id)
+  const propertySceneTypes = getSceneTypesForProperty(selectedAnalyticsProperty.id)
+  const selectedBranding = brandingSettings[selectedAnalyticsProperty.id]
 
   const handleLeadCapture = (leadData: any) => {
     const newLead = {
@@ -166,7 +225,11 @@ export default function Page() {
             ← Back to Properties
           </Button>
         </div>
-        <TourPlayer property={selectedProperty} onLeadCapture={handleLeadCapture} />
+        <TourPlayer
+          property={selectedProperty}
+          onLeadCapture={handleLeadCapture}
+          floorPlan={selectedFloorPlan}
+        />
       </div>
     )
   }
@@ -344,21 +407,34 @@ export default function Page() {
           {viewMode === "merge" && (
             <div>
               <h2 className="text-xl font-bold mb-6">Merge Spaces</h2>
-              <MergeSpaces properties={properties} merges={[]} />
+              <MergeSpaces
+                properties={properties}
+                merges={propertyMerges}
+                onCreateMerge={createPropertyMerge}
+                onDeleteMerge={deletePropertyMerge}
+              />
             </div>
           )}
 
           {viewMode === "branding" && (
             <div>
               <h2 className="text-xl font-bold mb-6">Custom Branding - {selectedAnalyticsProperty.name}</h2>
-              <CustomBranding propertyId={selectedAnalyticsProperty.id} />
+              <CustomBranding
+                propertyId={selectedAnalyticsProperty.id}
+                branding={selectedBranding}
+                onSave={(branding) => updateBranding(selectedAnalyticsProperty.id, branding)}
+              />
             </div>
           )}
 
           {viewMode === "technicians" && (
             <div>
               <h2 className="text-xl font-bold mb-6">Technician Management</h2>
-              <TechnicianManagement technicians={[]} services={[]} />
+              <TechnicianManagement
+                technicians={technicians}
+                services={captureServices}
+                onAssignTechnician={assignTechnician}
+              />
             </div>
           )}
 
@@ -382,7 +458,11 @@ export default function Page() {
                   ← Back to Properties
                 </Button>
               </div>
-              <BookingSystem propertyId={selectedAnalyticsProperty.id} slots={[]} />
+              <BookingSystem
+                propertyId={selectedAnalyticsProperty.id}
+                slots={bookingSlots}
+                onBook={(slotId, booking) => bookSlot(slotId, booking)}
+              />
             </div>
           )}
 
@@ -396,18 +476,7 @@ export default function Page() {
               </div>
               <CrossPlatformSharing
                 propertyId={selectedAnalyticsProperty.id}
-                sharing={{
-                  propertyId: selectedAnalyticsProperty.id,
-                  platforms: {
-                    googleStreetView: true,
-                    vrbo: true,
-                    realtorCom: true,
-                    zillow: false,
-                    facebook: true,
-                    twitter: true,
-                    linkedin: false,
-                  },
-                }}
+                sharing={selectedShareConfig}
               />
             </div>
           )}
@@ -445,7 +514,12 @@ export default function Page() {
 
           {viewMode === "capture" && (
             <div>
-              <CaptureServices services={[]} />
+              <CaptureServices
+                services={captureServices}
+                properties={properties}
+                onUpdateService={updateCaptureService}
+                onCreateService={createCaptureService}
+              />
             </div>
           )}
 
@@ -469,21 +543,36 @@ export default function Page() {
           {viewMode === "woocommerce" && (
             <div>
               <h2 className="text-xl font-bold mb-6">WooCommerce Integration - {selectedAnalyticsProperty.name}</h2>
-              <WooCommerceIntegration propertyId={selectedAnalyticsProperty.id} />
+              <WooCommerceIntegration
+                propertyId={selectedAnalyticsProperty.id}
+                products={propertyProducts}
+                onAddProduct={addProduct}
+                onRemoveProduct={removeProduct}
+              />
             </div>
           )}
 
           {viewMode === "3d-models" && (
             <div>
               <h2 className="text-xl font-bold mb-6">3D Models - {selectedAnalyticsProperty.name}</h2>
-              <Models3D propertyId={selectedAnalyticsProperty.id} />
+              <Models3D
+                propertyId={selectedAnalyticsProperty.id}
+                models={propertyModels}
+                onAddModel={addModelAsset}
+                onRemoveModel={removeModelAsset}
+              />
             </div>
           )}
 
           {viewMode === "scene-types" && (
             <div>
               <h2 className="text-xl font-bold mb-6">Scene Types - {selectedAnalyticsProperty.name}</h2>
-              <SceneTypes propertyId={selectedAnalyticsProperty.id} />
+              <SceneTypes
+                propertyId={selectedAnalyticsProperty.id}
+                scenes={propertySceneTypes}
+                onAddSceneType={addSceneTypeConfig}
+                onRemoveSceneType={removeSceneTypeConfig}
+              />
             </div>
           )}
         </main>

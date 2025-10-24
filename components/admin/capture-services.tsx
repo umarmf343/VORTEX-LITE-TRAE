@@ -2,20 +2,23 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import type { CaptureService } from "@/lib/types"
+import { useEffect, useState } from "react"
+import type { CaptureService, Property } from "@/lib/types"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Calendar, MapPin, User, Phone, Mail } from "lucide-react"
 
 interface CaptureServicesProps {
   services: CaptureService[]
+  properties?: Property[]
   onUpdateService?: (id: string, updates: Partial<CaptureService>) => void
+  onCreateService?: (service: CaptureService) => void
 }
 
-export function CaptureServices({ services, onUpdateService }: CaptureServicesProps) {
+export function CaptureServices({ services, properties = [], onUpdateService, onCreateService }: CaptureServicesProps) {
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({
+    propertyId: properties[0]?.id || "",
     clientName: "",
     clientEmail: "",
     clientPhone: "",
@@ -28,6 +31,7 @@ export function CaptureServices({ services, onUpdateService }: CaptureServicesPr
     e.preventDefault()
     const newService: CaptureService = {
       id: `capture-${Date.now()}`,
+      propertyId: formData.propertyId || properties[0]?.id,
       clientName: formData.clientName,
       clientEmail: formData.clientEmail,
       clientPhone: formData.clientPhone,
@@ -37,8 +41,9 @@ export function CaptureServices({ services, onUpdateService }: CaptureServicesPr
       notes: formData.notes,
       createdAt: new Date(),
     }
-    console.log("[v0] New capture service:", newService)
+    onCreateService?.(newService)
     setFormData({
+      propertyId: properties[0]?.id || "",
       clientName: "",
       clientEmail: "",
       clientPhone: "",
@@ -48,6 +53,10 @@ export function CaptureServices({ services, onUpdateService }: CaptureServicesPr
     })
     setShowForm(false)
   }
+
+  useEffect(() => {
+    setFormData((prev) => ({ ...prev, propertyId: properties[0]?.id || "" }))
+  }, [properties])
 
   return (
     <div className="space-y-6">
@@ -85,14 +94,27 @@ export function CaptureServices({ services, onUpdateService }: CaptureServicesPr
                 className="px-3 py-2 border rounded"
                 required
               />
-              <input
-                type="text"
-                placeholder="Property Address"
-                value={formData.propertyAddress}
-                onChange={(e) => setFormData({ ...formData, propertyAddress: e.target.value })}
-                className="px-3 py-2 border rounded"
-                required
-              />
+              <div className="flex flex-col gap-2">
+                <select
+                  value={formData.propertyId}
+                  onChange={(e) => setFormData({ ...formData, propertyId: e.target.value })}
+                  className="px-3 py-2 border rounded"
+                >
+                  {properties.map((property) => (
+                    <option key={property.id} value={property.id}>
+                      {property.name}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  placeholder="Property Address"
+                  value={formData.propertyAddress}
+                  onChange={(e) => setFormData({ ...formData, propertyAddress: e.target.value })}
+                  className="px-3 py-2 border rounded"
+                  required
+                />
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Service Type</label>
@@ -150,8 +172,11 @@ export function CaptureServices({ services, onUpdateService }: CaptureServicesPr
                 <div className="space-y-1 text-sm text-gray-600">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4" />
-                    {service.propertyAddress}
+                    <span>{service.propertyAddress}</span>
                   </div>
+                  {service.propertyId && (
+                    <div className="text-xs text-gray-500 pl-6">Property ID: {service.propertyId}</div>
+                  )}
                   <div className="flex items-center gap-2">
                     <Mail className="w-4 h-4" />
                     {service.clientEmail}

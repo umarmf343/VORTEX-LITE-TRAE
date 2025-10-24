@@ -4,14 +4,7 @@ import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Globe, Plus, Trash2 } from "lucide-react"
-
-interface SceneTypeConfig {
-  id: string
-  sceneId: string
-  type: "cube" | "sphere" | "cylinder" | "equirectangular"
-  imageUrl: string
-  description: string
-}
+import type { SceneTypeConfig } from "@/lib/types"
 
 interface SceneTypesProps {
   propertyId: string
@@ -33,6 +26,7 @@ export function SceneTypes({ propertyId, scenes = [], onAddSceneType, onRemoveSc
     if (formData.sceneId && formData.imageUrl) {
       const newScene: SceneTypeConfig = {
         id: `scene-type-${Date.now()}`,
+        propertyId,
         ...formData,
       }
       onAddSceneType?.(newScene)

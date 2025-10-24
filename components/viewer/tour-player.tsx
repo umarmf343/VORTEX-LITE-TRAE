@@ -1,27 +1,35 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef } from "react"
-import type { Property } from "@/lib/types"
+import { useEffect, useState, useRef } from "react"
+import type { FloorPlan, Property, Room } from "@/lib/types"
 import { SceneViewer } from "./scene-viewer"
+import { FloorPlanViewer } from "./floor-plan-viewer"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ChevronLeft, ChevronRight, Phone, Mail, Share2, Heart } from "lucide-react"
 
 interface TourPlayerProps {
   property: Property
+  floorPlan?: FloorPlan | null
   onLeadCapture?: (lead: any) => void
   onEngagementTrack?: (engagement: any) => void
 }
 
-export function TourPlayer({ property, onLeadCapture, onEngagementTrack }: TourPlayerProps) {
+export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTrack }: TourPlayerProps) {
   const [currentSceneIndex, setCurrentSceneIndex] = useState(0)
   const [showLeadForm, setShowLeadForm] = useState(false)
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", message: "" })
   const [sessionStart] = useState(Date.now())
   const [isFavorite, setIsFavorite] = useState(property.isFavorite || false)
   const [showShareMenu, setShowShareMenu] = useState(false)
+  const [showFloorPlan, setShowFloorPlan] = useState(false)
   const sceneEngagement = useRef<Record<string, number>>({})
+
+  useEffect(() => {
+    setShowFloorPlan(false)
+    setCurrentSceneIndex(0)
+  }, [property.id])
 
   const currentScene = property.scenes[currentSceneIndex]
 
@@ -69,6 +77,15 @@ export function TourPlayer({ property, onLeadCapture, onEngagementTrack }: TourP
     }
     if (shareUrls[platform]) {
       window.open(shareUrls[platform], "_blank")
+    }
+  }
+
+  const handleFloorPlanRoomClick = (room: Room) => {
+    if (!room.sceneId) return
+    const sceneIndex = property.scenes.findIndex((scene) => scene.id === room.sceneId)
+    if (sceneIndex >= 0) {
+      setCurrentSceneIndex(sceneIndex)
+      setShowFloorPlan(false)
     }
   }
 
@@ -146,6 +163,22 @@ export function TourPlayer({ property, onLeadCapture, onEngagementTrack }: TourP
               )}
             </div>
           </Card>
+
+          {floorPlan && (
+            <Card className="p-4 bg-gray-900 border-gray-800">
+              <h3 className="font-semibold text-white mb-3">Floor Plan</h3>
+              <div className="space-y-3">
+                <img
+                  src={floorPlan.imageUrl || "/placeholder.svg"}
+                  alt={`${property.name} floor plan`}
+                  className="w-full h-32 object-cover rounded"
+                />
+                <Button variant="outline" className="w-full gap-2" onClick={() => setShowFloorPlan(true)}>
+                  View Interactive Floor Plan
+                </Button>
+              </div>
+            </Card>
+          )}
 
           {/* Contact */}
           <Card className="p-4 bg-gray-900 border-gray-800">
@@ -283,6 +316,29 @@ export function TourPlayer({ property, onLeadCapture, onEngagementTrack }: TourP
                 </Button>
               </div>
             </form>
+          </Card>
+        </div>
+      )}
+
+      {showFloorPlan && floorPlan && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-5xl bg-gray-900 border-gray-800">
+            <div className="flex items-center justify-between p-4 border-b border-gray-800">
+              <div>
+                <h2 className="text-lg font-semibold text-white">{floorPlan.name}</h2>
+                <p className="text-sm text-gray-400">Tap rooms to jump directly into their scenes.</p>
+              </div>
+              <Button variant="outline" onClick={() => setShowFloorPlan(false)}>
+                Close
+              </Button>
+            </div>
+            <div className="h-[540px]">
+              <FloorPlanViewer
+                floorPlan={floorPlan}
+                branding={property.branding}
+                onRoomClick={handleFloorPlanRoomClick}
+              />
+            </div>
           </Card>
         </div>
       )}

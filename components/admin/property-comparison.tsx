@@ -22,7 +22,7 @@ export function PropertyComparison({ properties, onClose }: PropertyComparisonPr
     { label: "Bathrooms", key: "bathrooms" },
     { label: "Square Feet", key: "sqft" },
     { label: "Virtual Tour", key: "scenes" },
-    { label: "Floor Plan", key: "floorPlan" },
+    { label: "Floor Plan", key: "floorPlanId" },
     { label: "Day/Night Mode", key: "dayNightImages" },
   ]
 
@@ -80,9 +80,9 @@ export function PropertyComparison({ properties, onClose }: PropertyComparisonPr
                           {prop.scenes.length} scenes
                         </div>
                       )}
-                      {feature.key === "floorPlan" && (
+                      {feature.key === "floorPlanId" && (
                         <div className="flex items-center justify-center">
-                          {prop.floorPlan ? (
+                          {prop.floorPlanId ? (
                             <Check className="w-4 h-4 text-green-600" />
                           ) : (
                             <X className="w-4 h-4 text-red-600" />
