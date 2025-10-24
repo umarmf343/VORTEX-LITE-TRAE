@@ -18,6 +18,20 @@ interface PropertyReportsProps {
 export function PropertyReports({ property }: PropertyReportsProps) {
   const [reportFormat, setReportFormat] = useState<"pdf" | "json" | "csv">("json")
 
+  const downloadBlob = (blob: Blob, filename: string) => {
+    if (typeof document === "undefined") {
+      return
+    }
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   const generateReport = (): AdvancedAnalyticsReport => {
     const stats = property.stats
     return {
@@ -80,12 +94,14 @@ export function PropertyReports({ property }: PropertyReportsProps) {
     if (reportFormat === "json") {
       const dataStr = JSON.stringify(report, null, 2)
       const dataBlob = new Blob([dataStr], { type: "application/json" })
-      const url = URL.createObjectURL(dataBlob)
-      const link = document.createElement("a")
-      link.href = url
-      link.download = `${property.name}-report-${new Date().toISOString().split("T")[0]}.json`
-      link.click()
-    } else if (reportFormat === "csv") {
+      downloadBlob(
+        dataBlob,
+        `${property.name}-report-${new Date().toISOString().split("T")[0]}.json`,
+      )
+      return
+    }
+
+    if (reportFormat === "csv") {
       let csv = "Property Report\n"
       csv += `Property: ${property.name}\n`
       csv += `Generated: ${new Date().toISOString()}\n\n`
@@ -97,12 +113,14 @@ export function PropertyReports({ property }: PropertyReportsProps) {
       csv += `Leads Generated,${report.leadsGenerated}\n`
 
       const dataBlob = new Blob([csv], { type: "text/csv" })
-      const url = URL.createObjectURL(dataBlob)
-      const link = document.createElement("a")
-      link.href = url
-      link.download = `${property.name}-report-${new Date().toISOString().split("T")[0]}.csv`
-      link.click()
+      downloadBlob(
+        dataBlob,
+        `${property.name}-report-${new Date().toISOString().split("T")[0]}.csv`,
+      )
+      return
     }
+
+    alert("PDF export is not available in this demo build. Please choose JSON or CSV instead.")
   }
 
   const report = generateReport()

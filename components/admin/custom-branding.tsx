@@ -3,7 +3,7 @@
 import type { CSSCustomization } from "@/lib/types"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Copy, Download } from "lucide-react"
 
 interface CustomBrandingProps {
@@ -19,6 +19,16 @@ export function CustomBranding({ propertyId, branding, onSave }: CustomBrandingP
   const [customDomain, setCustomDomain] = useState(branding?.customDomain || "")
   const [copied, setCopied] = useState(false)
 
+  useEffect(() => {
+    if (!branding) {
+      return
+    }
+    setCustomCSS(branding.customCSS || "")
+    setWhiteLabel(branding.whiteLabel)
+    setRemoveBranding(branding.removeBranding)
+    setCustomDomain(branding.customDomain || "")
+  }, [branding])
+
   const handleSave = () => {
     const updatedBranding: CSSCustomization = {
       propertyId,
@@ -30,20 +40,33 @@ export function CustomBranding({ propertyId, branding, onSave }: CustomBrandingP
     onSave?.(updatedBranding)
   }
 
-  const handleCopyCSS = () => {
-    navigator.clipboard.writeText(customCSS)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+  const handleCopyCSS = async () => {
+    try {
+      if (!navigator?.clipboard) {
+        throw new Error("Clipboard API is not available")
+      }
+      await navigator.clipboard.writeText(customCSS)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (error) {
+      console.error("Failed to copy CSS", error)
+      setCopied(false)
+    }
   }
 
   const handleDownloadCSS = () => {
-    const element = document.createElement("a")
+    if (typeof document === "undefined") {
+      return
+    }
     const file = new Blob([customCSS], { type: "text/css" })
-    element.href = URL.createObjectURL(file)
+    const href = URL.createObjectURL(file)
+    const element = document.createElement("a")
+    element.href = href
     element.download = `custom-branding-${propertyId}.css`
     document.body.appendChild(element)
     element.click()
     document.body.removeChild(element)
+    URL.revokeObjectURL(href)
   }
 
   return (
