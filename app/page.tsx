@@ -116,6 +116,21 @@ export default function Page() {
     properties[0],
   )
 
+  const featureHighlights = [
+    {
+      title: "Vortex360 Interactive Labels",
+      description:
+        "Interactive labels that provide additional information, such as text, images, or videos, enriching the user experience.",
+      icon: FileText,
+    },
+    {
+      title: "Guided Tours",
+      description:
+        "Enables the creation of custom paths to highlight key areas, enhancing storytelling and user engagement.",
+      icon: Map,
+    },
+  ] as const
+
   useEffect(() => {
     if (properties.length === 0) {
       setSelectedProperty(undefined)
@@ -220,6 +235,26 @@ export default function Page() {
 
         {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 py-12">
+          <section className="mb-12">
+            <h2 className="text-2xl font-bold text-white mb-4">Why Vortex360 Stands Out</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {featureHighlights.map(({ title, description, icon: Icon }) => (
+                <Card
+                  key={title}
+                  className="bg-slate-800/80 border border-slate-700/70 p-5 flex flex-col gap-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/10 text-amber-300">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <h3 className="text-lg font-semibold text-white">{title}</h3>
+                  </div>
+                  <p className="text-sm text-slate-300 leading-relaxed">{description}</p>
+                </Card>
+              ))}
+            </div>
+          </section>
+
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-white mb-2">Featured Properties</h2>
             <p className="text-slate-400">Explore our premium real estate listings with immersive 360° virtual tours</p>
