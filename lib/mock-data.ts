@@ -48,6 +48,7 @@ export const mockProperties: Property[] = [
       contactPhone: "+1 (555) 123-4567",
       whiteLabelMode: false,
     },
+    supportedViewModes: ["walkthrough", "360", "first-person", "orbit", "dollhouse", "floor-plan"],
     scenes: [
       {
         id: "scene-001",
@@ -56,6 +57,7 @@ export const mockProperties: Property[] = [
         thumbnail: "/luxury-penthouse-living-room.png",
         viewCount: 145,
         dwellTime: 45,
+        defaultViewMode: "walkthrough",
         hotspots: [
           {
             id: "hotspot-001",

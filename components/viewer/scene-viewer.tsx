@@ -27,6 +27,9 @@ import {
   RotateCcw,
   RotateCw,
   MapPin,
+  Navigation,
+  MousePointerClick,
+  ArrowsLeftRight,
 } from "lucide-react"
 import {
   MathUtils,
@@ -155,8 +158,16 @@ const isWebGLAvailable = () => {
 const measurementModes = ["distance", "area", "volume"] as const
 type MeasurementMode = (typeof measurementModes)[number]
 
-const allViewModes: SceneViewMode[] = ["360", "first-person", "orbit", "dollhouse", "floor-plan"]
-const sphericalViewModes: SceneViewMode[] = ["360", "first-person", "orbit"]
+const allViewModes: SceneViewMode[] = [
+  "360",
+  "first-person",
+  "walkthrough",
+  "orbit",
+  "dollhouse",
+  "floor-plan",
+]
+const sphericalViewModes: SceneViewMode[] = ["360", "first-person", "walkthrough", "orbit"]
+const immersiveViewModes: SceneViewMode[] = ["first-person", "walkthrough"]
 
 type ProjectedPoint = { x: number; y: number; visible: boolean }
 
@@ -239,6 +250,15 @@ interface SceneViewerProps {
   onTourPointCreate?: (tourPoint: TourPoint) => void
   targetOrientation?: { sceneId: string; yaw: number; pitch: number; key: number } | null
   availableViewModes?: SceneViewMode[]
+  onWalkthroughStep?: (direction: 1 | -1) => void
+  walkthroughMeta?: {
+    currentSceneIndex: number
+    totalScenes: number
+    hasNextScene: boolean
+    hasPreviousScene: boolean
+    nextSceneName?: string
+    previousSceneName?: string
+  }
 }
 
 export function SceneViewer({
@@ -256,6 +276,8 @@ export function SceneViewer({
   onTourPointCreate,
   targetOrientation,
   availableViewModes,
+  onWalkthroughStep,
+  walkthroughMeta,
 }: SceneViewerProps) {
   const [measuring, setMeasuring] = useState(false)
   const [measureStart, setMeasureStart] = useState<{ x: number; y: number } | null>(null)
@@ -292,6 +314,21 @@ export function SceneViewer({
   const [transitionActive, setTransitionActive] = useState(false)
   const [transitionKey, setTransitionKey] = useState(0)
   const [transitionStyle, setTransitionStyle] = useState<"fade" | "slide" | null>(sceneTransition)
+  const {
+    currentSceneIndex: walkthroughSceneIndex = 0,
+    totalScenes: walkthroughTotalScenes = 1,
+    hasNextScene = false,
+    hasPreviousScene = false,
+    nextSceneName,
+    previousSceneName,
+  } = walkthroughMeta ?? {}
+  const walkthroughStep = Math.min(walkthroughTotalScenes, Math.max(1, walkthroughSceneIndex + 1))
+  const walkthroughForwardInstruction = hasNextScene
+    ? `W to move into ${nextSceneName ?? "the next space"}`
+    : "W to continue exploring this room"
+  const walkthroughBackwardInstruction = hasPreviousScene
+    ? `S to revisit ${previousSceneName ?? "the previous space"}`
+    : "S to stay at the start of the walkthrough"
   const viewerRef = useRef<HTMLDivElement>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
   const sceneStartTime = useRef(Date.now())
@@ -324,6 +361,8 @@ export function SceneViewer({
   >({})
   const [projectedAreaPoints, setProjectedAreaPoints] = useState<ProjectedPoint[]>([])
   const [projectedVolumePoints, setProjectedVolumePoints] = useState<ProjectedPoint[]>([])
+  const immersiveModeActive = immersiveViewModes.includes(currentViewMode)
+  const isWalkthroughMode = currentViewMode === "walkthrough"
 
   useEffect(() => {
     setMeasurements(scene.measurements)
@@ -404,13 +443,22 @@ export function SceneViewer({
   }, [volumePoints])
 
   useEffect(() => {
-    if (currentViewMode !== "first-person") {
+    if (!immersiveModeActive) {
       keyStateRef.current = {}
       return
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      keyStateRef.current[event.key.toLowerCase()] = true
+      const key = event.key.toLowerCase()
+      keyStateRef.current[key] = true
+
+      if (currentViewMode === "walkthrough" && ["w", "s"].includes(key)) {
+        if (event.repeat) {
+          return
+        }
+        event.preventDefault()
+        onWalkthroughStep?.(key === "w" ? 1 : -1)
+      }
     }
 
     const handleKeyUp = (event: KeyboardEvent) => {
@@ -425,7 +473,7 @@ export function SceneViewer({
       window.removeEventListener("keyup", handleKeyUp)
       keyStateRef.current = {}
     }
-  }, [currentViewMode])
+  }, [immersiveModeActive, currentViewMode, onWalkthroughStep])
 
   useEffect(() => {
     if (!enableGyroscope || !vrMode || !sphericalViewModes.includes(currentViewMode)) return
@@ -641,8 +689,8 @@ export function SceneViewer({
       if (!isInteractingRef.current) return
       const deltaX = event.clientX - pointerDownRef.current.x
       const deltaY = event.clientY - pointerDownRef.current.y
-      const sensitivity = currentViewMode === "first-person" ? 0.2 : 0.1
-      const latClamp = currentViewMode === "first-person" ? 75 : 85
+      const sensitivity = immersiveModeActive ? 0.2 : 0.1
+      const latClamp = immersiveModeActive ? 75 : 85
       lonRef.current = pointerDownRef.current.lon - deltaX * sensitivity
       latRef.current = Math.max(-latClamp, Math.min(latClamp, pointerDownRef.current.lat + deltaY * sensitivity))
     }
@@ -716,7 +764,7 @@ export function SceneViewer({
         if (autoRotateRef.current && !isInteractingRef.current) {
           lonRef.current += autoRotateDirectionRef.current * autoRotateSpeedRef.current * 0.2
         }
-        if (currentViewMode === "first-person") {
+        if (immersiveModeActive) {
           const keys = keyStateRef.current
           const movementSpeed = 0.6
           if (keys["arrowleft"] || keys["a"]) {
@@ -725,15 +773,21 @@ export function SceneViewer({
           if (keys["arrowright"] || keys["d"]) {
             lonRef.current -= movementSpeed
           }
-          if (keys["arrowup"] || keys["w"]) {
+          if (keys["arrowup"]) {
             latRef.current -= movementSpeed
           }
-          if (keys["arrowdown"] || keys["s"]) {
+          if (keys["arrowdown"]) {
+            latRef.current += movementSpeed
+          }
+          if (!isWalkthroughMode && keys["w"]) {
+            latRef.current -= movementSpeed
+          }
+          if (!isWalkthroughMode && keys["s"]) {
             latRef.current += movementSpeed
           }
         }
 
-        const latClamp = currentViewMode === "first-person" ? 75 : 85
+        const latClamp = immersiveModeActive ? 75 : 85
         latRef.current = Math.max(-latClamp, Math.min(latClamp, latRef.current))
         const phi = MathUtils.degToRad(90 - latRef.current)
         const theta = MathUtils.degToRad(lonRef.current)
@@ -795,6 +849,8 @@ export function SceneViewer({
     scene.id,
     scene.imageUrl,
     updateProjectedElements,
+    immersiveModeActive,
+    isWalkthroughMode,
   ])
 
   useEffect(() => {
@@ -1100,6 +1156,38 @@ export function SceneViewer({
                   transitionStyle === "slide" ? "scene-transition-slide" : "scene-transition-fade"
                 }`}
               />
+            )}
+
+            {isWalkthroughMode && (
+              <>
+                <div className="absolute top-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full bg-black/70 px-4 py-2 text-xs font-medium text-white shadow-lg backdrop-blur">
+                  <Navigation className="h-4 w-4 text-emerald-300" />
+                  <span className="uppercase tracking-wide text-emerald-200">Walkthrough Mode</span>
+                  <span className="text-white/80">
+                    Step {walkthroughStep} of {Math.max(1, walkthroughTotalScenes)}
+                  </span>
+                </div>
+                <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-3 text-[11px] text-white/90 md:text-sm">
+                  <div className="flex flex-col items-center gap-3 md:flex-row">
+                    <div className="flex items-center gap-2 rounded-full bg-black/60 px-3 py-2 shadow-lg backdrop-blur">
+                      <MousePointerClick className="h-4 w-4 text-blue-300" />
+                      <span>Click &amp; drag to look around</span>
+                    </div>
+                    <div className="flex items-center gap-2 rounded-full bg-black/60 px-3 py-2 shadow-lg backdrop-blur">
+                      <Navigation className="h-4 w-4 text-emerald-300" />
+                      <span>{walkthroughForwardInstruction}</span>
+                    </div>
+                    <div className="flex items-center gap-2 rounded-full bg-black/60 px-3 py-2 shadow-lg backdrop-blur">
+                      <Navigation className="h-4 w-4 rotate-180 text-rose-300" />
+                      <span>{walkthroughBackwardInstruction}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 rounded-full bg-black/60 px-3 py-2 shadow-lg backdrop-blur">
+                    <ArrowsLeftRight className="h-4 w-4 text-amber-300" />
+                    <span>A / D or ← / → to pivot your view</span>
+                  </div>
+                </div>
+              </>
             )}
 
             {/* Hotspots */}

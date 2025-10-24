@@ -124,6 +124,19 @@ export function TourPlayer({
       currentScene.hotspots.filter((hotspot) => ["video", "audio", "image"].includes(hotspot.type)),
     [currentScene.hotspots],
   )
+  const hasNextScene = currentSceneIndex < property.scenes.length - 1
+  const hasPreviousScene = currentSceneIndex > 0
+  const walkthroughMeta = useMemo(
+    () => ({
+      currentSceneIndex,
+      totalScenes: property.scenes.length,
+      hasNextScene,
+      hasPreviousScene,
+      nextSceneName: hasNextScene ? property.scenes[currentSceneIndex + 1]?.name : undefined,
+      previousSceneName: hasPreviousScene ? property.scenes[currentSceneIndex - 1]?.name : undefined,
+    }),
+    [currentSceneIndex, hasNextScene, hasPreviousScene, property.scenes],
+  )
   const sceneViewPoints = useMemo(
     () => tourPoints.filter((point) => point.sceneId === currentScene.id),
     [currentScene.id, tourPoints],
@@ -206,6 +219,17 @@ export function TourPlayer({
       return clone
     })
   }
+
+  const handleWalkthroughStep = useCallback(
+    (direction: 1 | -1) => {
+      setCurrentSceneIndex((prev) => {
+        const nextIndex = Math.max(0, Math.min(property.scenes.length - 1, prev + direction))
+        return nextIndex
+      })
+      setPendingOrientation(null)
+    },
+    [property.scenes, property.scenes.length],
+  )
 
   const startTourAt = (index: number) => {
     if (tourPoints.length === 0) return
@@ -405,6 +429,8 @@ export function TourPlayer({
             onTourPointCreate={handleTourPointCreate}
             targetOrientation={pendingOrientation}
             availableViewModes={property.supportedViewModes}
+            onWalkthroughStep={handleWalkthroughStep}
+            walkthroughMeta={walkthroughMeta}
           />
         </div>
 
