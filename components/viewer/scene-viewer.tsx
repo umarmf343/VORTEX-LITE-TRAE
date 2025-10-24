@@ -34,7 +34,7 @@ import {
   Vector3,
   WebGLRenderer,
 } from "three"
-import WebGL from "three/examples/jsm/capabilities/WebGL.js"
+import { isWebGLAvailable } from "three/examples/jsm/capabilities/WebGL.js"
 
 const measurementModes = ["distance", "area", "volume"] as const
 type MeasurementMode = (typeof measurementModes)[number]
@@ -335,7 +335,7 @@ export function SceneViewer({
     const container = viewerRef.current
     if (!container) return
 
-    if (!WebGL.isWebGLAvailable()) {
+    if (!isWebGLAvailable()) {
       setRenderError("WebGL is not available in this browser or device.")
       return
     }
