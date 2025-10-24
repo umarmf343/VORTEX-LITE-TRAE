@@ -18,6 +18,7 @@ export function TechnicianManagement({ technicians, services, onAssignTechnician
   const pendingServices = services.filter((s) => s.status === "pending")
   const scheduledServices = services.filter((s) => s.status === "scheduled")
   const completedServices = services.filter((s) => s.status === "completed")
+  const technicianLookup = Object.fromEntries(technicians.map((tech) => [tech.id, tech]))
 
   return (
     <div className="space-y-6">
@@ -88,6 +89,11 @@ export function TechnicianManagement({ technicians, services, onAssignTechnician
               <div key={service.id} className="border rounded p-2 text-sm">
                 <p className="font-medium">{service.clientName}</p>
                 <p className="text-gray-600">{service.scheduledDate?.toLocaleDateString()}</p>
+                {service.assignedTechnicianId && (
+                  <p className="text-gray-500">
+                    Assigned to {technicianLookup[service.assignedTechnicianId]?.name || "Technician"}
+                  </p>
+                )}
               </div>
             ))}
           </div>
@@ -104,6 +110,11 @@ export function TechnicianManagement({ technicians, services, onAssignTechnician
               <div key={service.id} className="border rounded p-2 text-sm bg-green-50">
                 <p className="font-medium">{service.clientName}</p>
                 <p className="text-gray-600">{service.propertyAddress}</p>
+                {service.assignedTechnicianId && (
+                  <p className="text-gray-500 text-xs">
+                    Completed by {technicianLookup[service.assignedTechnicianId]?.name || "Technician"}
+                  </p>
+                )}
               </div>
             ))}
           </div>

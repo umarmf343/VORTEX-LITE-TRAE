@@ -4,32 +4,25 @@ import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Cable as Cube, Plus, Trash2, Eye } from "lucide-react"
-
-interface Model3D {
-  id: string
-  name: string
-  url: string
-  format: "gltf" | "glb" | "obj"
-  sceneId?: string
-  scale: number
-}
+import type { Model3DAsset } from "@/lib/types"
 
 interface Models3DProps {
   propertyId: string
-  models?: Model3D[]
-  onAddModel?: (model: Model3D) => void
+  models?: Model3DAsset[]
+  onAddModel?: (model: Model3DAsset) => void
   onRemoveModel?: (modelId: string) => void
 }
 
 export function Models3D({ propertyId, models = [], onAddModel, onRemoveModel }: Models3DProps) {
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({ name: "", url: "", format: "glb" as const, scale: 1 })
-  const [selectedModel, setSelectedModel] = useState<Model3D | null>(null)
+  const [selectedModel, setSelectedModel] = useState<Model3DAsset | null>(null)
 
   const handleAddModel = () => {
     if (formData.name && formData.url) {
-      const newModel: Model3D = {
+      const newModel: Model3DAsset = {
         id: `model-${Date.now()}`,
+        propertyId,
         ...formData,
       }
       onAddModel?.(newModel)

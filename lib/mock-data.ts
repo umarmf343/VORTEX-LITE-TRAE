@@ -7,6 +7,11 @@ import type {
   BookingSlot,
   PropertyMerge,
   CrossPlatformShare,
+  WooCommerceProduct,
+  Model3DAsset,
+  SceneTypeConfig,
+  TechnicianProfile,
+  CSSCustomization,
 } from "./types"
 
 export const mockProperties: Property[] = [
@@ -29,6 +34,11 @@ export const mockProperties: Property[] = [
     updatedAt: new Date("2024-10-20"),
     isFavorite: false,
     tags: ["luxury", "penthouse", "city-view", "smart-home"],
+    floorPlanId: "floor-001",
+    dayNightImages: {
+      day: "/luxury-penthouse-day.jpg",
+      night: "/luxury-penthouse-night.jpg",
+    },
     branding: {
       primaryColor: "#1a3a52",
       secondaryColor: "#d4af37",
@@ -171,6 +181,11 @@ export const mockProperties: Property[] = [
     updatedAt: new Date("2024-10-18"),
     isFavorite: false,
     tags: ["family-home", "suburban", "pool", "modern"],
+    floorPlanId: "floor-002",
+    dayNightImages: {
+      day: "/modern-suburban-day.jpg",
+      night: "/modern-suburban-night.jpg",
+    },
     branding: {
       primaryColor: "#1a3a52",
       secondaryColor: "#d4af37",
@@ -287,6 +302,20 @@ export const mockLeads: Lead[] = [
     notes: "Relocating from California",
     source: "virtual-tour",
   },
+  {
+    id: "lead-003",
+    propertyId: "prop-002",
+    name: "Alicia Brown",
+    email: "alicia.brown@email.com",
+    phone: "+1 (555) 765-4321",
+    message: "Interested in backyard amenities.",
+    visitDuration: 6.8,
+    scenesViewed: 2,
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+    status: "new",
+    notes: "Prefers weekend viewings",
+    source: "virtual-tour",
+  },
 ]
 
 export const mockVisitors: Visitor[] = [
@@ -314,11 +343,38 @@ export const mockVisitors: Visitor[] = [
       },
     },
   },
+  {
+    id: "visitor-002",
+    propertyId: "prop-001",
+    sessionId: "session-002",
+    visitedAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
+    duration: 9.2,
+    scenesViewed: ["scene-001", "scene-003"],
+    hotspotClicks: 3,
+    measurements: 1,
+    leadQuality: "warm",
+    deviceType: "mobile",
+    referralSource: "facebook",
+  },
+  {
+    id: "visitor-003",
+    propertyId: "prop-002",
+    sessionId: "session-003",
+    visitedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
+    duration: 7.5,
+    scenesViewed: ["scene-004", "scene-006"],
+    hotspotClicks: 2,
+    measurements: 0,
+    leadQuality: "cold",
+    deviceType: "desktop",
+    referralSource: "email",
+  },
 ]
 
 export const mockCaptureServices: CaptureService[] = [
   {
     id: "capture-001",
+    propertyId: "prop-001",
     clientName: "Robert Williams",
     clientEmail: "robert@email.com",
     clientPhone: "+1 (555) 555-5555",
@@ -326,6 +382,7 @@ export const mockCaptureServices: CaptureService[] = [
     serviceType: "premium",
     status: "scheduled",
     scheduledDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    assignedTechnicianId: "tech-001",
     notes: "Luxury property, needs 360° coverage",
     createdAt: new Date(),
   },
@@ -373,6 +430,47 @@ export const mockFloorPlans: FloorPlan[] = [
       },
     ],
   },
+  {
+    id: "floor-002",
+    name: "Family Home Floor Plan",
+    imageUrl: "/family-home-floor-plan.jpg",
+    scale: 1,
+    rooms: [
+      {
+        id: "room-101",
+        name: "Foyer",
+        x: 40,
+        y: 40,
+        width: 160,
+        height: 120,
+        sceneId: "scene-004",
+        color: "#22c55e",
+        dimensions: "12ft x 10ft",
+      },
+      {
+        id: "room-102",
+        name: "Living Room",
+        x: 220,
+        y: 40,
+        width: 220,
+        height: 180,
+        sceneId: "scene-005",
+        color: "#0ea5e9",
+        dimensions: "18ft x 14ft",
+      },
+      {
+        id: "room-103",
+        name: "Backyard",
+        x: 100,
+        y: 240,
+        width: 300,
+        height: 200,
+        sceneId: "scene-006",
+        color: "#f97316",
+        dimensions: "30ft x 20ft",
+      },
+    ],
+  },
 ]
 
 export const mockBookingSlots: BookingSlot[] = [
@@ -400,6 +498,14 @@ export const mockBookingSlots: BookingSlot[] = [
     duration: 60,
     available: false,
     bookedBy: "John Smith",
+  },
+  {
+    id: "slot-004",
+    propertyId: "prop-002",
+    date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+    time: "1:00 PM",
+    duration: 45,
+    available: true,
   },
 ]
 
@@ -431,4 +537,122 @@ export const mockCrossPlatformShares: CrossPlatformShare[] = [
       realtorCom: "https://www.realtor.com/...",
     },
   },
+  {
+    propertyId: "prop-002",
+    platforms: {
+      googleStreetView: true,
+      vrbo: false,
+      realtorCom: true,
+      zillow: true,
+      facebook: true,
+      twitter: false,
+      linkedin: true,
+    },
+    shareLinks: {
+      googleStreetView: "https://www.google.com/maps/...",
+      realtorCom: "https://www.realtor.com/...",
+      zillow: "https://www.zillow.com/...",
+    },
+  },
 ]
+
+export const mockWooCommerceProducts: WooCommerceProduct[] = [
+  {
+    id: "product-001",
+    propertyId: "prop-001",
+    name: "Smart Lighting Package",
+    price: 499,
+    sku: "SL-500",
+    image: "/smart-lighting-package.jpg",
+    hotspotId: "hotspot-002",
+  },
+  {
+    id: "product-002",
+    propertyId: "prop-002",
+    name: "Outdoor Furniture Set",
+    price: 899,
+    sku: "OF-899",
+    image: "/outdoor-furniture-set.jpg",
+    hotspotId: "hotspot-008",
+  },
+]
+
+export const mockModelAssets: Model3DAsset[] = [
+  {
+    id: "model-001",
+    propertyId: "prop-001",
+    name: "Living Room Furniture",
+    url: "https://models.baladshelter.com/living-room.glb",
+    format: "glb",
+    sceneId: "scene-001",
+    scale: 1,
+  },
+  {
+    id: "model-002",
+    propertyId: "prop-002",
+    name: "Backyard Landscaping",
+    url: "https://models.baladshelter.com/backyard.glb",
+    format: "glb",
+    sceneId: "scene-006",
+    scale: 1,
+  },
+]
+
+export const mockSceneTypeConfigs: SceneTypeConfig[] = [
+  {
+    id: "scene-type-001",
+    propertyId: "prop-001",
+    sceneId: "scene-001",
+    type: "equirectangular",
+    imageUrl: "/luxury-penthouse-living-room-360.jpg",
+    description: "Main living area captured in 8K",
+  },
+  {
+    id: "scene-type-002",
+    propertyId: "prop-002",
+    sceneId: "scene-005",
+    type: "sphere",
+    imageUrl: "/open-concept-living-room.jpg",
+    description: "Spherical panorama of living area",
+  },
+]
+
+export const mockTechnicians: TechnicianProfile[] = [
+  {
+    id: "tech-001",
+    name: "Laura Mendes",
+    email: "laura.mendes@votex360.com",
+    phone: "+1 (555) 777-8899",
+    specialization: "premium",
+    availability: [new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)],
+    completedJobs: 48,
+    rating: 4.8,
+  },
+  {
+    id: "tech-002",
+    name: "Ethan Patel",
+    email: "ethan.patel@votex360.com",
+    phone: "+1 (555) 222-1188",
+    specialization: "vr",
+    availability: [new Date(Date.now() + 4 * 24 * 60 * 60 * 1000)],
+    completedJobs: 36,
+    rating: 4.7,
+  },
+]
+
+export const mockBrandingSettings: Record<string, CSSCustomization> = {
+  "prop-001": {
+    propertyId: "prop-001",
+    customCSS: ".tour-player { background: radial-gradient(circle at top, #0f172a, #020617); }",
+    whiteLabel: false,
+    removeBranding: false,
+    customDomain: "penthouse.baladshelter.com",
+  },
+  "prop-002": {
+    propertyId: "prop-002",
+    customCSS: ".property-card { border-radius: 24px; }",
+    whiteLabel: true,
+    removeBranding: false,
+    customDomain: "suburbanhomes.baladshelter.com",
+  },
+}

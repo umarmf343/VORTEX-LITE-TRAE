@@ -9,7 +9,7 @@ import { useState } from "react"
 interface BookingSystemProps {
   propertyId: string
   slots: BookingSlot[]
-  onBook?: (slot: BookingSlot) => void
+  onBook?: (slotId: string, booking: { name: string; email: string; phone?: string }) => void
 }
 
 export function BookingSystem({ propertyId, slots, onBook }: BookingSystemProps) {
@@ -18,7 +18,7 @@ export function BookingSystem({ propertyId, slots, onBook }: BookingSystemProps)
 
   const handleBooking = () => {
     if (selectedSlot && visitorInfo.name && visitorInfo.email) {
-      onBook?.(selectedSlot)
+      onBook?.(selectedSlot.id, visitorInfo)
       setSelectedSlot(null)
       setVisitorInfo({ name: "", email: "", phone: "" })
       alert("Booking confirmed! You will receive a confirmation email shortly.")

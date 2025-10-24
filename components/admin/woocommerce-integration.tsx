@@ -4,20 +4,12 @@ import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ShoppingCart, Plus, Trash2, Edit2 } from "lucide-react"
-
-interface Product {
-  id: string
-  name: string
-  price: number
-  sku: string
-  image: string
-  hotspotId?: string
-}
+import type { WooCommerceProduct } from "@/lib/types"
 
 interface WooCommerceIntegrationProps {
   propertyId: string
-  products?: Product[]
-  onAddProduct?: (product: Product) => void
+  products?: WooCommerceProduct[]
+  onAddProduct?: (product: WooCommerceProduct) => void
   onRemoveProduct?: (productId: string) => void
 }
 
@@ -38,8 +30,9 @@ export function WooCommerceIntegration({
 
   const handleAddProduct = () => {
     if (formData.name && formData.price > 0) {
-      const newProduct: Product = {
+      const newProduct: WooCommerceProduct = {
         id: `product-${Date.now()}`,
+        propertyId,
         ...formData,
       }
       onAddProduct?.(newProduct)

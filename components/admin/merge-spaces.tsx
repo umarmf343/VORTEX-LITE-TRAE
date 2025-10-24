@@ -1,6 +1,6 @@
 "use client"
 
-import type { Property, PropertyMergeConfig } from "@/lib/types"
+import type { Property, PropertyMerge } from "@/lib/types"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
@@ -8,8 +8,8 @@ import { Plus, Trash2 } from "lucide-react"
 
 interface MergeSpacesProps {
   properties: Property[]
-  merges: PropertyMergeConfig[]
-  onCreateMerge?: (merge: PropertyMergeConfig) => void
+  merges: PropertyMerge[]
+  onCreateMerge?: (merge: PropertyMerge) => void
   onDeleteMerge?: (mergeId: string) => void
 }
 
@@ -32,7 +32,7 @@ export function MergeSpaces({ properties, merges, onCreateMerge, onDeleteMerge }
 
   const handleCreateMerge = () => {
     if (mergeName && selectedProperties.length > 1) {
-      const newMerge: PropertyMergeConfig = {
+      const newMerge: PropertyMerge = {
         id: `merge-${Date.now()}`,
         name: mergeName,
         properties: selectedProperties,
