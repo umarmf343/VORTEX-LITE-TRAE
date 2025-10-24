@@ -9,6 +9,7 @@ import type {
   Property,
   Room,
   SceneEngagementPayload,
+  TourPoint,
   WooCommerceProduct,
 } from "@/lib/types"
 import { SceneViewer } from "./scene-viewer"
@@ -16,7 +17,21 @@ import { FloorPlanViewer } from "./floor-plan-viewer"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
-import { ChevronLeft, ChevronRight, Phone, Mail, Share2, Heart, ShoppingCart } from "lucide-react"
+import {
+  ChevronLeft,
+  ChevronRight,
+  Phone,
+  Mail,
+  Share2,
+  Heart,
+  ShoppingCart,
+  PlayCircle,
+  Square,
+  ArrowUp,
+  ArrowDown,
+  Trash2,
+  MapPin,
+} from "lucide-react"
 
 type SharePlatform = "facebook" | "twitter" | "linkedin" | "email"
 
@@ -45,7 +60,18 @@ export function TourPlayer({
   const [showShareMenu, setShowShareMenu] = useState(false)
   const [showFloorPlan, setShowFloorPlan] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<WooCommerceProduct | null>(null)
+  const [tourPoints, setTourPoints] = useState<TourPoint[]>([])
+  const [isTourPlaying, setIsTourPlaying] = useState(false)
+  const [activeTourIndex, setActiveTourIndex] = useState(0)
+  const [pendingOrientation, setPendingOrientation] = useState<{
+    sceneId: string
+    yaw: number
+    pitch: number
+    key: number
+  } | null>(null)
   const sceneEngagement = useRef<Record<string, number>>({})
+  const tourTimeoutRef = useRef<number | null>(null)
+  const TOUR_STEP_DURATION = 8000
   const { productHotspotMap, productHotspotIds } = useMemo(() => {
     const map = new Map<string, WooCommerceProduct>()
     const ids: string[] = []
@@ -70,6 +96,14 @@ export function TourPlayer({
     setShowShareMenu(false)
     setSelectedProduct(null)
     sceneEngagement.current = {}
+    setTourPoints([])
+    setIsTourPlaying(false)
+    setActiveTourIndex(0)
+    setPendingOrientation(null)
+    if (tourTimeoutRef.current) {
+      window.clearTimeout(tourTimeoutRef.current)
+      tourTimeoutRef.current = null
+    }
   }, [property.id, property.isFavorite])
 
   useEffect(() => {
@@ -79,6 +113,44 @@ export function TourPlayer({
   }, [products, selectedProduct])
 
   const currentScene = property.scenes[currentSceneIndex]
+
+  const handleTourPointCreate = (point: TourPoint) => {
+    setTourPoints((prev) => {
+      const label = point.note && point.note.trim().length > 0 ? point.note.trim() : `Stop ${prev.length + 1}`
+      return [...prev, { ...point, note: label }]
+    })
+  }
+
+  const handleTourPointRemove = (id: string) => {
+    setTourPoints((prev) => prev.filter((point) => point.id !== id))
+  }
+
+  const moveTourPoint = (index: number, direction: -1 | 1) => {
+    setTourPoints((prev) => {
+      const target = index + direction
+      if (target < 0 || target >= prev.length) return prev
+      const clone = [...prev]
+      const [removed] = clone.splice(index, 1)
+      clone.splice(target, 0, removed)
+      return clone
+    })
+  }
+
+  const startTourAt = (index: number) => {
+    if (tourPoints.length === 0) return
+    const clamped = Math.max(0, Math.min(index, tourPoints.length - 1))
+    setActiveTourIndex(clamped)
+    setIsTourPlaying(true)
+  }
+
+  const stopGuidedTour = () => {
+    setIsTourPlaying(false)
+    setPendingOrientation(null)
+    if (tourTimeoutRef.current) {
+      window.clearTimeout(tourTimeoutRef.current)
+      tourTimeoutRef.current = null
+    }
+  }
 
   const handleHotspotClick = (hotspot: Hotspot) => {
     const productMatch = productHotspotMap.get(hotspot.id)
@@ -104,6 +176,80 @@ export function TourPlayer({
   const handleProductPurchase = (product: WooCommerceProduct) => {
     alert(`Purchase initiated for ${product.name}. We will redirect you to checkout shortly.`)
   }
+
+  useEffect(() => {
+    if (!isTourPlaying) {
+      if (tourTimeoutRef.current) {
+        window.clearTimeout(tourTimeoutRef.current)
+        tourTimeoutRef.current = null
+      }
+      return
+    }
+
+    const currentPoint = tourPoints[activeTourIndex]
+    if (!currentPoint) {
+      setIsTourPlaying(false)
+      return
+    }
+
+    const sceneIndex = property.scenes.findIndex((scene) => scene.id === currentPoint.sceneId)
+    if (sceneIndex !== -1 && sceneIndex !== currentSceneIndex) {
+      setCurrentSceneIndex(sceneIndex)
+      return
+    }
+
+    setPendingOrientation({
+      sceneId: currentPoint.sceneId,
+      yaw: currentPoint.yaw,
+      pitch: currentPoint.pitch,
+      key: Date.now(),
+    })
+
+    tourTimeoutRef.current = window.setTimeout(() => {
+      if (activeTourIndex >= tourPoints.length - 1) {
+        setIsTourPlaying(false)
+      } else {
+        setActiveTourIndex((prev) => prev + 1)
+      }
+    }, TOUR_STEP_DURATION)
+
+    return () => {
+      if (tourTimeoutRef.current) {
+        window.clearTimeout(tourTimeoutRef.current)
+        tourTimeoutRef.current = null
+      }
+    }
+  }, [
+    TOUR_STEP_DURATION,
+    activeTourIndex,
+    currentSceneIndex,
+    isTourPlaying,
+    property.scenes,
+    tourPoints,
+  ])
+
+  useEffect(() => {
+    if (!pendingOrientation) return
+    const timeout = window.setTimeout(() => setPendingOrientation(null), 500)
+    return () => window.clearTimeout(timeout)
+  }, [pendingOrientation])
+
+  useEffect(() => {
+    if (activeTourIndex >= tourPoints.length && tourPoints.length > 0) {
+      setActiveTourIndex(tourPoints.length - 1)
+    }
+    if (tourPoints.length === 0) {
+      setIsTourPlaying(false)
+    }
+  }, [activeTourIndex, tourPoints.length])
+
+  useEffect(() => {
+    return () => {
+      if (tourTimeoutRef.current) {
+        window.clearTimeout(tourTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const handleSceneEngagement = (sceneId: string, dwellTime: number) => {
     sceneEngagement.current[sceneId] = (sceneEngagement.current[sceneId] || 0) + dwellTime
@@ -154,12 +300,12 @@ export function TourPlayer({
     <div className="w-full h-screen flex flex-col bg-black">
       {/* Header */}
       <div className="bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700 p-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-white">{property.name}</h1>
+        <div className="max-w-7xl mx-auto flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold text-white leading-tight">{property.name}</h1>
             <p className="text-gray-400 text-sm">{property.address}</p>
           </div>
-          <div className="text-right">
+          <div className="text-left md:text-right">
             <div className="text-3xl font-bold text-white">{formatCurrency(property.price)}</div>
             <div className="text-gray-400 text-sm">
               {property.bedrooms} bed • {property.bathrooms} bath • {property.sqft.toLocaleString()} sqft
@@ -169,8 +315,8 @@ export function TourPlayer({
       </div>
 
       {/* Main Viewer */}
-      <div className="flex-1 flex gap-4 p-4 max-w-7xl mx-auto w-full">
-        <div className="flex-1">
+      <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 max-w-7xl mx-auto w-full">
+        <div className="flex-1 min-h-[360px]">
           <SceneViewer
             scene={currentScene}
             onHotspotClick={handleHotspotClick}
@@ -180,21 +326,25 @@ export function TourPlayer({
             enableVR
             enableGyroscope
             productHotspotIds={productHotspotIds}
+            sceneTransition={property.sceneTransition ?? "fade"}
+            onTourPointCreate={handleTourPointCreate}
+            targetOrientation={pendingOrientation}
+            availableViewModes={property.supportedViewModes}
           />
         </div>
 
         {/* Side Panel */}
-        <div className="w-80 flex flex-col gap-4">
+        <div className="w-full lg:w-80 flex flex-col gap-4">
           {/* Scene Thumbnails */}
           <Card className="p-4 bg-gray-900 border-gray-800">
             <h3 className="font-semibold text-white mb-3">Scenes</h3>
-            <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
               {property.scenes.map((scene, idx) => (
                 <button
                   key={scene.id}
                   onClick={() => setCurrentSceneIndex(idx)}
-                  className={`w-full text-left rounded overflow-hidden transition-all ${
-                    idx === currentSceneIndex ? "ring-2 ring-blue-500" : ""
+                  className={`w-full text-left rounded-lg overflow-hidden transition-all border border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                    idx === currentSceneIndex ? "ring-2 ring-blue-500" : "hover:border-blue-500/40"
                   }`}
                 >
                   <div className="relative">
@@ -210,6 +360,96 @@ export function TourPlayer({
                 </button>
               ))}
             </div>
+          </Card>
+
+          {/* Guided Tour */}
+          <Card className="p-4 bg-gray-900 border-gray-800">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h3 className="font-semibold text-white">Guided Tour</h3>
+                <p className="text-xs text-gray-400">Create a custom walkthrough from saved viewpoints.</p>
+              </div>
+              <Button
+                size="sm"
+                className={`gap-2 ${isTourPlaying ? "border-red-500 text-red-200 bg-red-500/10" : ""}`}
+                onClick={() => (isTourPlaying ? stopGuidedTour() : startTourAt(0))}
+                disabled={tourPoints.length === 0}
+                variant="outline"
+              >
+                {isTourPlaying ? <Square className="w-4 h-4" /> : <PlayCircle className="w-4 h-4" />}
+                {isTourPlaying ? "Stop" : "Play All"}
+              </Button>
+            </div>
+            {tourPoints.length === 0 ? (
+              <p className="text-sm text-gray-400">
+                Save a viewpoint from the viewer to add your first tour stop. You can capture multiple angles and reorder them
+                here.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {tourPoints.map((point, idx) => {
+                  const isActive = isTourPlaying && idx === activeTourIndex
+                  return (
+                    <div
+                      key={point.id}
+                      className={`rounded-lg border p-3 bg-gray-800/60 ${
+                        isActive ? "border-blue-500 shadow-lg shadow-blue-500/20" : "border-transparent"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-medium text-white flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-blue-400" />
+                            {point.note || `Stop ${idx + 1}`}
+                          </p>
+                          <p className="text-xs text-gray-400">{point.sceneName}</p>
+                          <p className="text-[11px] text-gray-500">
+                            {Math.round(point.yaw)}° yaw • {Math.round(point.pitch)}° pitch
+                          </p>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => moveTourPoint(idx, -1)}
+                            disabled={idx === 0}
+                            className="h-8 w-8"
+                          >
+                            <ArrowUp className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => moveTourPoint(idx, 1)}
+                            disabled={idx === tourPoints.length - 1}
+                            className="h-8 w-8"
+                          >
+                            <ArrowDown className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => handleTourPointRemove(point.id)}
+                            className="h-8 w-8"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="mt-3 w-full gap-2"
+                        onClick={() => startTourAt(idx)}
+                      >
+                        <PlayCircle className="w-4 h-4" />
+                        {isActive ? "Playing" : "Start from here"}
+                      </Button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </Card>
 
           {/* Property Details */}
