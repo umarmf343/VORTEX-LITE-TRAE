@@ -34,6 +34,7 @@ import {
   Vector3,
   WebGLRenderer,
 } from "three"
+import { WEBGL } from "three/examples/jsm/capabilities/WebGL"
 
 const measurementModes = ["distance", "area", "volume"] as const
 type MeasurementMode = (typeof measurementModes)[number]
@@ -156,6 +157,7 @@ export function SceneViewer({
   const [showViewModes, setShowViewModes] = useState(false)
   const [currentViewMode, setCurrentViewMode] = useState<SceneViewMode>("360")
   const [volumePoints, setVolumePoints] = useState<Array<{ x: number; y: number; z: number }>>([])
+  const [renderError, setRenderError] = useState<string | null>(null)
   const viewerRef = useRef<HTMLDivElement>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
   const sceneStartTime = useRef(Date.now())
@@ -326,13 +328,29 @@ export function SceneViewer({
         threeContextRef.current = null
         raycasterRef.current = null
       }
+      setRenderError(null)
       return
     }
 
     const container = viewerRef.current
     if (!container) return
 
-    const renderer = new WebGLRenderer({ antialias: true })
+    if (!WEBGL.isWebGLAvailable()) {
+      setRenderError("WebGL is not available in this browser or device.")
+      return
+    }
+
+    let renderer: WebGLRenderer
+    try {
+      renderer = new WebGLRenderer({ antialias: true })
+    } catch (error) {
+      console.error("Failed to create WebGLRenderer", error)
+      setRenderError("Unable to initialize the 3D viewer on this device.")
+      return
+    }
+
+    setRenderError(null)
+
     renderer.setPixelRatio(window.devicePixelRatio || 1)
     renderer.setSize(container.clientWidth, container.clientHeight)
     renderer.domElement.style.width = "100%"
@@ -748,11 +766,13 @@ export function SceneViewer({
   }
 
   const viewerCursorClass =
-    measuring || showAnnotationInput
-      ? "cursor-crosshair"
-      : currentViewMode === "360"
-        ? "cursor-grab"
-        : "cursor-crosshair"
+    renderError && currentViewMode === "360"
+      ? "cursor-not-allowed"
+      : measuring || showAnnotationInput
+        ? "cursor-crosshair"
+        : currentViewMode === "360"
+          ? "cursor-grab"
+          : "cursor-crosshair"
   const viewerFlexClass = currentViewMode !== "360" && vrMode ? "flex" : ""
 
   return (
@@ -765,59 +785,77 @@ export function SceneViewer({
         }`}
         onClick={handleImageClick}
       >
-        {currentViewMode !== "360" ? (
-          vrMode ? (
-            <div className="flex w-full h-full">
-              <div className="w-1/2 overflow-hidden">{renderViewMode()}</div>
-              <div className="w-1/2 overflow-hidden">{renderViewMode()}</div>
+        {renderError && currentViewMode === "360" ? (
+          <>
+            <img
+              src={currentImageUrl || "/placeholder.svg"}
+              alt={scene.name}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/80 text-center p-6">
+              <p className="text-white text-lg font-semibold">Unable to load 3D tour</p>
+              <p className="text-sm text-gray-300 max-w-md">
+                {renderError} Displaying a static image instead.
+              </p>
             </div>
-          ) : (
-            renderViewMode()
-          )
-        ) : null}
-
-        {/* Hotspots */}
-        {scene.hotspots.map((hotspot) => {
-          const isProductHotspot = productHotspotSet.has(hotspot.id)
-          const projected = projectedHotspots[hotspot.id]
-          if (currentViewMode === "360" && (!projected || !projected.visible)) {
-            return null
-          }
-          const positionStyle =
-            currentViewMode === "360"
-              ? { left: `${projected?.x ?? 0}%`, top: `${projected?.y ?? 0}%` }
-              : { left: `${hotspot.x}%`, top: `${hotspot.y}%` }
-
-          return (
-            <div
-              key={hotspot.id}
-              className="absolute transform -translate-x-1/2 -translate-y-1/2"
-              style={positionStyle}
-            >
-              <button
-                className="relative flex h-8 w-8 items-center justify-center rounded-full transition-all hover:scale-125"
-                style={{ backgroundColor: branding.primaryColor, opacity: 0.8 }}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleHotspotClick(hotspot)
-                }}
-                title={hotspot.title}
-              >
-                <div className="flex items-center gap-0.5">
-                  {hotspot.type === "video" && <Play className="w-4 h-4 text-white" />}
-                  {hotspot.type === "audio" && <Volume2 className="w-4 h-4 text-white" />}
-                  {hotspot.type === "image" && <ImageIcon className="w-4 h-4 text-white" />}
-                  {isProductHotspot && <ShoppingCart className="w-3 h-3 text-white" />}
+          </>
+        ) : (
+          <>
+            {currentViewMode !== "360" ? (
+              vrMode ? (
+                <div className="flex w-full h-full">
+                  <div className="w-1/2 overflow-hidden">{renderViewMode()}</div>
+                  <div className="w-1/2 overflow-hidden">{renderViewMode()}</div>
                 </div>
+              ) : (
+                renderViewMode()
+              )
+            ) : null}
+
+            {/* Hotspots */}
+            {scene.hotspots.map((hotspot) => {
+              const isProductHotspot = productHotspotSet.has(hotspot.id)
+              const projected = projectedHotspots[hotspot.id]
+              if (currentViewMode === "360" && (!projected || !projected.visible)) {
+                return null
+              }
+              const positionStyle =
+                currentViewMode === "360"
+                  ? { left: `${projected?.x ?? 0}%`, top: `${projected?.y ?? 0}%` }
+                  : { left: `${hotspot.x}%`, top: `${hotspot.y}%` }
+
+              return (
                 <div
-                  className="absolute inset-0 rounded-full animate-pulse"
-                  style={{ backgroundColor: branding.primaryColor, opacity: 0.3 }}
-                />
-              </button>
-            </div>
-          )
-        })}
-        {/* Measurement Lines */}
+                  key={hotspot.id}
+                  className="absolute transform -translate-x-1/2 -translate-y-1/2"
+                  style={positionStyle}
+                >
+                  <button
+                    className="relative flex h-8 w-8 items-center justify-center rounded-full transition-all hover:scale-125"
+                    style={{ backgroundColor: branding.primaryColor, opacity: 0.8 }}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleHotspotClick(hotspot)
+                    }}
+                    title={hotspot.title}
+                  >
+                    <div className="flex items-center gap-0.5">
+                      {hotspot.type === "video" && <Play className="w-4 h-4 text-white" />}
+                      {hotspot.type === "audio" && <Volume2 className="w-4 h-4 text-white" />}
+                      {hotspot.type === "image" && <ImageIcon className="w-4 h-4 text-white" />}
+                      {isProductHotspot && <ShoppingCart className="w-3 h-3 text-white" />}
+                    </div>
+                    <div
+                      className="absolute inset-0 rounded-full animate-pulse"
+                      style={{ backgroundColor: branding.primaryColor, opacity: 0.3 }}
+                    />
+                  </button>
+                </div>
+              )
+            })}
+            {/* Measurement Lines */}
+          </>
+        )}
         {measurements.map((m) => {
           if (currentViewMode === "360") {
             const projection = projectedMeasurements[m.id]
