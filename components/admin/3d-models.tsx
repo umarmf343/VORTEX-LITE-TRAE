@@ -13,9 +13,14 @@ interface Models3DProps {
   onRemoveModel?: (modelId: string) => void
 }
 
+const modelFormats: ReadonlyArray<Model3DAsset["format"]> = ["glb", "gltf", "obj"]
+
+const isModelFormat = (value: string): value is Model3DAsset["format"] =>
+  (modelFormats as readonly string[]).includes(value)
+
 export function Models3D({ propertyId, models = [], onAddModel, onRemoveModel }: Models3DProps) {
   const [showForm, setShowForm] = useState(false)
-  const [formData, setFormData] = useState({ name: "", url: "", format: "glb" as const, scale: 1 })
+  const [formData, setFormData] = useState({ name: "", url: "", format: "glb" as Model3DAsset["format"], scale: 1 })
   const [selectedModel, setSelectedModel] = useState<Model3DAsset | null>(null)
 
   const handleAddModel = () => {
@@ -67,7 +72,11 @@ export function Models3D({ propertyId, models = [], onAddModel, onRemoveModel }:
             />
             <select
               value={formData.format}
-              onChange={(e) => setFormData({ ...formData, format: e.target.value as any })}
+              onChange={(e) => {
+                if (isModelFormat(e.target.value)) {
+                  setFormData({ ...formData, format: e.target.value })
+                }
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded"
             >
               <option value="glb">GLB (Binary)</option>

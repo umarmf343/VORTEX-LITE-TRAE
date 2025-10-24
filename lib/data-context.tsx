@@ -16,6 +16,7 @@ import type {
   SceneTypeConfig,
   TechnicianProfile,
   CSSCustomization,
+  PropertyStatsSummary,
 } from "./types"
 import {
   mockProperties,
@@ -53,7 +54,7 @@ interface DataContextType {
   addLead: (lead: Lead) => void
   updateLead: (id: string, lead: Partial<Lead>) => void
   addVisitor: (visitor: Visitor) => void
-  getPropertyStats: (propertyId: string) => any
+  getPropertyStats: (propertyId: string) => PropertyStatsSummary
   updateCaptureService: (id: string, updates: Partial<CaptureService>) => void
   assignTechnician: (serviceId: string, technicianId: string) => void
   createCaptureService: (service: CaptureService) => void

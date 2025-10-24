@@ -155,6 +155,30 @@ export interface Lead {
   source?: string
 }
 
+export interface LeadCapturePayload {
+  propertyId: string
+  name: string
+  email: string
+  phone: string
+  message: string
+  visitDuration: number
+  scenesViewed: number
+}
+
+export interface SceneEngagementPayload {
+  sceneId: string
+  dwellTime: number
+  totalEngagement: Record<string, number>
+}
+
+export interface PropertyStatsSummary {
+  totalVisits: number
+  uniqueVisitors: number
+  avgDuration: number
+  leadsGenerated: number
+  conversionRate: number
+}
+
 export interface CaptureService {
   id: string
   propertyId?: string

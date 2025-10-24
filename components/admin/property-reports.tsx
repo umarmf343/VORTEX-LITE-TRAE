@@ -1,6 +1,11 @@
 "use client"
 
-import type { Property, AdvancedAnalyticsReport } from "@/lib/types"
+import type {
+  AdvancedAnalyticsReport,
+  HotspotMetrics,
+  Property,
+  SceneEngagementMetrics,
+} from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Download, FileJson, FileText } from "lucide-react"
@@ -35,34 +40,35 @@ export function PropertyReports({ property }: PropertyReportsProps) {
         social: Math.round(stats.totalVisits * 0.2),
         other: Math.round(stats.totalVisits * 0.1),
       },
-      sceneEngagement: Object.entries(stats.scenePopularity || {}).reduce(
+      sceneEngagement: Object.entries(stats.scenePopularity || {}).reduce<Record<string, SceneEngagementMetrics>>(
         (acc, [sceneId, views]) => {
           const scene = property.scenes.find((s) => s.id === sceneId)
           acc[sceneId] = {
             sceneId,
             sceneName: scene?.name || "Unknown",
-            views: views as number,
+            views: typeof views === "number" ? views : Number(views),
             avgDwellTime: scene?.dwellTime || 0,
             exitRate: Math.random() * 30,
             nextSceneTransitions: {},
           }
           return acc
         },
-        {} as Record<string, any>,
+        {},
       ),
-      hotspotPerformance: Object.entries(stats.hotspotEngagement || {}).reduce(
+      hotspotPerformance: Object.entries(stats.hotspotEngagement || {}).reduce<Record<string, HotspotMetrics>>(
         (acc, [hotspotId, clicks]) => {
           const hotspot = property.scenes.flatMap((s) => s.hotspots).find((h) => h.id === hotspotId)
+          const clickCount = typeof clicks === "number" ? clicks : Number(clicks)
           acc[hotspotId] = {
             hotspotId,
             title: hotspot?.title || "Unknown",
-            clicks: clicks as number,
-            clickRate: ((clicks as number) / stats.totalVisits) * 100,
+            clicks: clickCount,
+            clickRate: stats.totalVisits > 0 ? (clickCount / stats.totalVisits) * 100 : 0,
             conversionRate: Math.random() * 20,
           }
           return acc
         },
-        {} as Record<string, any>,
+        {},
       ),
       visitorJourney: [],
     }
