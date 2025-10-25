@@ -42,6 +42,7 @@ export interface Scene {
   dwellTime?: number
   viewCount?: number
   defaultViewMode?: SceneViewMode
+  dataLayers?: DataLayer[]
 }
 
 export interface Hotspot {
@@ -65,6 +66,7 @@ export interface Measurement {
   endY: number
   distance: number
   unit: "ft" | "m"
+  measurementType: "distance" | "area" | "volume"
 }
 
 export interface Annotation {
@@ -73,6 +75,14 @@ export interface Annotation {
   y: number
   text: string
   color: string
+  layerId?: string
+}
+
+export interface DataLayer {
+  id: string
+  name: string
+  description?: string
+  defaultVisible?: boolean
 }
 
 export interface TourPoint {

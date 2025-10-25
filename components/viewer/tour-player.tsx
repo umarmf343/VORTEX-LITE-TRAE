@@ -6,8 +6,10 @@ import type {
   FloorPlan,
   Hotspot,
   LeadCapturePayload,
+  Measurement,
   Property,
   Room,
+  Scene,
   SceneEngagementPayload,
   TourPoint,
   WooCommerceProduct,
@@ -35,6 +37,8 @@ import {
   Navigation,
   Video,
   MousePointerClick,
+  Ruler,
+  Layers,
 } from "lucide-react"
 
 type SharePlatform = "facebook" | "twitter" | "linkedin" | "email"
@@ -74,6 +78,29 @@ export function TourPlayer({
     key: number
   } | null>(null)
   const [activeHotspot, setActiveHotspot] = useState<Hotspot | null>(null)
+  const deriveMeasurementDefaults = useCallback((scenes: Scene[]) => {
+    const initial: Record<string, Measurement[]> = {}
+    for (const scene of scenes) {
+      initial[scene.id] = scene.measurements ? [...scene.measurements] : []
+    }
+    return initial
+  }, [])
+  const deriveLayerDefaults = useCallback(
+    (scene: Scene) =>
+      scene.dataLayers?.filter((layer) => layer.defaultVisible !== false).map((layer) => layer.id) ?? [],
+    [],
+  )
+  const [measurementMode, setMeasurementMode] = useState(false)
+  const [measurementsByScene, setMeasurementsByScene] = useState<Record<string, Measurement[]>>(() =>
+    deriveMeasurementDefaults(property.scenes),
+  )
+  const [visibleDataLayersByScene, setVisibleDataLayersByScene] = useState<Record<string, string[]>>(() => {
+    const initial: Record<string, string[]> = {}
+    property.scenes.forEach((scene) => {
+      initial[scene.id] = deriveLayerDefaults(scene)
+    })
+    return initial
+  })
   const sceneEngagement = useRef<Record<string, number>>({})
   const tourTimeoutRef = useRef<number | null>(null)
   const TOUR_STEP_DURATION = 8000
@@ -113,6 +140,18 @@ export function TourPlayer({
   }, [property.id, property.isFavorite])
 
   useEffect(() => {
+    setMeasurementsByScene(deriveMeasurementDefaults(property.scenes))
+    setVisibleDataLayersByScene(() => {
+      const initial: Record<string, string[]> = {}
+      property.scenes.forEach((scene) => {
+        initial[scene.id] = deriveLayerDefaults(scene)
+      })
+      return initial
+    })
+    setMeasurementMode(false)
+  }, [property.id, property.scenes, deriveMeasurementDefaults, deriveLayerDefaults])
+
+  useEffect(() => {
     if (selectedProduct && !products.some((product) => product.id === selectedProduct.id)) {
       setSelectedProduct(null)
     }
@@ -141,6 +180,37 @@ export function TourPlayer({
     () => tourPoints.filter((point) => point.sceneId === currentScene.id),
     [currentScene.id, tourPoints],
   )
+  const activeDataLayers = useMemo(
+    () => visibleDataLayersByScene[currentScene.id] ?? deriveLayerDefaults(currentScene),
+    [visibleDataLayersByScene, currentScene, deriveLayerDefaults],
+  )
+  const currentMeasurements = useMemo(
+    () => measurementsByScene[currentScene.id] ?? [],
+    [measurementsByScene, currentScene.id],
+  )
+  const recentMeasurements = useMemo(
+    () => currentMeasurements.slice(-5).reverse(),
+    [currentMeasurements],
+  )
+
+  useEffect(() => {
+    setMeasurementsByScene((prev) => {
+      if (prev[currentScene.id]) {
+        return prev
+      }
+      return {
+        ...prev,
+        [currentScene.id]: currentScene.measurements ? [...currentScene.measurements] : [],
+      }
+    })
+    setVisibleDataLayersByScene((prev) => {
+      if (prev[currentScene.id]) {
+        return prev
+      }
+      return { ...prev, [currentScene.id]: deriveLayerDefaults(currentScene) }
+    })
+    setMeasurementMode(false)
+  }, [currentScene, deriveLayerDefaults])
 
   const findSceneIndexForHotspot = useCallback(
     (hotspotId: string) =>
@@ -185,6 +255,73 @@ export function TourPlayer({
       })
     },
     [currentSceneIndex, findSceneIndexForHotspot, getOrientationFromHotspot, property.scenes],
+  )
+
+  const handleMeasurementCaptured = useCallback((sceneId: string, measurement: Measurement) => {
+    setMeasurementsByScene((prev) => {
+      const existing = prev[sceneId] ?? []
+      return {
+        ...prev,
+        [sceneId]: [...existing, measurement],
+      }
+    })
+  }, [])
+
+  const updateDataLayerVisibility = useCallback(
+    (sceneId: string, layerId: string, visible: boolean) => {
+      setVisibleDataLayersByScene((prev) => {
+        const sceneLayers = prev[sceneId]
+          ? prev[sceneId]
+          : (() => {
+              const match = property.scenes.find((scene) => scene.id === sceneId)
+              return match ? deriveLayerDefaults(match) : []
+            })()
+        const hasLayer = sceneLayers.includes(layerId)
+        const nextLayers = visible
+          ? hasLayer
+            ? sceneLayers
+            : [...sceneLayers, layerId]
+          : sceneLayers.filter((id) => id !== layerId)
+
+        if (
+          sceneLayers.length === nextLayers.length &&
+          sceneLayers.every((id, index) => id === nextLayers[index])
+        ) {
+          return prev
+        }
+
+        return {
+          ...prev,
+          [sceneId]: nextLayers,
+        }
+      })
+    },
+    [deriveLayerDefaults, property.scenes],
+  )
+  const toggleMeasurementMode = useCallback((next?: boolean) => {
+    if (typeof next === "boolean") {
+      setMeasurementMode(next)
+    } else {
+      setMeasurementMode((prev) => !prev)
+    }
+  }, [])
+
+  const clearMeasurementsForScene = useCallback(() => {
+    setMeasurementsByScene((prev) => {
+      const existing = prev[currentScene.id] ?? []
+      if (existing.length === 0) {
+        return prev
+      }
+      return { ...prev, [currentScene.id]: [] }
+    })
+  }, [currentScene.id])
+
+  const handleLayerToggleFromCard = useCallback(
+    (layerId: string) => {
+      const isActive = activeDataLayers.includes(layerId)
+      updateDataLayerVisibility(currentScene.id, layerId, !isActive)
+    },
+    [activeDataLayers, currentScene.id, updateDataLayerVisibility],
   )
 
   const activeHotspotScene = useMemo(() => {
@@ -419,6 +556,7 @@ export function TourPlayer({
           <SceneViewer
             scene={currentScene}
             onHotspotClick={handleHotspotClick}
+            onMeasure={(measurement) => handleMeasurementCaptured(currentScene.id, measurement)}
             onSceneEngagement={handleSceneEngagement}
             branding={property.branding}
             dayNightImages={property.dayNightImages}
@@ -430,6 +568,13 @@ export function TourPlayer({
             targetOrientation={pendingOrientation}
             availableViewModes={property.supportedViewModes}
             onWalkthroughStep={handleWalkthroughStep}
+            measurementMode={measurementMode}
+            onMeasurementModeChange={setMeasurementMode}
+            measurementsOverride={currentMeasurements}
+            activeDataLayers={activeDataLayers}
+            onDataLayerToggle={(layerId, visible) =>
+              updateDataLayerVisibility(currentScene.id, layerId, visible)
+            }
             walkthroughMeta={walkthroughMeta}
           />
         </div>
@@ -690,6 +835,115 @@ export function TourPlayer({
               </div>
             </div>
           </Card>
+
+          <Card className="p-4 bg-gray-900 border-gray-800">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-white font-semibold">
+                <Ruler className="w-4 h-4 text-blue-400" />
+                Measurement Mode
+              </div>
+              <Button
+                size="sm"
+                variant={measurementMode ? "default" : "outline"}
+                onClick={() => toggleMeasurementMode()}
+                className="text-xs"
+              >
+                {measurementMode ? "Disable" : "Enable"}
+              </Button>
+            </div>
+            <p className="mt-3 text-xs text-gray-400">
+              Capture accurate distances, areas, and volumes directly inside the scene to support renovation and fit-out
+              planning.
+            </p>
+            {recentMeasurements.length > 0 ? (
+              <ul className="mt-4 space-y-2 text-xs text-gray-200">
+                {recentMeasurements.map((measurement) => {
+                  const unitLabel =
+                    measurement.measurementType === "area"
+                      ? `${measurement.unit}²`
+                      : measurement.measurementType === "volume"
+                        ? `${measurement.unit}³`
+                        : measurement.unit
+                  const label =
+                    measurement.measurementType === "distance"
+                      ? "Distance"
+                      : measurement.measurementType === "area"
+                        ? "Area"
+                        : "Volume"
+                  return (
+                    <li
+                      key={measurement.id}
+                      className="flex items-center justify-between rounded border border-gray-800/80 bg-gray-900/60 px-3 py-2"
+                    >
+                      <span className="font-medium text-white/90">{label}</span>
+                      <span className="text-white">
+                        {measurement.distance.toFixed(2)} {unitLabel}
+                      </span>
+                    </li>
+                  )
+                })}
+              </ul>
+            ) : (
+              <p className="mt-4 text-xs text-gray-500">
+                No measurements captured for this scene yet. Enable measurement mode and click inside the tour to begin.
+              </p>
+            )}
+            <div className="mt-4 flex items-center justify-between text-[11px] text-gray-500">
+              <span>
+                Mode: <span className="text-gray-200">{measurementMode ? "Active" : "Disabled"}</span>
+              </span>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-xs text-gray-300 hover:text-white"
+                onClick={clearMeasurementsForScene}
+                disabled={recentMeasurements.length === 0}
+              >
+                <Trash2 className="mr-1 h-3.5 w-3.5" />
+                Clear
+              </Button>
+            </div>
+          </Card>
+
+          {currentScene.dataLayers?.length ? (
+            <Card className="p-4 bg-gray-900 border-gray-800">
+              <div className="flex items-center gap-2 text-white font-semibold">
+                <Layers className="w-4 h-4 text-emerald-400" />
+                Data Layers
+              </div>
+              <p className="mt-3 text-xs text-gray-400">
+                Toggle discipline-specific annotation layers such as electrical layouts, millwork, and interior styling.
+              </p>
+              <div className="mt-3 space-y-2">
+                {currentScene.dataLayers.map((layer) => {
+                  const isActive = activeDataLayers.includes(layer.id)
+                  return (
+                    <label
+                      key={layer.id}
+                      className={`flex items-start gap-3 rounded-lg border px-3 py-2 transition ${
+                        isActive
+                          ? "border-blue-500/60 bg-blue-500/10"
+                          : "border-gray-800 bg-gray-900/60 hover:border-blue-500/40"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isActive}
+                        onChange={() => handleLayerToggleFromCard(layer.id)}
+                        className="mt-1 h-4 w-4 rounded border-gray-600 bg-gray-900 text-blue-500 focus:ring-blue-500"
+                      />
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-white">{layer.name}</p>
+                        {layer.description ? (
+                          <p className="text-xs text-gray-400">{layer.description}</p>
+                        ) : null}
+                      </div>
+                    </label>
+                  )
+                })}
+              </div>
+            </Card>
+          ) : null}
 
           {/* Guided Tour */}
           <Card className="p-4 bg-gray-900 border-gray-800">

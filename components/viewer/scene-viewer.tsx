@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type {
   Annotation,
   BrandingConfig,
+  DataLayer,
   Hotspot,
   Measurement,
   Scene as SceneType,
@@ -251,6 +252,11 @@ interface SceneViewerProps {
   targetOrientation?: { sceneId: string; yaw: number; pitch: number; key: number } | null
   availableViewModes?: SceneViewMode[]
   onWalkthroughStep?: (direction: 1 | -1) => void
+  measurementMode?: boolean
+  onMeasurementModeChange?: (enabled: boolean) => void
+  measurementsOverride?: Measurement[]
+  activeDataLayers?: string[]
+  onDataLayerToggle?: (layerId: string, visible: boolean) => void
   walkthroughMeta?: {
     currentSceneIndex: number
     totalScenes: number
@@ -277,11 +283,18 @@ export function SceneViewer({
   targetOrientation,
   availableViewModes,
   onWalkthroughStep,
+  measurementMode,
+  onMeasurementModeChange,
+  measurementsOverride,
+  activeDataLayers,
+  onDataLayerToggle,
   walkthroughMeta,
 }: SceneViewerProps) {
-  const [measuring, setMeasuring] = useState(false)
+  const [measuring, setMeasuringState] = useState<boolean>(measurementMode ?? false)
   const [measureStart, setMeasureStart] = useState<{ x: number; y: number } | null>(null)
-  const [measurements, setMeasurements] = useState<Measurement[]>(scene.measurements)
+  const initialMeasurements =
+    measurementsOverride !== undefined ? measurementsOverride : scene.measurements
+  const [measurements, setMeasurements] = useState<Measurement[]>(initialMeasurements)
   const [annotations, setAnnotations] = useState<Annotation[]>(scene.annotations)
   const [showAnnotations, setShowAnnotations] = useState(true)
   const [autoRotate, setAutoRotate] = useState(false)
@@ -299,6 +312,40 @@ export function SceneViewer({
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [areaPoints, setAreaPoints] = useState<Array<{ x: number; y: number }>>([])
   const [showViewModes, setShowViewModes] = useState(false)
+  const deriveDefaultLayers = useCallback(
+    (layers?: DataLayer[]) =>
+      layers?.filter((layer) => layer.defaultVisible !== false).map((layer) => layer.id) ?? [],
+    [],
+  )
+  const [internalVisibleLayers, setInternalVisibleLayers] = useState<string[]>(
+    () => deriveDefaultLayers(scene.dataLayers),
+  )
+  const visibleLayerIds = activeDataLayers ?? internalVisibleLayers
+  const [showLayerMenu, setShowLayerMenu] = useState(false)
+  const updateMeasuring = useCallback(
+    (value: boolean) => {
+      setMeasuringState(value)
+      if (!value) {
+        setMeasureStart(null)
+        setAreaPoints([])
+        setVolumePoints([])
+      }
+    },
+    [],
+  )
+  const handleLayerToggle = useCallback(
+    (layerId: string) => {
+      const isActive = visibleLayerIds.includes(layerId)
+      const nextVisible = isActive
+        ? visibleLayerIds.filter((id) => id !== layerId)
+        : [...visibleLayerIds, layerId]
+      if (!activeDataLayers) {
+        setInternalVisibleLayers(nextVisible)
+      }
+      onDataLayerToggle?.(layerId, !isActive)
+    },
+    [activeDataLayers, onDataLayerToggle, visibleLayerIds],
+  )
   const resolvedViewModes = useMemo<SceneViewMode[]>(
     () => (availableViewModes?.length ? availableViewModes : allViewModes),
     [availableViewModes],
@@ -349,8 +396,9 @@ export function SceneViewer({
   const autoRotateRef = useRef(autoRotate)
   const autoRotateSpeedRef = useRef(autoRotateSpeed)
   const autoRotateDirectionRef = useRef(autoRotateDirection)
-  const measurementsRef = useRef<Measurement[]>(scene.measurements)
-  const annotationsRef = useRef<Annotation[]>(scene.annotations)
+  const measurementsRef = useRef<Measurement[]>(initialMeasurements)
+  const visibleAnnotationsRef = useRef<Annotation[]>([])
+  const showAnnotationsRef = useRef(showAnnotations)
   const areaPointsRef = useRef<Array<{ x: number; y: number }>>([])
   const volumePointsRef = useRef<Array<{ x: number; y: number; z: number }>>([])
   const keyStateRef = useRef<Record<string, boolean>>({})
@@ -361,11 +409,17 @@ export function SceneViewer({
   >({})
   const [projectedAreaPoints, setProjectedAreaPoints] = useState<ProjectedPoint[]>([])
   const [projectedVolumePoints, setProjectedVolumePoints] = useState<ProjectedPoint[]>([])
+  const visibleAnnotations = useMemo(
+    () => annotations.filter((annotation) => !annotation.layerId || visibleLayerIds.includes(annotation.layerId)),
+    [annotations, visibleLayerIds],
+  )
   const immersiveModeActive = immersiveViewModes.includes(currentViewMode)
   const isWalkthroughMode = currentViewMode === "walkthrough"
 
   useEffect(() => {
-    setMeasurements(scene.measurements)
+    const nextMeasurements =
+      measurementsOverride !== undefined ? measurementsOverride : scene.measurements
+    setMeasurements(nextMeasurements)
     setAnnotations(scene.annotations)
     setMeasureStart(null)
     setAreaPoints([])
@@ -375,8 +429,10 @@ export function SceneViewer({
     lonRef.current = 0
     latRef.current = 0
     hotspotsRef.current = scene.hotspots
-    measurementsRef.current = scene.measurements
-    annotationsRef.current = scene.annotations
+    measurementsRef.current = nextMeasurements
+    if (!activeDataLayers) {
+      setInternalVisibleLayers(deriveDefaultLayers(scene.dataLayers))
+    }
     areaPointsRef.current = []
     volumePointsRef.current = []
     setProjectedHotspots({})
@@ -385,7 +441,17 @@ export function SceneViewer({
     setProjectedAreaPoints([])
     setProjectedVolumePoints([])
     sceneStartTime.current = Date.now()
-  }, [scene.id])
+    setShowLayerMenu(false)
+  }, [
+    scene.id,
+    scene.measurements,
+    scene.annotations,
+    scene.hotspots,
+    measurementsOverride,
+    activeDataLayers,
+    scene.dataLayers,
+    deriveDefaultLayers,
+  ])
 
   useEffect(() => {
     const preferred =
@@ -394,6 +460,33 @@ export function SceneViewer({
         : resolvedViewModes[0] ?? "360"
     setCurrentViewMode(preferred)
   }, [scene.id, scene.defaultViewMode, resolvedViewModes])
+
+  useEffect(() => {
+    if (measurementMode !== undefined) {
+      updateMeasuring(measurementMode)
+    }
+  }, [measurementMode, updateMeasuring])
+
+  useEffect(() => {
+    if (measurementsOverride !== undefined) {
+      setMeasurements(measurementsOverride)
+      measurementsRef.current = measurementsOverride
+    }
+  }, [measurementsOverride])
+
+  useEffect(() => {
+    visibleAnnotationsRef.current = visibleAnnotations
+  }, [visibleAnnotations])
+
+  useEffect(() => {
+    showAnnotationsRef.current = showAnnotations
+  }, [showAnnotations])
+
+  useEffect(() => {
+    if (!showAnnotations) {
+      setShowLayerMenu(false)
+    }
+  }, [showAnnotations])
 
   useEffect(() => {
     setTransitionStyle(sceneTransition)
@@ -429,10 +522,6 @@ export function SceneViewer({
   useEffect(() => {
     measurementsRef.current = measurements
   }, [measurements])
-
-  useEffect(() => {
-    annotationsRef.current = annotations
-  }, [annotations])
 
   useEffect(() => {
     areaPointsRef.current = areaPoints
@@ -523,8 +612,9 @@ export function SceneViewer({
     }
     setProjectedHotspots((prev) => (recordEqual(prev, nextHotspots) ? prev : nextHotspots))
 
+    const annotationsToProject = showAnnotationsRef.current ? visibleAnnotationsRef.current : []
     const nextAnnotations: Record<string, ProjectedPoint> = {}
-    for (const annotation of annotationsRef.current) {
+    for (const annotation of annotationsToProject) {
       nextAnnotations[annotation.id] = projectPercent(annotation.x, annotation.y)
     }
     setProjectedAnnotations((prev) => (recordEqual(prev, nextAnnotations) ? prev : nextAnnotations))
@@ -958,6 +1048,7 @@ export function SceneViewer({
             endY: y,
             distance: Number.parseFloat((distance * 10).toFixed(2)),
             unit: "ft",
+            measurementType: "distance",
           }
           setMeasurements((prev) => [...prev, newMeasurement])
           setMeasureStart(null)
@@ -976,6 +1067,7 @@ export function SceneViewer({
             endY: newPoints[newPoints.length - 1].y,
             distance: area,
             unit: "ft",
+            measurementType: "area",
           }
           setMeasurements((prev) => [...prev, newMeasurement])
           setAreaPoints([])
@@ -994,6 +1086,7 @@ export function SceneViewer({
             endY: newPoints[newPoints.length - 1].y,
             distance: volume,
             unit: "ft",
+            measurementType: "volume",
           }
           setMeasurements((prev) => [...prev, newMeasurement])
           setVolumePoints([])
@@ -1364,7 +1457,7 @@ export function SceneViewer({
 
         {/* Annotations */}
         {showAnnotations &&
-          annotations.map((annotation) => {
+          visibleAnnotations.map((annotation) => {
             const projected = projectedAnnotations[annotation.id]
             if (sphericalViewModes.includes(currentViewMode) && (!projected || !projected.visible)) {
               return null
@@ -1420,7 +1513,9 @@ export function SceneViewer({
             size="sm"
             variant={measuring ? "default" : "outline"}
             onClick={() => {
-              setMeasuring(!measuring)
+              const next = !measuring
+              updateMeasuring(next)
+              onMeasurementModeChange?.(next)
               setMeasureStart(null)
               setAreaPoints([])
               setVolumePoints([])
@@ -1441,6 +1536,60 @@ export function SceneViewer({
               <option value="volume">Volume</option>
             </select>
           )}
+          {scene.dataLayers?.length ? (
+            <div className="relative">
+              <Button
+                size="sm"
+                variant={showLayerMenu ? "default" : "outline"}
+                onClick={() => setShowLayerMenu((prev) => !prev)}
+                className="gap-2"
+                aria-expanded={showLayerMenu}
+                aria-haspopup="true"
+              >
+                <Layers className="w-4 h-4" />
+                Data Layers
+              </Button>
+              {showLayerMenu && (
+                <div className="absolute left-0 z-30 mt-2 w-64 rounded-lg border border-gray-800 bg-gray-900 p-3 shadow-xl">
+                  {showAnnotations ? (
+                    <div className="space-y-3">
+                      <p className="text-xs text-gray-400">
+                        Toggle annotation groups to focus on discipline-specific notes.
+                      </p>
+                      <div className="space-y-2">
+                        {scene.dataLayers.map((layer) => {
+                          const active = visibleLayerIds.includes(layer.id)
+                          return (
+                            <label
+                              key={layer.id}
+                              className="flex items-start gap-2 rounded-md px-2 py-2 hover:bg-gray-800/60"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={active}
+                                onChange={() => handleLayerToggle(layer.id)}
+                                className="mt-1 h-4 w-4 rounded border-gray-600 bg-gray-900 text-blue-500 focus:ring-blue-500"
+                              />
+                              <div>
+                                <p className="text-sm font-semibold text-white">{layer.name}</p>
+                                {layer.description ? (
+                                  <p className="text-xs text-gray-400">{layer.description}</p>
+                                ) : null}
+                              </div>
+                            </label>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-400">
+                      Enable annotations to manage data layers.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : null}
           <Button
             size="sm"
             variant={autoRotate ? "default" : "outline"}
