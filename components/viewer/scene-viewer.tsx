@@ -30,7 +30,7 @@ import {
   MapPin,
   Navigation,
   MousePointerClick,
-  ArrowsLeftRight,
+  ArrowLeftRight,
 } from "lucide-react"
 import {
   MathUtils,
@@ -1276,7 +1276,7 @@ export function SceneViewer({
                     </div>
                   </div>
                   <div className="flex items-center gap-2 rounded-full bg-black/60 px-3 py-2 shadow-lg backdrop-blur">
-                    <ArrowsLeftRight className="h-4 w-4 text-amber-300" />
+                    <ArrowLeftRight className="h-4 w-4 text-amber-300" />
                     <span>A / D or ← / → to pivot your view</span>
                   </div>
                 </div>
