@@ -14,6 +14,17 @@ interface PropertyListProps {
 }
 
 export function PropertyList({ properties, onView, onEdit, onDelete, onStats }: PropertyListProps) {
+  if (properties.length === 0) {
+    return (
+      <Card className="p-8 text-center border border-dashed border-gray-300 bg-gray-50">
+        <h3 className="font-semibold text-lg mb-2">No properties yet</h3>
+        <p className="text-gray-600 text-sm">
+          Add a property to start managing tours, analytics, and sharing tools from the dashboard.
+        </p>
+      </Card>
+    )
+  }
+
   return (
     <div className="grid gap-4">
       {properties.map((property) => (
