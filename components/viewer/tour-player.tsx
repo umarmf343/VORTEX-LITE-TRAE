@@ -18,8 +18,10 @@ import { SceneViewer } from "./scene-viewer"
 import { FloorPlanViewer } from "./floor-plan-viewer"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { Switch } from "@/components/ui/switch"
 import { formatCurrency } from "@/lib/utils"
 import {
+  AlertCircle,
   ChevronLeft,
   ChevronRight,
   Phone,
@@ -51,6 +53,35 @@ interface TourPlayerProps {
   onLeadCapture?: (lead: LeadCapturePayload) => void
   onEngagementTrack?: (engagement: SceneEngagementPayload) => void
   products?: WooCommerceProduct[]
+}
+
+const webglContextTypes: Array<"webgl2" | "webgl" | "experimental-webgl"> = [
+  "webgl2",
+  "webgl",
+  "experimental-webgl",
+]
+
+const detectWebGLSupport = () => {
+  if (typeof window === "undefined") return true
+
+  try {
+    const canvas = document.createElement("canvas")
+    for (const type of webglContextTypes) {
+      const context =
+        canvas.getContext(type, { failIfMajorPerformanceCaveat: true }) ||
+        canvas.getContext(type)
+
+      if (context) {
+        const loseContext = (context as WebGLRenderingContext).getExtension("WEBGL_lose_context")
+        loseContext?.loseContext()
+        return true
+      }
+    }
+    return false
+  } catch (error) {
+    console.warn("Unable to determine WebGL support", error)
+    return false
+  }
 }
 
 export function TourPlayer({
@@ -101,6 +132,8 @@ export function TourPlayer({
     })
     return initial
   })
+  const [is3DEnabled, setIs3DEnabled] = useState(true)
+  const [isWebGLSupported, setIsWebGLSupported] = useState(true)
   const sceneEngagement = useRef<Record<string, number>>({})
   const tourTimeoutRef = useRef<number | null>(null)
   const TOUR_STEP_DURATION = 8000
@@ -150,6 +183,25 @@ export function TourPlayer({
     })
     setMeasurementMode(false)
   }, [property.id, property.scenes, deriveMeasurementDefaults, deriveLayerDefaults])
+
+  useEffect(() => {
+    const supported = detectWebGLSupport()
+    setIsWebGLSupported(supported)
+    if (!supported) {
+      setIs3DEnabled(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!is3DEnabled) {
+      setMeasurementMode(false)
+      if (tourTimeoutRef.current) {
+        window.clearTimeout(tourTimeoutRef.current)
+        tourTimeoutRef.current = null
+      }
+      setIsTourPlaying(false)
+    }
+  }, [is3DEnabled])
 
   useEffect(() => {
     if (selectedProduct && !products.some((product) => product.id === selectedProduct.id)) {
@@ -553,34 +605,77 @@ export function TourPlayer({
       {/* Main Viewer */}
       <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 max-w-7xl mx-auto w-full">
         <div className="flex-1 min-h-[360px]">
-          <SceneViewer
-            scene={currentScene}
-            onHotspotClick={handleHotspotClick}
-            onMeasure={(measurement) => handleMeasurementCaptured(currentScene.id, measurement)}
-            onSceneEngagement={handleSceneEngagement}
-            branding={property.branding}
-            dayNightImages={property.dayNightImages}
-            enableVR
-            enableGyroscope
-            productHotspotIds={productHotspotIds}
-            sceneTransition={property.sceneTransition ?? "fade"}
-            onTourPointCreate={handleTourPointCreate}
-            targetOrientation={pendingOrientation}
-            availableViewModes={property.supportedViewModes}
-            onWalkthroughStep={handleWalkthroughStep}
-            measurementMode={measurementMode}
-            onMeasurementModeChange={setMeasurementMode}
-            measurementsOverride={currentMeasurements}
-            activeDataLayers={activeDataLayers}
-            onDataLayerToggle={(layerId, visible) =>
-              updateDataLayerVisibility(currentScene.id, layerId, visible)
-            }
-            walkthroughMeta={walkthroughMeta}
-          />
+          {is3DEnabled ? (
+            <SceneViewer
+              scene={currentScene}
+              onHotspotClick={handleHotspotClick}
+              onMeasure={(measurement) => handleMeasurementCaptured(currentScene.id, measurement)}
+              onSceneEngagement={handleSceneEngagement}
+              branding={property.branding}
+              dayNightImages={property.dayNightImages}
+              enableVR
+              enableGyroscope
+              productHotspotIds={productHotspotIds}
+              sceneTransition={property.sceneTransition ?? "fade"}
+              onTourPointCreate={handleTourPointCreate}
+              targetOrientation={pendingOrientation}
+              availableViewModes={property.supportedViewModes}
+              onWalkthroughStep={handleWalkthroughStep}
+              measurementMode={measurementMode}
+              onMeasurementModeChange={setMeasurementMode}
+              measurementsOverride={currentMeasurements}
+              activeDataLayers={activeDataLayers}
+              onDataLayerToggle={(layerId, visible) =>
+                updateDataLayerVisibility(currentScene.id, layerId, visible)
+              }
+              walkthroughMeta={walkthroughMeta}
+            />
+          ) : (
+            <div className="relative h-full min-h-[360px] overflow-hidden rounded-xl border border-gray-800 bg-gray-900/60">
+              {(currentScene.imageUrl || currentScene.thumbnail) && (
+                <img
+                  src={currentScene.imageUrl || currentScene.thumbnail}
+                  alt={currentScene.name}
+                  className="absolute inset-0 h-full w-full object-cover opacity-40"
+                />
+              )}
+              <div className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-3 text-center p-8">
+                <h2 className="text-lg font-semibold text-white">3D Viewer Disabled</h2>
+                <p className="text-sm text-gray-300 max-w-md">
+                  {isWebGLSupported
+                    ? "Enable the toggle in the viewer settings to explore this space in 3D when your device is ready."
+                    : "This device does not support the WebGL features required for the 3D viewer. Try switching to a compatible browser or device."}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Side Panel */}
         <div className="w-full lg:w-80 flex flex-col gap-4">
+          <Card className="p-4 bg-gray-900 border-gray-800">
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-2">
+                <div className="text-sm font-semibold text-white">Immersive Viewer</div>
+                <p className="text-xs text-gray-400">
+                  Toggle the interactive 3D experience on devices that support WebGL rendering.
+                </p>
+                {!isWebGLSupported && (
+                  <div className="flex items-center gap-2 text-xs text-amber-300">
+                    <AlertCircle className="h-4 w-4" />
+                    WebGL isn&apos;t available on this device.
+                  </div>
+                )}
+              </div>
+              <Switch
+                checked={is3DEnabled}
+                onCheckedChange={setIs3DEnabled}
+                disabled={!isWebGLSupported}
+                aria-label="Toggle 3D viewer"
+              />
+            </div>
+          </Card>
+
           {/* Scene Thumbnails */}
           <Card className="p-4 bg-gray-900 border-gray-800">
             <h3 className="font-semibold text-white mb-3">Scenes</h3>
