@@ -103,6 +103,10 @@ const createRendererWithContextFallback = (
   const canvas = document.createElement("canvas")
   let lastError: unknown = null
 
+  if (contextTypes.length === 0) {
+    return { renderer: null, error: new Error("No compatible WebGL context provided") }
+  }
+
   for (const type of contextTypes) {
     for (const attributes of CONTEXT_ATTRIBUTE_SETS) {
       const context = tryCreateContext(canvas, type, attributes)
@@ -130,30 +134,6 @@ const createRendererWithContextFallback = (
   }
 
   return { renderer: null, error: lastError }
-}
-
-const isWebGLAvailable = () => {
-  if (typeof document === "undefined") return false
-
-  try {
-    const canvas = document.createElement("canvas")
-    const contextTypes: WebGLContextType[] = ["webgl2", "webgl", "experimental-webgl"]
-
-    for (const type of contextTypes) {
-      const context =
-        tryCreateContext(canvas, type, WEBGL_CONTEXT_ATTRIBUTES) ||
-        tryCreateContext(canvas, type, RELAXED_WEBGL_CONTEXT_ATTRIBUTES)
-      if (context) {
-        releaseContext(context)
-        return true
-      }
-    }
-
-    return false
-  } catch (error) {
-    console.warn("Unable to determine WebGL support", error)
-    return false
-  }
 }
 
 const measurementModes = ["distance", "area", "volume"] as const
@@ -664,17 +644,11 @@ export function SceneViewer({
     if (!container) return
 
     const hasWebGL2 = WebGLCapabilities.isWebGL2Available()
-    const contextPriority: WebGLContextType[] = hasWebGL2
-      ? ["webgl2", "webgl", "experimental-webgl"]
-      : ["webgl", "experimental-webgl"]
-
-    if (!hasWebGL2 && !isWebGLAvailable()) {
-      setRenderError("WebGL is not available in this browser or device.")
-      return
-    }
+    const contextPriority: WebGLContextType[] = hasWebGL2 ? ["webgl2"] : []
 
     if (!hasWebGL2) {
-      console.info("WebGL 2 not available; falling back to WebGL 1 renderer")
+      setRenderError("WebGL 2 is not available in this browser or device.")
+      return
     }
 
     let renderer: WebGLRenderer | null = null

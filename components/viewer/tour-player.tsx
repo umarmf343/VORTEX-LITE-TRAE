@@ -55,31 +55,22 @@ interface TourPlayerProps {
   products?: WooCommerceProduct[]
 }
 
-const webglContextTypes: Array<"webgl2" | "webgl" | "experimental-webgl"> = [
-  "webgl2",
-  "webgl",
-  "experimental-webgl",
-]
-
-const detectWebGLSupport = () => {
-  if (typeof window === "undefined") return true
+const detectWebGL2Support = () => {
+  if (typeof window === "undefined") return false
 
   try {
     const canvas = document.createElement("canvas")
-    for (const type of webglContextTypes) {
-      const context =
-        canvas.getContext(type, { failIfMajorPerformanceCaveat: true }) ||
-        canvas.getContext(type)
+    const context = canvas.getContext("webgl2", { failIfMajorPerformanceCaveat: true })
 
-      if (context) {
-        const loseContext = (context as WebGLRenderingContext).getExtension("WEBGL_lose_context")
-        loseContext?.loseContext()
-        return true
-      }
+    if (!context) {
+      return false
     }
-    return false
+
+    const loseContext = (context as WebGL2RenderingContext).getExtension("WEBGL_lose_context")
+    loseContext?.loseContext()
+    return true
   } catch (error) {
-    console.warn("Unable to determine WebGL support", error)
+    console.warn("Unable to determine WebGL 2 support", error)
     return false
   }
 }
@@ -132,8 +123,8 @@ export function TourPlayer({
     })
     return initial
   })
-  const [is3DEnabled, setIs3DEnabled] = useState(true)
-  const [isWebGLSupported, setIsWebGLSupported] = useState(true)
+  const [is3DEnabled, setIs3DEnabled] = useState(false)
+  const [isWebGLSupported, setIsWebGLSupported] = useState<boolean | null>(null)
   const sceneEngagement = useRef<Record<string, number>>({})
   const tourTimeoutRef = useRef<number | null>(null)
   const TOUR_STEP_DURATION = 8000
@@ -185,11 +176,9 @@ export function TourPlayer({
   }, [property.id, property.scenes, deriveMeasurementDefaults, deriveLayerDefaults])
 
   useEffect(() => {
-    const supported = detectWebGLSupport()
+    const supported = detectWebGL2Support()
     setIsWebGLSupported(supported)
-    if (!supported) {
-      setIs3DEnabled(false)
-    }
+    setIs3DEnabled(supported)
   }, [])
 
   useEffect(() => {
@@ -642,9 +631,11 @@ export function TourPlayer({
               <div className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-3 text-center p-8">
                 <h2 className="text-lg font-semibold text-white">3D Viewer Disabled</h2>
                 <p className="text-sm text-gray-300 max-w-md">
-                  {isWebGLSupported
-                    ? "Enable the toggle in the viewer settings to explore this space in 3D when your device is ready."
-                    : "This device does not support the WebGL features required for the 3D viewer. Try switching to a compatible browser or device."}
+                  {isWebGLSupported === null
+                    ? "Checking your device capabilities..."
+                    : isWebGLSupported
+                      ? "Enable the toggle in the viewer settings to explore this space in 3D when your device is ready."
+                      : "This device does not support the WebGL 2 features required for the 3D viewer. Try switching to a compatible browser or device."}
                 </p>
               </div>
             </div>
@@ -658,19 +649,22 @@ export function TourPlayer({
               <div className="space-y-2">
                 <div className="text-sm font-semibold text-white">Immersive Viewer</div>
                 <p className="text-xs text-gray-400">
-                  Toggle the interactive 3D experience on devices that support WebGL rendering.
+                  Toggle the interactive 3D experience on devices that support WebGL 2 rendering.
                 </p>
-                {!isWebGLSupported && (
+                {isWebGLSupported === null && (
+                  <div className="text-xs text-gray-300">Detecting device compatibility…</div>
+                )}
+                {isWebGLSupported === false && (
                   <div className="flex items-center gap-2 text-xs text-amber-300">
                     <AlertCircle className="h-4 w-4" />
-                    WebGL isn&apos;t available on this device.
+                    WebGL 2 isn&apos;t available on this device.
                   </div>
                 )}
               </div>
               <Switch
                 checked={is3DEnabled}
                 onCheckedChange={setIs3DEnabled}
-                disabled={!isWebGLSupported}
+                disabled={isWebGLSupported !== true}
                 aria-label="Toggle 3D viewer"
               />
             </div>
