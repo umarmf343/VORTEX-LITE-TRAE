@@ -1133,14 +1133,41 @@ export function SceneViewer({
   const currentImageUrl = dayNightMode === "night" && dayNightImages?.night ? dayNightImages.night : scene.imageUrl
 
   const handleFullscreen = () => {
-    if (viewerRef.current) {
-      if (!isFullscreen) {
-        viewerRef.current.requestFullscreen?.()
-      } else {
-        document.exitFullscreen?.()
-      }
-      setIsFullscreen(!isFullscreen)
+    const element = viewerRef.current
+    if (!element) {
+      return
     }
+
+    const activeFullscreenElement = document.fullscreenElement
+
+    // If nothing is currently in fullscreen, request it for the viewer element.
+    if (!activeFullscreenElement) {
+      const requestResult = element.requestFullscreen?.()
+      if (requestResult && typeof requestResult.then === "function") {
+        requestResult
+          .then(() => setIsFullscreen(true))
+          .catch(() => setIsFullscreen(false))
+      } else {
+        setIsFullscreen(true)
+      }
+      return
+    }
+
+    // If the viewer element is already in fullscreen, attempt to exit.
+    if (activeFullscreenElement === element) {
+      const exitResult = document.exitFullscreen?.()
+      if (exitResult && typeof exitResult.then === "function") {
+        exitResult
+          .then(() => setIsFullscreen(false))
+          .catch(() => setIsFullscreen(false))
+      } else {
+        setIsFullscreen(false)
+      }
+      return
+    }
+
+    // Fallback: if another element is fullscreen, try to exit it safely.
+    document.exitFullscreen?.()
   }
 
   const handleZoomIn = () => {
