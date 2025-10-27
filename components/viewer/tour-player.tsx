@@ -787,7 +787,10 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
 
       {/* Main Viewer */}
       <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 max-w-7xl mx-auto w-full">
-        <div className="flex-1 min-h-[360px] h-[70vh] sm:h-[75vh] md:h-[80vh] lg:h-auto lg:min-h-[480px]">
+        <div
+          className="flex-1 lg:min-h-[480px] [--viewer-min-h:70vh] sm:[--viewer-min-h:75vh] md:[--viewer-min-h:80vh]"
+          style={{ minHeight: "max(360px, var(--viewer-min-h, 70vh))" }}
+        >
           {is3DEnabled ? (
             <SceneViewer
               scene={currentScene}
