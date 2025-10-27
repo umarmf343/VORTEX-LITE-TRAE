@@ -31,6 +31,9 @@ import {
   Navigation,
   MousePointerClick,
   ArrowLeftRight,
+  RefreshCw,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react"
 import {
   MathUtils,
@@ -149,6 +152,11 @@ const allViewModes: SceneViewMode[] = [
 ]
 const sphericalViewModes: SceneViewMode[] = ["360", "first-person", "walkthrough", "orbit"]
 const immersiveViewModes: SceneViewMode[] = ["first-person", "walkthrough"]
+
+const DEFAULT_FOV = 75
+const MIN_FOV = 30
+const MAX_FOV = 100
+const ZOOM_STEP = 5
 
 type ProjectedPoint = { x: number; y: number; visible: boolean }
 
@@ -292,6 +300,7 @@ export function SceneViewer({
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [areaPoints, setAreaPoints] = useState<Array<{ x: number; y: number }>>([])
   const [showViewModes, setShowViewModes] = useState(false)
+  const [cameraFov, setCameraFov] = useState(DEFAULT_FOV)
   const deriveDefaultLayers = useCallback(
     (layers?: DataLayer[]) =>
       layers?.filter((layer) => layer.defaultVisible !== false).map((layer) => layer.id) ?? [],
@@ -359,6 +368,7 @@ export function SceneViewer({
   const viewerRef = useRef<HTMLDivElement>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
   const sceneStartTime = useRef(Date.now())
+  const cameraFovRef = useRef(DEFAULT_FOV)
   const productHotspotSet = useMemo(() => new Set(productHotspotIds ?? []), [productHotspotIds])
   const threeContextRef = useRef<ThreeContext | null>(null)
   const textureRef = useRef<Texture | null>(null)
@@ -382,6 +392,16 @@ export function SceneViewer({
   const areaPointsRef = useRef<Array<{ x: number; y: number }>>([])
   const volumePointsRef = useRef<Array<{ x: number; y: number; z: number }>>([])
   const keyStateRef = useRef<Record<string, boolean>>({})
+  const updateCameraFov = useCallback((nextFov: number) => {
+    const clamped = Math.max(MIN_FOV, Math.min(MAX_FOV, nextFov))
+    const context = threeContextRef.current
+    if (context) {
+      context.camera.fov = clamped
+      context.camera.updateProjectionMatrix()
+    }
+    cameraFovRef.current = clamped
+    setCameraFov(clamped)
+  }, [])
   const [projectedHotspots, setProjectedHotspots] = useState<Record<string, ProjectedPoint>>({})
   const [projectedAnnotations, setProjectedAnnotations] = useState<Record<string, ProjectedPoint>>({})
   const [projectedMeasurements, setProjectedMeasurements] = useState<
@@ -422,6 +442,8 @@ export function SceneViewer({
     setProjectedVolumePoints([])
     sceneStartTime.current = Date.now()
     setShowLayerMenu(false)
+    cameraFovRef.current = DEFAULT_FOV
+    setCameraFov(DEFAULT_FOV)
   }, [
     scene.id,
     scene.measurements,
@@ -701,6 +723,7 @@ export function SceneViewer({
 
     const context: ThreeContext = { renderer, camera, scene: scene3D, mesh }
     threeContextRef.current = context
+    updateCameraFov(camera.fov)
 
     const raycaster = new Raycaster()
     raycasterRef.current = raycaster
@@ -774,9 +797,7 @@ export function SceneViewer({
       event.preventDefault()
       const currentContext = threeContextRef.current
       if (!currentContext) return
-      const { camera: currentCamera } = currentContext
-      currentCamera.fov = Math.max(30, Math.min(100, currentCamera.fov + event.deltaY * 0.05))
-      currentCamera.updateProjectionMatrix()
+      updateCameraFov(currentContext.camera.fov + event.deltaY * 0.05)
     }
 
     const handleContextMenu = (event: Event) => {
@@ -915,6 +936,7 @@ export function SceneViewer({
     updateProjectedElements,
     immersiveModeActive,
     isWalkthroughMode,
+    updateCameraFov,
   ])
 
   useEffect(() => {
@@ -1120,6 +1142,24 @@ export function SceneViewer({
       setIsFullscreen(!isFullscreen)
     }
   }
+
+  const handleZoomIn = () => {
+    updateCameraFov(cameraFovRef.current - ZOOM_STEP)
+  }
+
+  const handleZoomOut = () => {
+    updateCameraFov(cameraFovRef.current + ZOOM_STEP)
+  }
+
+  const handleZoomReset = () => {
+    updateCameraFov(DEFAULT_FOV)
+  }
+
+  const zoomDisplay = useMemo(() => (DEFAULT_FOV / cameraFov).toFixed(1), [cameraFov])
+  const atMinZoom = cameraFov <= MIN_FOV + 0.1
+  const atMaxZoom = cameraFov >= MAX_FOV - 0.1
+  const atDefaultZoom = Math.abs(cameraFov - DEFAULT_FOV) < 0.1
+  const canZoom = sphericalViewModes.includes(currentViewMode) && !renderError
 
   const isMeasurementMode = (value: string): value is MeasurementMode =>
     (measurementModes as readonly string[]).includes(value)
@@ -1483,6 +1523,43 @@ export function SceneViewer({
       {/* Controls */}
       <div className="bg-gray-900 border-t border-gray-800 p-4 flex gap-2 items-center justify-between overflow-x-auto flex-wrap">
         <div className="flex gap-2 flex-wrap">
+          {canZoom && (
+            <div className="flex items-center gap-1 rounded-md border border-gray-800 bg-gray-900/60 px-2 py-1">
+              <Button
+                size="icon-sm"
+                variant="outline"
+                onClick={handleZoomOut}
+                disabled={atMaxZoom}
+                aria-label="Zoom out"
+                className="bg-transparent"
+              >
+                <ZoomOut className="h-4 w-4" />
+              </Button>
+              <span className="px-2 text-xs font-medium text-gray-300 min-w-[3.5rem] text-center">
+                ×{zoomDisplay}
+              </span>
+              <Button
+                size="icon-sm"
+                variant="outline"
+                onClick={handleZoomIn}
+                disabled={atMinZoom}
+                aria-label="Zoom in"
+                className="bg-transparent"
+              >
+                <ZoomIn className="h-4 w-4" />
+              </Button>
+              <Button
+                size="icon-sm"
+                variant="outline"
+                onClick={handleZoomReset}
+                disabled={atDefaultZoom}
+                aria-label="Reset zoom"
+                className="bg-transparent"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
           <Button
             size="sm"
             variant={measuring ? "default" : "outline"}
