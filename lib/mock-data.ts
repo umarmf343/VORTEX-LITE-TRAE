@@ -38,6 +38,8 @@ export const mockProperties: Property[] = [
       day: "/luxury-penthouse-day.jpg",
       night: "/luxury-penthouse-night.jpg",
     },
+    matterportModelId: "SxQL3iGyoDo",
+    matterportExperienceLabel: "Matterport Showcase",
     branding: {
       primaryColor: "#1a3a52",
       secondaryColor: "#d4af37",
@@ -472,6 +474,8 @@ export const mockProperties: Property[] = [
       day: "/modern-suburban-home-exterior.jpg",
       night: "/suburban-home-front.jpg",
     },
+    matterportModelId: "9n7LZmjGgA3",
+    matterportExperienceLabel: "Family Home Showcase",
     branding: {
       primaryColor: "#1a3a52",
       secondaryColor: "#d4af37",

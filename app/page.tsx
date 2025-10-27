@@ -4,6 +4,7 @@ import { useEffect, useState, type ElementType } from "react"
 import { useData } from "@/lib/data-context"
 import type { CSSCustomization, CrossPlatformShare, LeadCapturePayload, Property } from "@/lib/types"
 import { TourPlayer } from "@/components/viewer/tour-player"
+import { MatterportEmbed } from "@/components/viewer/matterport-embed"
 import { PropertyList } from "@/components/admin/property-list"
 import { AnalyticsDashboard } from "@/components/admin/analytics-dashboard"
 import { AdvancedAnalytics } from "@/components/admin/advanced-analytics"
@@ -12,7 +13,8 @@ import { CaptureServices } from "@/components/admin/capture-services"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { cn, formatCurrency } from "@/lib/utils"
-import { Building2, BarChart3, Users, Zap, FileText, Calendar, Share2, Code, Map } from "@/lib/icons"
+import { buildMatterportUrl } from "@/lib/matterport"
+import { Building2, BarChart3, Users, Zap, FileText, Calendar, Share2, Code, Map, Globe, ExternalLink, AlertCircle } from "@/lib/icons"
 import PropertyReports from "@/components/admin/property-reports"
 import BookingSystem from "@/components/admin/booking-system"
 import CrossPlatformSharing from "@/components/admin/cross-platform-sharing"
@@ -98,6 +100,8 @@ export default function Page() {
   const [selectedAnalyticsProperty, setSelectedAnalyticsProperty] = useState<Property | undefined>(
     properties[0],
   )
+  const [tourExperience, setTourExperience] = useState<"vortex" | "matterport">("vortex")
+  const matterportApplicationKey = process.env.NEXT_PUBLIC_MATTERPORT_SDK ?? ""
 
   const featureHighlights = [
     {
@@ -135,6 +139,18 @@ export default function Page() {
       return properties[0]
     })
   }, [properties])
+
+  useEffect(() => {
+    if (viewMode !== "tour") {
+      setTourExperience("vortex")
+    }
+  }, [viewMode])
+
+  useEffect(() => {
+    if (!selectedProperty?.matterportModelId) {
+      setTourExperience("vortex")
+    }
+  }, [selectedProperty?.matterportModelId])
 
   if (!selectedProperty || !selectedAnalyticsProperty) {
     return (
@@ -325,18 +341,107 @@ export default function Page() {
 
   // Tour View
   if (viewMode === "tour") {
+    const matterportAvailable = Boolean(selectedProperty.matterportModelId)
+    const matterportUrl = matterportAvailable
+      ? buildMatterportUrl(selectedProperty.matterportModelId!, {
+          applicationKey: matterportApplicationKey || undefined,
+          autoplay: true,
+        })
+      : undefined
+    const matterportViewActive = tourExperience === "matterport" && matterportAvailable
+
     return (
-      <div className="w-full h-screen flex flex-col">
-        <div className="bg-gray-900 border-b border-gray-800 p-4">
-          <Button variant="outline" onClick={() => setViewMode("home")} className="gap-2">
-            ← Back to Properties
-          </Button>
+      <div className="flex h-screen w-full flex-col bg-slate-950 text-slate-50">
+        <div className="border-b border-gray-800 bg-gray-900/90 p-4">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <Button variant="outline" onClick={() => setViewMode("home")} className="w-full gap-2 md:w-auto">
+              ← Back to Properties
+            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant={tourExperience === "vortex" ? "default" : "outline"}
+                onClick={() => setTourExperience("vortex")}
+                className="gap-2"
+              >
+                Vortex Tour
+              </Button>
+              <Button
+                variant={tourExperience === "matterport" ? "default" : "outline"}
+                onClick={() => setTourExperience("matterport")}
+                disabled={!matterportAvailable}
+                className="gap-2"
+              >
+                <Globe className="h-4 w-4" />
+                Matterport Showcase
+              </Button>
+              {!matterportAvailable && (
+                <span className="text-xs text-slate-300">
+                  Link a Matterport model ID to unlock the showcase view.
+                </span>
+              )}
+            </div>
+          </div>
         </div>
-        <TourPlayer
-          property={selectedProperty}
-          onLeadCapture={handleLeadCapture}
-          floorPlan={selectedFloorPlan}
-        />
+        <div className="flex-1 min-h-0">
+          {matterportViewActive ? (
+            <div className="flex h-full flex-col bg-slate-950 lg:flex-row">
+              <div className="flex-1 min-h-[360px] p-4 lg:p-6">
+                <MatterportEmbed
+                  modelId={selectedProperty.matterportModelId}
+                  applicationKey={matterportApplicationKey || undefined}
+                  propertyName={selectedProperty.name}
+                  experienceLabel={selectedProperty.matterportExperienceLabel}
+                  className="h-full"
+                />
+              </div>
+              <aside className="w-full border-t border-slate-800 bg-slate-900/60 p-4 text-slate-100 lg:w-96 lg:border-l lg:border-t-0 lg:p-6">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold">Showcase Highlights</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-300">
+                      Experience the official Matterport walkthrough for {selectedProperty.name}. Use this mode when you need
+                      dollhouse navigation, guided highlight reels, or to share a link that mirrors the Matterport experience.
+                    </p>
+                  </div>
+                  <div className="space-y-2 rounded-lg border border-slate-700/60 bg-slate-900/80 p-4 text-sm text-slate-200">
+                    <p className="font-medium text-white">What&apos;s included</p>
+                    <ul className="list-disc space-y-1 pl-5">
+                      <li>Native Matterport controls with VR support</li>
+                      <li>Hotspot and measurement data synced with Showcase</li>
+                      <li>Shareable link for marketing campaigns</li>
+                    </ul>
+                  </div>
+                  {matterportApplicationKey ? (
+                    <div className="rounded-md border border-emerald-500/60 bg-emerald-500/10 p-3 text-xs text-emerald-200">
+                      Connected with the configured SDK key. Advanced analytics and scene automation are available in this
+                      session.
+                    </div>
+                  ) : (
+                    <div className="flex items-start gap-2 rounded-md border border-amber-400/60 bg-amber-500/10 p-3 text-amber-200">
+                      <AlertCircle className="mt-0.5 h-4 w-4" />
+                      <p className="text-xs leading-relaxed">
+                        Set <code>NEXT_PUBLIC_MATTERPORT_SDK</code> in your environment to unlock SDK-driven telemetry and
+                        scripted navigation.
+                      </p>
+                    </div>
+                  )}
+                  {matterportUrl && (
+                    <Button
+                      variant="outline"
+                      className="w-full gap-2 border-slate-600 text-slate-100 hover:bg-slate-800"
+                      onClick={() => window.open(matterportUrl, "_blank", "noopener")}
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Launch full screen showcase
+                    </Button>
+                  )}
+                </div>
+              </aside>
+            </div>
+          ) : (
+            <TourPlayer property={selectedProperty} onLeadCapture={handleLeadCapture} floorPlan={selectedFloorPlan} />
+          )}
+        </div>
       </div>
     )
   }
