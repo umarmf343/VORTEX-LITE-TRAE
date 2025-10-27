@@ -143,9 +143,16 @@ export function SphrViewer({ space, onNodeChange, onHotspotActivate }: SphrViewe
     renderLoop()
     window.addEventListener("resize", handleResize)
 
+    let resizeObserver: ResizeObserver | null = null
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(() => handleResize())
+      resizeObserver.observe(container)
+    }
+
     return () => {
       disposed = true
       window.removeEventListener("resize", handleResize)
+      resizeObserver?.disconnect()
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current)
       }
@@ -296,9 +303,12 @@ export function SphrViewer({ space, onNodeChange, onHotspotActivate }: SphrViewe
       </div>
     )
   }
-
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-xl border border-slate-800 bg-black" ref={containerRef}>
+    <div
+      className="relative w-full overflow-hidden rounded-xl border border-slate-800 bg-black max-h-[85vh] min-h-[320px] aspect-[16/9] lg:aspect-[21/9]"
+      ref={containerRef}
+      style={{ minHeight: "max(320px, var(--viewer-min-h, 65vh))" }}
+    >
       <div ref={overlayRef} className="pointer-events-none absolute inset-0">
         {currentNode.hotspots.map((hotspot) => (
           <button
