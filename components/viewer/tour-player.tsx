@@ -39,10 +39,8 @@ import {
   MousePointerClick,
   Ruler,
   Layers,
-  ZoomIn,
-  ZoomOut,
-  RefreshCw,
 } from "lucide-react"
+import { ZoomControls } from "./zoom-controls"
 
 type SharePlatform = "facebook" | "twitter" | "linkedin" | "email"
 
@@ -799,41 +797,18 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
                   </p>
                 </div>
               </div>
-              {showFallbackZoom && (
-                <div className="absolute bottom-4 right-4 flex items-center gap-1 rounded-md border border-gray-800 bg-black/70 px-2 py-1">
-                  <Button
-                    size="icon-sm"
-                    variant="outline"
-                    onClick={handleFallbackZoomOut}
-                    disabled={fallbackAtMaxZoom}
-                    aria-label="Zoom out"
-                    className="bg-transparent"
-                  >
-                    <ZoomOut className="h-4 w-4" />
-                  </Button>
-                  <span className="min-w-[3.5rem] px-2 text-center text-xs font-medium text-gray-200">×{fallbackZoomDisplay}</span>
-                  <Button
-                    size="icon-sm"
-                    variant="outline"
-                    onClick={handleFallbackZoomIn}
-                    disabled={fallbackAtMinZoom}
-                    aria-label="Zoom in"
-                    className="bg-transparent"
-                  >
-                    <ZoomIn className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="icon-sm"
-                    variant="outline"
-                    onClick={handleFallbackZoomReset}
-                    disabled={fallbackAtDefaultZoom}
-                    aria-label="Reset zoom"
-                    className="bg-transparent"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
+              {showFallbackZoom ? (
+                <ZoomControls
+                  className="absolute bottom-4 right-4 bg-black/70"
+                  zoomDisplay={`×${fallbackZoomDisplay}`}
+                  onZoomIn={handleFallbackZoomIn}
+                  onZoomOut={handleFallbackZoomOut}
+                  onReset={handleFallbackZoomReset}
+                  disableZoomIn={fallbackAtMaxZoom}
+                  disableZoomOut={fallbackAtMinZoom}
+                  disableReset={fallbackAtDefaultZoom}
+                />
+              ) : null}
             </div>
           )}
         </div>
