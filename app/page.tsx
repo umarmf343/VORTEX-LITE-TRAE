@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, type ElementType } from "react"
 import { useData } from "@/lib/data-context"
 import type { CSSCustomization, CrossPlatformShare, LeadCapturePayload, Property } from "@/lib/types"
 import { TourPlayer } from "@/components/viewer/tour-player"
@@ -11,7 +11,7 @@ import { LeadsDashboard } from "@/components/admin/leads-dashboard"
 import { CaptureServices } from "@/components/admin/capture-services"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { formatCurrency } from "@/lib/utils"
+import { cn, formatCurrency } from "@/lib/utils"
 import { Building2, BarChart3, Users, Zap, FileText, Calendar, Share2, Code, Map } from "@/lib/icons"
 import PropertyReports from "@/components/admin/property-reports"
 import BookingSystem from "@/components/admin/booking-system"
@@ -171,6 +171,25 @@ export default function Page() {
     }
   const isAdminView = ADMIN_VIEW_MODES.includes(viewMode)
 
+  const adminNavigation: { label: string; view: ViewMode; icon?: ElementType }[] = [
+    { label: "Properties", view: "admin", icon: Building2 },
+    { label: "Compare", view: "comparison" },
+    { label: "Merge", view: "merge" },
+    { label: "Analytics", view: "analytics", icon: BarChart3 },
+    { label: "Advanced", view: "advanced-analytics", icon: Zap },
+    { label: "Reports", view: "reports", icon: FileText },
+    { label: "Booking", view: "booking", icon: Calendar },
+    { label: "Sharing", view: "sharing", icon: Share2 },
+    { label: "Branding", view: "branding" },
+    { label: "Technicians", view: "technicians" },
+    { label: "3D Models", view: "3d-models" },
+    { label: "Scene Types", view: "scene-types" },
+    { label: "Leads", view: "leads", icon: Users },
+    { label: "Capture", view: "capture", icon: Zap },
+    { label: "Embed", view: "embed", icon: Code },
+    { label: "Journey", view: "journey", icon: Map },
+  ]
+
   const handleLeadCapture = (leadData: LeadCapturePayload) => {
     const newLead = {
       id: `lead-${Date.now()}`,
@@ -327,139 +346,50 @@ export default function Page() {
     return (
       <div className="min-h-screen bg-gray-50">
         <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="max-w-7xl mx-auto px-4 py-4">
             <h1 className="text-2xl font-bold text-center md:text-left">BaladShelter Admin</h1>
-            <div className="flex flex-wrap gap-2 justify-center md:justify-end">
-              <Button
-                variant={viewMode === "admin" ? "default" : "outline"}
-                onClick={() => setViewMode("admin")}
-                className="gap-2"
-              >
-                <Building2 className="w-4 h-4" />
-                Properties
-              </Button>
-              <Button
-                variant={viewMode === "comparison" ? "default" : "outline"}
-                onClick={() => setViewMode("comparison")}
-                className="gap-2"
-              >
-                Compare
-              </Button>
-              <Button
-                variant={viewMode === "merge" ? "default" : "outline"}
-                onClick={() => setViewMode("merge")}
-                className="gap-2"
-              >
-                Merge
-              </Button>
-              <Button
-                variant={viewMode === "analytics" ? "default" : "outline"}
-                onClick={() => setViewMode("analytics")}
-                className="gap-2"
-              >
-                <BarChart3 className="w-4 h-4" />
-                Analytics
-              </Button>
-              <Button
-                variant={viewMode === "advanced-analytics" ? "default" : "outline"}
-                onClick={() => setViewMode("advanced-analytics")}
-                className="gap-2"
-              >
-                <Zap className="w-4 h-4" />
-                Advanced
-              </Button>
-              <Button
-                variant={viewMode === "reports" ? "default" : "outline"}
-                onClick={() => setViewMode("reports")}
-                className="gap-2"
-              >
-                <FileText className="w-4 h-4" />
-                Reports
-              </Button>
-              <Button
-                variant={viewMode === "booking" ? "default" : "outline"}
-                onClick={() => setViewMode("booking")}
-                className="gap-2"
-              >
-                <Calendar className="w-4 h-4" />
-                Booking
-              </Button>
-              <Button
-                variant={viewMode === "sharing" ? "default" : "outline"}
-                onClick={() => setViewMode("sharing")}
-                className="gap-2"
-              >
-                <Share2 className="w-4 h-4" />
-                Sharing
-              </Button>
-              <Button
-                variant={viewMode === "branding" ? "default" : "outline"}
-                onClick={() => setViewMode("branding")}
-                className="gap-2"
-              >
-                Branding
-              </Button>
-              <Button
-                variant={viewMode === "technicians" ? "default" : "outline"}
-                onClick={() => setViewMode("technicians")}
-                className="gap-2"
-              >
-                Technicians
-              </Button>
-              <Button
-                variant={viewMode === "3d-models" ? "default" : "outline"}
-                onClick={() => setViewMode("3d-models")}
-                className="gap-2"
-              >
-                3D Models
-              </Button>
-              <Button
-                variant={viewMode === "scene-types" ? "default" : "outline"}
-                onClick={() => setViewMode("scene-types")}
-                className="gap-2"
-              >
-                Scene Types
-              </Button>
-              <Button
-                variant={viewMode === "leads" ? "default" : "outline"}
-                onClick={() => setViewMode("leads")}
-                className="gap-2"
-              >
-                <Users className="w-4 h-4" />
-                Leads
-              </Button>
-              <Button
-                variant={viewMode === "capture" ? "default" : "outline"}
-                onClick={() => setViewMode("capture")}
-                className="gap-2"
-              >
-                <Zap className="w-4 h-4" />
-                Capture
-              </Button>
-              <Button
-                variant={viewMode === "embed" ? "default" : "outline"}
-                onClick={() => setViewMode("embed")}
-                className="gap-2"
-              >
-                <Code className="w-4 h-4" />
-                Embed
-              </Button>
-              <Button
-                variant={viewMode === "journey" ? "default" : "outline"}
-                onClick={() => setViewMode("journey")}
-                className="gap-2"
-              >
-                <Map className="w-4 h-4" />
-                Journey
-              </Button>
-              <Button variant="outline" onClick={() => setViewMode("home")}>
-                Back to Home
-              </Button>
-            </div>
           </div>
         </header>
 
-        <main className="max-w-7xl mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="flex flex-col gap-6 lg:flex-row">
+            <aside className="w-full lg:w-72 xl:w-80">
+              <nav className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 space-y-6">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Dashboard</p>
+                  <div className="mt-3 space-y-1">
+                    {adminNavigation.map((item) => {
+                      const Icon = item.icon
+                      return (
+                        <Button
+                          key={item.view}
+                          variant={viewMode === item.view ? "default" : "ghost"}
+                          onClick={() => setViewMode(item.view)}
+                          className={cn(
+                            "w-full justify-start",
+                            viewMode === item.view ? "shadow-sm" : "text-slate-600 hover:text-slate-900",
+                          )}
+                        >
+                          {Icon ? <Icon className="w-4 h-4" /> : null}
+                          {item.label}
+                        </Button>
+                      )
+                    })}
+                  </div>
+                </div>
+                <div className="pt-4 border-t border-gray-100">
+                  <Button
+                    variant="outline"
+                    onClick={() => setViewMode("home")}
+                    className="w-full justify-start"
+                  >
+                    Back to Home
+                  </Button>
+                </div>
+              </nav>
+            </aside>
+
+            <main className="flex-1 space-y-8">
           {viewMode === "admin" && (
             <div>
               <h2 className="text-xl font-bold mb-6">Properties</h2>
@@ -643,7 +573,9 @@ export default function Page() {
               />
             </div>
           )}
-        </main>
+            </main>
+          </div>
+        </div>
       </div>
     )
   }
