@@ -4,7 +4,7 @@ import { useState } from "react"
 import type { Lead } from "@/lib/types"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Mail, Phone, MessageSquare, CheckCircle, Clock, XCircle } from "lucide-react"
+import { Mail, Phone, MessageSquare, CheckCircle, Clock, XCircle } from "@/lib/icons"
 
 interface LeadsDashboardProps {
   leads: Lead[]

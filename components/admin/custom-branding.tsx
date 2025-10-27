@@ -4,7 +4,7 @@ import type { CSSCustomization } from "@/lib/types"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"
-import { Copy, Download } from "lucide-react"
+import { Copy, Download } from "@/lib/icons"
 
 interface CustomBrandingProps {
   propertyId: string

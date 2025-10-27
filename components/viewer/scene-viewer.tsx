@@ -30,7 +30,7 @@ import {
   Navigation,
   MousePointerClick,
   ArrowLeftRight,
-} from "lucide-react"
+} from "@/lib/icons"
 import {
   MathUtils,
   Mesh,

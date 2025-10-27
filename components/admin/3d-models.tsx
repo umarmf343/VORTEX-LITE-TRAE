@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Cable as Cube, Plus, Trash2, Eye } from "lucide-react"
+import { Cable as Cube, Plus, Trash2, Eye } from "@/lib/icons"
 import type { Model3DAsset } from "@/lib/types"
 
 interface Models3DProps {

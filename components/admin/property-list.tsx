@@ -2,7 +2,7 @@
 import type { Property } from "@/lib/types"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Eye, Edit, Trash2, BarChart3 } from "lucide-react"
+import { Eye, Edit, Trash2, BarChart3 } from "@/lib/icons"
 import { formatCurrency } from "@/lib/utils"
 
 interface PropertyListProps {

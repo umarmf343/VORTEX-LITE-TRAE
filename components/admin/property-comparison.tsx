@@ -3,7 +3,7 @@
 import type { Property } from "@/lib/types"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Check, X } from "lucide-react"
+import { Check, X } from "@/lib/icons"
 import { useEffect, useState } from "react"
 import { formatCurrency } from "@/lib/utils"
 
