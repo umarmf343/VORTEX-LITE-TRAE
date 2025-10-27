@@ -11,6 +11,7 @@ import type {
   Scene as SceneType,
   SceneViewMode,
   TourPoint,
+  WalkthroughStep,
 } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import {
@@ -253,6 +254,7 @@ interface SceneViewerProps {
     nextSceneName?: string
     previousSceneName?: string
   }
+  walkthroughStepDetail?: WalkthroughStep
 }
 
 export function SceneViewer({
@@ -277,6 +279,7 @@ export function SceneViewer({
   activeDataLayers,
   onDataLayerToggle,
   walkthroughMeta,
+  walkthroughStepDetail,
 }: SceneViewerProps) {
   const [measuring, setMeasuringState] = useState<boolean>(measurementMode ?? false)
   const [measureStart, setMeasureStart] = useState<{ x: number; y: number } | null>(null)
@@ -1294,12 +1297,24 @@ export function SceneViewer({
 
             {isWalkthroughMode && (
               <>
-                <div className="absolute top-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full bg-black/70 px-4 py-2 text-xs font-medium text-white shadow-lg backdrop-blur">
-                  <Navigation className="h-4 w-4 text-emerald-300" />
-                  <span className="uppercase tracking-wide text-emerald-200">Walkthrough Mode</span>
-                  <span className="text-white/80">
-                    Step {walkthroughStep} of {Math.max(1, walkthroughTotalScenes)}
-                  </span>
+                <div className="absolute top-4 left-1/2 z-20 flex -translate-x-1/2 items-start gap-3 rounded-xl bg-black/70 px-4 py-3 text-xs text-white shadow-lg backdrop-blur">
+                  <Navigation className="h-5 w-5 text-emerald-300" />
+                  <div className="flex flex-col items-start gap-1 text-left">
+                    <span className="uppercase tracking-wide text-emerald-200 font-semibold">Walkthrough Mode</span>
+                    <span className="text-white/80">
+                      Step {walkthroughStep} of {Math.max(1, walkthroughTotalScenes)}
+                    </span>
+                    {walkthroughStepDetail ? (
+                      <>
+                        <span className="text-sm font-semibold text-emerald-100">
+                          {walkthroughStepDetail.title}
+                        </span>
+                        <span className="max-w-xs text-[11px] text-emerald-100/80">
+                          {walkthroughStepDetail.description}
+                        </span>
+                      </>
+                    ) : null}
+                  </div>
                 </div>
                 <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-3 text-[11px] text-white/90 md:text-sm">
                   <div className="flex flex-col items-center gap-3 md:flex-row">
@@ -1316,10 +1331,28 @@ export function SceneViewer({
                       <span>{walkthroughBackwardInstruction}</span>
                     </div>
                   </div>
+                  {walkthroughStepDetail?.highlights?.length ? (
+                    <div className="flex flex-wrap items-center justify-center gap-2 rounded-full bg-black/55 px-3 py-2 shadow-lg backdrop-blur">
+                      {walkthroughStepDetail.highlights.map((highlight) => (
+                        <span
+                          key={`${walkthroughStepDetail.id}-highlight-${highlight}`}
+                          className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-3 py-1 text-[11px] text-emerald-100"
+                        >
+                          {highlight}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
                   <div className="flex items-center gap-2 rounded-full bg-black/60 px-3 py-2 shadow-lg backdrop-blur">
                     <ArrowLeftRight className="h-4 w-4 text-amber-300" />
                     <span>A / D or ← / → to pivot your view</span>
                   </div>
+                  {walkthroughStepDetail?.transitionHint ? (
+                    <div className="flex items-center gap-2 rounded-full bg-black/60 px-3 py-2 text-[11px] shadow-lg backdrop-blur">
+                      <Navigation className="h-4 w-4 text-sky-300" />
+                      <span>{walkthroughStepDetail.transitionHint}</span>
+                    </div>
+                  ) : null}
                 </div>
               </>
             )}

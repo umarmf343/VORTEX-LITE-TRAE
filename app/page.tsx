@@ -22,6 +22,7 @@ import {
   Share2,
   Code,
   Map,
+  PlayCircle,
   ShoppingCart,
 } from "lucide-react"
 import PropertyReports from "@/components/admin/property-reports"
@@ -115,6 +116,7 @@ export default function Page() {
   const [selectedAnalyticsProperty, setSelectedAnalyticsProperty] = useState<Property | undefined>(
     properties[0],
   )
+  const [autoplayWalkthrough, setAutoplayWalkthrough] = useState(false)
 
   const featureHighlights = [
     {
@@ -135,6 +137,7 @@ export default function Page() {
     if (properties.length === 0) {
       setSelectedProperty(undefined)
       setSelectedAnalyticsProperty(undefined)
+      setAutoplayWalkthrough(false)
       return
     }
 
@@ -151,6 +154,7 @@ export default function Page() {
       }
       return properties[0]
     })
+    setAutoplayWalkthrough(false)
   }, [properties])
 
   if (!selectedProperty || !selectedAnalyticsProperty) {
@@ -297,15 +301,32 @@ export default function Page() {
                       <div>{property.sqft.toLocaleString()} sqft</div>
                     </div>
                   </div>
-                  <Button
-                    className="w-full gap-2"
-                    onClick={() => {
-                      setSelectedProperty(property)
-                      setViewMode("tour")
-                    }}
-                  >
-                    View Virtual Tour
-                  </Button>
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      className="w-full gap-2"
+                      onClick={() => {
+                        setSelectedProperty(property)
+                        setAutoplayWalkthrough(false)
+                        setViewMode("tour")
+                      }}
+                    >
+                      View Virtual Tour
+                    </Button>
+                    {property.walkthrough ? (
+                      <Button
+                        variant="secondary"
+                        className="w-full gap-2"
+                        onClick={() => {
+                          setSelectedProperty(property)
+                          setAutoplayWalkthrough(true)
+                          setViewMode("tour")
+                        }}
+                      >
+                        <PlayCircle className="w-4 h-4" />
+                        Play Walkthrough Demo
+                      </Button>
+                    ) : null}
+                  </div>
                 </div>
               </Card>
               ))
@@ -328,7 +349,14 @@ export default function Page() {
     return (
       <div className="w-full h-screen flex flex-col">
         <div className="bg-gray-900 border-b border-gray-800 p-4">
-          <Button variant="outline" onClick={() => setViewMode("home")} className="gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setAutoplayWalkthrough(false)
+              setViewMode("home")
+            }}
+            className="gap-2"
+          >
             ← Back to Properties
           </Button>
         </div>
@@ -337,6 +365,8 @@ export default function Page() {
           onLeadCapture={handleLeadCapture}
           floorPlan={selectedFloorPlan}
           products={tourProducts}
+          autoplayWalkthrough={autoplayWalkthrough}
+          onWalkthroughAutoplayEnd={() => setAutoplayWalkthrough(false)}
         />
       </div>
     )

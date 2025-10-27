@@ -28,6 +28,7 @@ export interface Property {
   tags?: string[]
   sceneTransition?: "fade" | "slide"
   supportedViewModes?: SceneViewMode[]
+  walkthrough?: PropertyWalkthrough
 }
 
 export interface Scene {
@@ -92,6 +93,24 @@ export interface TourPoint {
   yaw: number
   pitch: number
   note?: string
+}
+
+export interface WalkthroughStep extends TourPoint {
+  title: string
+  description: string
+  highlights?: string[]
+  transitionHint?: string
+  media?: { type: "image" | "video"; url: string }
+}
+
+export interface PropertyWalkthrough {
+  id: string
+  title: string
+  description: string
+  estimatedDuration?: string
+  heroImage?: string
+  steps: WalkthroughStep[]
+  tips?: string[]
 }
 
 export interface BrandingConfig {

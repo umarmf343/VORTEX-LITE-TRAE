@@ -49,6 +49,59 @@ export const mockProperties: Property[] = [
       whiteLabelMode: false,
     },
     supportedViewModes: ["walkthrough", "360", "first-person", "orbit", "dollhouse", "floor-plan"],
+    walkthrough: {
+      id: "walkthrough-penthouse",
+      title: "Skyline Showcase Walkthrough",
+      description:
+        "Follow a three-stop path that captures the penthouse's signature entertaining spaces and private retreat with guided talking points.",
+      estimatedDuration: "90 seconds",
+      heroImage: "/luxury-penthouse-living-room.png",
+      steps: [
+        {
+          id: "walkthrough-step-001",
+          sceneId: "scene-001",
+          sceneName: "Living Room",
+          yaw: 35,
+          pitch: -8,
+          note: "Skyline Arrival",
+          title: "Skyline Arrival",
+          description:
+            "Begin beside the double-height windows to reveal the 270° Manhattan skyline and the automated shading system that adjusts with the sun.",
+          highlights: ["360° city panorama", "Smart tinting glass"],
+          transitionHint: "Press W to glide into the primary suite.",
+        },
+        {
+          id: "walkthrough-step-002",
+          sceneId: "scene-002",
+          sceneName: "Master Bedroom",
+          yaw: -15,
+          pitch: -6,
+          note: "Suite Sanctuary",
+          title: "Suite Sanctuary",
+          description:
+            "Pause at the custom upholstered headboard and note the concealed storage wall, then pan left to spotlight the ensuite entrance.",
+          highlights: ["Custom millwork", "Ensuite connection"],
+          transitionHint: "Press W to finish in the chef's kitchen or S to revisit the living room.",
+        },
+        {
+          id: "walkthrough-step-003",
+          sceneId: "scene-003",
+          sceneName: "Kitchen",
+          yaw: 48,
+          pitch: -4,
+          note: "Entertainer's Kitchen",
+          title: "Entertainer's Kitchen",
+          description:
+            "Highlight the waterfall island with four seats, then tilt downward to showcase the professional appliance suite and hidden pantry wall.",
+          highlights: ["Waterfall island", "Concealed pantry"],
+          transitionHint: "Use S to return to the bedroom or W to loop back to the skyline lounge.",
+        },
+      ],
+      tips: [
+        "Use your mouse or touch controls to pan around each stop before advancing.",
+        "Tap W or S on the keyboard for a smooth, cinematic walkthrough between rooms.",
+      ],
+    },
     scenes: [
       {
         id: "scene-001",

@@ -12,6 +12,7 @@ import type {
   Scene,
   SceneEngagementPayload,
   TourPoint,
+  WalkthroughStep,
   WooCommerceProduct,
 } from "@/lib/types"
 import { SceneViewer } from "./scene-viewer"
@@ -53,6 +54,8 @@ interface TourPlayerProps {
   onLeadCapture?: (lead: LeadCapturePayload) => void
   onEngagementTrack?: (engagement: SceneEngagementPayload) => void
   products?: WooCommerceProduct[]
+  autoplayWalkthrough?: boolean
+  onWalkthroughAutoplayEnd?: () => void
 }
 
 const detectWebGL2Support = () => {
@@ -75,12 +78,24 @@ const detectWebGL2Support = () => {
   }
 }
 
+const buildTourPointsFromWalkthrough = (steps: WalkthroughStep[]): TourPoint[] =>
+  steps.map((step, index) => ({
+    id: step.id,
+    sceneId: step.sceneId,
+    sceneName: step.sceneName,
+    yaw: step.yaw,
+    pitch: step.pitch,
+    note: step.note ?? step.title ?? `Stop ${index + 1}`,
+  }))
+
 export function TourPlayer({
   property,
   floorPlan,
   onLeadCapture,
   onEngagementTrack,
   products = [],
+  autoplayWalkthrough = false,
+  onWalkthroughAutoplayEnd,
 }: TourPlayerProps) {
   const [currentSceneIndex, setCurrentSceneIndex] = useState(0)
   const [showLeadForm, setShowLeadForm] = useState(false)
@@ -90,7 +105,9 @@ export function TourPlayer({
   const [showShareMenu, setShowShareMenu] = useState(false)
   const [showFloorPlan, setShowFloorPlan] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<WooCommerceProduct | null>(null)
-  const [tourPoints, setTourPoints] = useState<TourPoint[]>([])
+  const [tourPoints, setTourPoints] = useState<TourPoint[]>(() =>
+    buildTourPointsFromWalkthrough(property.walkthrough?.steps ?? []),
+  )
   const [isTourPlaying, setIsTourPlaying] = useState(false)
   const [activeTourIndex, setActiveTourIndex] = useState(0)
   const [pendingOrientation, setPendingOrientation] = useState<{
@@ -144,7 +161,19 @@ export function TourPlayer({
     return { productHotspotMap: map, productHotspotIds: ids }
   }, [products])
 
+  const walkthroughSteps = property.walkthrough?.steps ?? []
+  const walkthroughStepMap = useMemo(() => {
+    const map = new Map<string, WalkthroughStep>()
+    walkthroughSteps.forEach((step) => {
+      map.set(step.sceneId, step)
+    })
+    return map
+  }, [walkthroughSteps])
+
   useEffect(() => {
+    const defaultTourPoints = buildTourPointsFromWalkthrough(property.walkthrough?.steps ?? [])
+    const initialWalkthroughStep = property.walkthrough?.steps?.[0]
+
     setShowFloorPlan(false)
     setCurrentSceneIndex(0)
     setSessionStart(Date.now())
@@ -152,16 +181,25 @@ export function TourPlayer({
     setShowShareMenu(false)
     setSelectedProduct(null)
     sceneEngagement.current = {}
-    setTourPoints([])
+    setTourPoints(defaultTourPoints)
     setIsTourPlaying(false)
     setActiveTourIndex(0)
-    setPendingOrientation(null)
+    setPendingOrientation(
+      initialWalkthroughStep
+        ? {
+            sceneId: initialWalkthroughStep.sceneId,
+            yaw: initialWalkthroughStep.yaw,
+            pitch: initialWalkthroughStep.pitch,
+            key: Date.now(),
+          }
+        : null,
+    )
     setActiveHotspot(null)
     if (tourTimeoutRef.current) {
       window.clearTimeout(tourTimeoutRef.current)
       tourTimeoutRef.current = null
     }
-  }, [property.id, property.isFavorite])
+  }, [property.id, property.isFavorite, property.walkthrough?.steps])
 
   useEffect(() => {
     setMeasurementsByScene(deriveMeasurementDefaults(property.scenes))
@@ -199,6 +237,7 @@ export function TourPlayer({
   }, [products, selectedProduct])
 
   const currentScene = property.scenes[currentSceneIndex]
+  const activeWalkthroughStep = walkthroughStepMap.get(currentScene.id)
   const mediaHotspots = useMemo(
     () =>
       currentScene.hotspots.filter((hotspot) => ["video", "audio", "image"].includes(hotspot.type)),
@@ -398,23 +437,61 @@ export function TourPlayer({
     })
   }
 
+  const focusWalkthroughScene = useCallback(
+    (sceneId: string) => {
+      const sceneIndex = property.scenes.findIndex((scene) => scene.id === sceneId)
+      if (sceneIndex < 0) return
+
+      setCurrentSceneIndex(sceneIndex)
+      const walkthroughStep = walkthroughStepMap.get(sceneId)
+
+      setPendingOrientation(
+        walkthroughStep
+          ? {
+              sceneId: walkthroughStep.sceneId,
+              yaw: walkthroughStep.yaw,
+              pitch: walkthroughStep.pitch,
+              key: Date.now(),
+            }
+          : null,
+      )
+    },
+    [property.scenes, walkthroughStepMap],
+  )
+
   const handleWalkthroughStep = useCallback(
     (direction: 1 | -1) => {
       setCurrentSceneIndex((prev) => {
         const nextIndex = Math.max(0, Math.min(property.scenes.length - 1, prev + direction))
+        const nextScene = property.scenes[nextIndex]
+        const walkthroughStep = nextScene ? walkthroughStepMap.get(nextScene.id) : undefined
+
+        setPendingOrientation(
+          walkthroughStep
+            ? {
+                sceneId: walkthroughStep.sceneId,
+                yaw: walkthroughStep.yaw,
+                pitch: walkthroughStep.pitch,
+                key: Date.now(),
+              }
+            : null,
+        )
+
         return nextIndex
       })
-      setPendingOrientation(null)
     },
-    [property.scenes, property.scenes.length],
+    [property.scenes, walkthroughStepMap],
   )
 
-  const startTourAt = (index: number) => {
-    if (tourPoints.length === 0) return
-    const clamped = Math.max(0, Math.min(index, tourPoints.length - 1))
-    setActiveTourIndex(clamped)
-    setIsTourPlaying(true)
-  }
+  const startTourAt = useCallback(
+    (index: number) => {
+      if (tourPoints.length === 0) return
+      const clamped = Math.max(0, Math.min(index, tourPoints.length - 1))
+      setActiveTourIndex(clamped)
+      setIsTourPlaying(true)
+    },
+    [tourPoints.length],
+  )
 
   const stopGuidedTour = () => {
     setIsTourPlaying(false)
@@ -424,6 +501,18 @@ export function TourPlayer({
       tourTimeoutRef.current = null
     }
   }
+
+  useEffect(() => {
+    if (!autoplayWalkthrough) return
+
+    if (tourPoints.length === 0) {
+      onWalkthroughAutoplayEnd?.()
+      return
+    }
+
+    startTourAt(0)
+    onWalkthroughAutoplayEnd?.()
+  }, [autoplayWalkthrough, onWalkthroughAutoplayEnd, startTourAt, tourPoints])
 
   const handleHotspotClick = (hotspot: Hotspot) => {
     activateHotspot(hotspot)
@@ -566,11 +655,8 @@ export function TourPlayer({
 
   const handleFloorPlanRoomClick = (room: Room) => {
     if (!room.sceneId) return
-    const sceneIndex = property.scenes.findIndex((scene) => scene.id === room.sceneId)
-    if (sceneIndex >= 0) {
-      setCurrentSceneIndex(sceneIndex)
-      setShowFloorPlan(false)
-    }
+    focusWalkthroughScene(room.sceneId)
+    setShowFloorPlan(false)
   }
 
   return (
@@ -618,6 +704,7 @@ export function TourPlayer({
                 updateDataLayerVisibility(currentScene.id, layerId, visible)
               }
               walkthroughMeta={walkthroughMeta}
+              walkthroughStepDetail={activeWalkthroughStep ?? undefined}
             />
           ) : (
             <div className="relative h-full min-h-[360px] overflow-hidden rounded-xl border border-gray-800 bg-gray-900/60">
@@ -677,7 +764,7 @@ export function TourPlayer({
               {property.scenes.map((scene, idx) => (
                 <button
                   key={scene.id}
-                  onClick={() => setCurrentSceneIndex(idx)}
+                  onClick={() => focusWalkthroughScene(scene.id)}
                   className={`w-full text-left rounded-lg overflow-hidden transition-all border border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                     idx === currentSceneIndex ? "ring-2 ring-blue-500" : "hover:border-blue-500/40"
                   }`}
@@ -696,6 +783,111 @@ export function TourPlayer({
               ))}
             </div>
           </Card>
+
+          {property.walkthrough && (
+            <Card className="p-4 bg-gray-900 border-gray-800">
+              <div className="flex flex-col gap-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-2">
+                    <div className="text-[11px] uppercase tracking-wide text-blue-300 font-semibold">
+                      Guided Walkthrough
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-white leading-tight">
+                        {property.walkthrough.title}
+                      </h3>
+                      <p className="text-xs text-gray-400 leading-relaxed">
+                        {property.walkthrough.description}
+                      </p>
+                    </div>
+                    {property.walkthrough.estimatedDuration && (
+                      <p className="text-[11px] text-gray-500">
+                        Approx. {property.walkthrough.estimatedDuration}
+                      </p>
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => {
+                      const firstStep = property.walkthrough?.steps?.[0]
+                      if (!firstStep) return
+                      focusWalkthroughScene(firstStep.sceneId)
+                      startTourAt(0)
+                    }}
+                    disabled={!property.walkthrough.steps.length}
+                  >
+                    <PlayCircle className="w-4 h-4" />
+                    Start Demo
+                  </Button>
+                </div>
+                {property.walkthrough.heroImage && (
+                  <div className="relative h-36 overflow-hidden rounded-lg border border-gray-800">
+                    <img
+                      src={property.walkthrough.heroImage}
+                      alt={`${property.walkthrough.title} hero`}
+                      className="h-full w-full object-cover"
+                    />
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-[11px] text-gray-200">
+                      Cinematic walkthrough preview
+                    </div>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  {property.walkthrough.steps.map((step, index) => {
+                    const isActive = step.sceneId === currentScene.id
+                    return (
+                      <button
+                        key={step.id}
+                        type="button"
+                        onClick={() => focusWalkthroughScene(step.sceneId)}
+                        className={`w-full rounded-lg border px-3 py-2 text-left transition ${
+                          isActive
+                            ? "border-blue-500 bg-blue-500/10 shadow-lg shadow-blue-500/20"
+                            : "border-gray-800 bg-gray-900/60 hover:border-blue-500/40"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-medium text-white">
+                              Step {index + 1}: {step.title}
+                            </p>
+                            <p className="text-[11px] text-gray-400">{step.sceneName}</p>
+                            <p className="text-[11px] text-gray-500 mt-1 line-clamp-2">{step.description}</p>
+                          </div>
+                          <span className="text-[10px] uppercase tracking-wide text-blue-300">
+                            {Math.round(step.yaw)}° • {Math.round(step.pitch)}°
+                          </span>
+                        </div>
+                        {step.highlights?.length ? (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {step.highlights.map((highlight) => (
+                              <span
+                                key={`${step.id}-${highlight}`}
+                                className="rounded-full bg-gray-800 px-2 py-0.5 text-[10px] text-gray-300"
+                              >
+                                {highlight}
+                              </span>
+                            ))}
+                          </div>
+                        ) : null}
+                      </button>
+                    )
+                  })}
+                </div>
+                {property.walkthrough.tips?.length ? (
+                  <div className="rounded-lg border border-gray-800 bg-gray-900/70 p-3 text-[11px] text-gray-300 space-y-1">
+                    {property.walkthrough.tips.map((tip, idx) => (
+                      <div key={`walkthrough-tip-${idx}`} className="flex gap-2">
+                        <span className="text-blue-300">•</span>
+                        <span>{tip}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </Card>
+          )}
 
           {/* Immersive Highlights */}
           <Card className="p-4 bg-gradient-to-br from-gray-900 to-gray-950 border-gray-800">
@@ -732,7 +924,13 @@ export function TourPlayer({
                   min={0}
                   max={Math.max(property.scenes.length - 1, 0)}
                   value={currentSceneIndex}
-                  onChange={(event) => setCurrentSceneIndex(Number(event.target.value))}
+                  onChange={(event) => {
+                    const nextIndex = Number(event.target.value)
+                    const targetScene = property.scenes[nextIndex]
+                    if (targetScene) {
+                      focusWalkthroughScene(targetScene.id)
+                    }
+                  }}
                   className="w-full mt-3 accent-blue-500"
                   aria-label="Scene navigation"
                 />
@@ -741,7 +939,7 @@ export function TourPlayer({
                     <button
                       key={`scene-chip-${scene.id}`}
                       type="button"
-                      onClick={() => setCurrentSceneIndex(idx)}
+                      onClick={() => focusWalkthroughScene(scene.id)}
                       className={`px-2 py-1 rounded-full text-[11px] tracking-wide uppercase transition ${
                         idx === currentSceneIndex
                           ? "bg-blue-500/20 text-blue-200 border border-blue-500/60"
