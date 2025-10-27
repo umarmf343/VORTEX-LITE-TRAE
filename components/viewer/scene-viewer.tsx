@@ -30,6 +30,7 @@ import {
   Navigation,
   MousePointerClick,
   ArrowLeftRight,
+  X,
 } from "@/lib/icons"
 import {
   MathUtils,
@@ -296,6 +297,7 @@ export function SceneViewer({
   const [areaPoints, setAreaPoints] = useState<Array<{ x: number; y: number }>>([])
   const [showViewModes, setShowViewModes] = useState(false)
   const [cameraFov, setCameraFov] = useState(DEFAULT_FOV)
+  const [showWalkthroughGuides, setShowWalkthroughGuides] = useState(true)
   const deriveDefaultLayers = useCallback(
     (layers?: DataLayer[]) =>
       layers?.filter((layer) => layer.defaultVisible !== false).map((layer) => layer.id) ?? [],
@@ -409,6 +411,17 @@ export function SceneViewer({
   )
   const immersiveModeActive = immersiveViewModes.includes(currentViewMode)
   const isWalkthroughMode = currentViewMode === "walkthrough"
+  const wasWalkthroughModeRef = useRef(isWalkthroughMode)
+
+  useEffect(() => {
+    if (isWalkthroughMode && !wasWalkthroughModeRef.current) {
+      setShowWalkthroughGuides(true)
+    }
+    if (!isWalkthroughMode) {
+      setShowWalkthroughGuides(false)
+    }
+    wasWalkthroughModeRef.current = isWalkthroughMode
+  }, [isWalkthroughMode])
 
   useEffect(() => {
     const nextMeasurements =
@@ -1295,26 +1308,36 @@ export function SceneViewer({
                     Step {walkthroughStep} of {Math.max(1, walkthroughTotalScenes)}
                   </span>
                 </div>
-                <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-3 text-[11px] text-white/90 md:text-sm">
-                  <div className="flex flex-col items-center gap-3 md:flex-row">
-                    <div className="flex items-center gap-2 rounded-full bg-black/60 px-3 py-2 shadow-lg backdrop-blur">
-                      <MousePointerClick className="h-4 w-4 text-blue-300" />
-                      <span>Click &amp; drag to look around</span>
+                {showWalkthroughGuides && (
+                  <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-3 text-[11px] text-white/90 md:text-sm">
+                    <div className="relative flex flex-col items-center gap-3 md:flex-row">
+                      <button
+                        type="button"
+                        onClick={() => setShowWalkthroughGuides(false)}
+                        className="absolute -top-3 -right-3 flex h-6 w-6 items-center justify-center rounded-full bg-black/70 text-white shadow-lg transition hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                        aria-label="Hide walkthrough guides"
+                      >
+                        <X className="h-3.5 w-3.5" aria-hidden="true" />
+                      </button>
+                      <div className="flex items-center gap-2 rounded-full bg-black/60 px-3 py-2 shadow-lg backdrop-blur">
+                        <MousePointerClick className="h-4 w-4 text-blue-300" />
+                        <span>Click &amp; drag to look around</span>
+                      </div>
+                      <div className="flex items-center gap-2 rounded-full bg-black/60 px-3 py-2 shadow-lg backdrop-blur">
+                        <Navigation className="h-4 w-4 text-emerald-300" />
+                        <span>{walkthroughForwardInstruction}</span>
+                      </div>
+                      <div className="flex items-center gap-2 rounded-full bg-black/60 px-3 py-2 shadow-lg backdrop-blur">
+                        <Navigation className="h-4 w-4 rotate-180 text-rose-300" />
+                        <span>{walkthroughBackwardInstruction}</span>
+                      </div>
                     </div>
                     <div className="flex items-center gap-2 rounded-full bg-black/60 px-3 py-2 shadow-lg backdrop-blur">
-                      <Navigation className="h-4 w-4 text-emerald-300" />
-                      <span>{walkthroughForwardInstruction}</span>
-                    </div>
-                    <div className="flex items-center gap-2 rounded-full bg-black/60 px-3 py-2 shadow-lg backdrop-blur">
-                      <Navigation className="h-4 w-4 rotate-180 text-rose-300" />
-                      <span>{walkthroughBackwardInstruction}</span>
+                      <ArrowLeftRight className="h-4 w-4 text-amber-300" />
+                      <span>A / D or ← / → to pivot your view</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 rounded-full bg-black/60 px-3 py-2 shadow-lg backdrop-blur">
-                    <ArrowLeftRight className="h-4 w-4 text-amber-300" />
-                    <span>A / D or ← / → to pivot your view</span>
-                  </div>
-                </div>
+                )}
               </>
             )}
 
