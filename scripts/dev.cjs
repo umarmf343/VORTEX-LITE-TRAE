@@ -3,13 +3,42 @@ const { resolve } = require('node:path')
 
 const nextBin = resolve(process.cwd(), 'node_modules', 'next', 'dist', 'bin', 'next')
 const userArgs = process.argv.slice(2)
-const filteredArgs = userArgs.filter((arg) => arg !== '--no-turbo')
 
-if (userArgs.length !== filteredArgs.length) {
-  console.warn('Warning: "--no-turbo" is no longer supported in Next.js 16 and will be ignored.')
+let requestedBundler = null
+const forwardedArgs = []
+
+for (const arg of userArgs) {
+  if (arg === '--no-turbo') {
+    console.warn(
+      'Warning: "--no-turbo" has been replaced with webpack mode. Falling back to webpack.'
+    )
+    requestedBundler = 'webpack'
+    continue
+  }
+
+  if (arg === '--webpack') {
+    requestedBundler = 'webpack'
+  } else if (arg === '--turbo' || arg === '--turbopack') {
+    requestedBundler = 'turbopack'
+  }
+
+  forwardedArgs.push(arg)
 }
 
-const child = spawn(process.execPath, [nextBin, 'dev', ...filteredArgs], {
+if (!requestedBundler) {
+  const envPreference = process.env.NEXT_DEV_BUNDLER?.toLowerCase()
+  if (envPreference === 'turbopack') {
+    requestedBundler = 'turbopack'
+  } else {
+    requestedBundler = 'webpack'
+  }
+}
+
+if (requestedBundler === 'webpack' && !forwardedArgs.includes('--webpack')) {
+  forwardedArgs.push('--webpack')
+}
+
+const child = spawn(process.execPath, [nextBin, 'dev', ...forwardedArgs], {
   stdio: 'inherit',
   env: process.env,
 })
