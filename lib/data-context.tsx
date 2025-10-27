@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useState, useCallback } from "react"
+import { createContext, useContext, useState, useCallback, useEffect } from "react"
 import type {
   Property,
   Lead,
@@ -15,22 +15,107 @@ import type {
   SceneTypeConfig,
   TechnicianProfile,
   CSSCustomization,
+  PropertyStats,
+  GuidedTour,
   PropertyStatsSummary,
 } from "./types"
-import {
-  mockProperties,
-  mockLeads,
-  mockVisitors,
-  mockCaptureServices,
-  mockBookingSlots,
-  mockPropertyMerges,
-  mockCrossPlatformShares,
-  mockFloorPlans,
-  mockModelAssets,
-  mockSceneTypeConfigs,
-  mockTechnicians,
-  mockBrandingSettings,
-} from "./mock-data"
+
+type RawProperty = Omit<Property, "createdAt" | "updatedAt" | "stats"> & {
+  createdAt: string
+  updatedAt: string
+  stats: Omit<PropertyStats, "lastUpdated"> & { lastUpdated: string }
+  guidedTours?: GuidedTour[]
+}
+
+type RawLead = Omit<Lead, "createdAt"> & { createdAt: string }
+
+type RawVisitor = Omit<Visitor, "visitedAt"> & { visitedAt: string }
+
+type RawCaptureService = Omit<CaptureService, "createdAt" | "scheduledDate"> & {
+  createdAt: string
+  scheduledDate?: string
+}
+
+type RawBookingSlot = Omit<BookingSlot, "date"> & { date: string }
+
+type RawPropertyMerge = Omit<PropertyMerge, "createdAt"> & { createdAt: string }
+
+type RawTechnicianProfile = Omit<TechnicianProfile, "availability"> & { availability: string[] }
+
+interface RawMockData {
+  properties?: RawProperty[]
+  leads?: RawLead[]
+  visitors?: RawVisitor[]
+  captureServices?: RawCaptureService[]
+  bookingSlots?: RawBookingSlot[]
+  propertyMerges?: RawPropertyMerge[]
+  crossPlatformShares?: CrossPlatformShare[]
+  floorPlans?: FloorPlan[]
+  modelAssets?: Model3DAsset[]
+  sceneTypeConfigs?: SceneTypeConfig[]
+  technicians?: RawTechnicianProfile[]
+  brandingSettings?: Record<string, CSSCustomization>
+}
+
+const parseProperty = (raw: RawProperty): Property => ({
+  ...raw,
+  createdAt: new Date(raw.createdAt),
+  updatedAt: new Date(raw.updatedAt),
+  stats: {
+    ...raw.stats,
+    lastUpdated: new Date(raw.stats.lastUpdated),
+  },
+})
+
+const parseLead = (raw: RawLead): Lead => ({
+  ...raw,
+  createdAt: new Date(raw.createdAt),
+})
+
+const parseVisitor = (raw: RawVisitor): Visitor => ({
+  ...raw,
+  visitedAt: new Date(raw.visitedAt),
+})
+
+const parseCaptureService = (raw: RawCaptureService): CaptureService => ({
+  ...raw,
+  createdAt: new Date(raw.createdAt),
+  scheduledDate: raw.scheduledDate ? new Date(raw.scheduledDate) : undefined,
+})
+
+const parseBookingSlot = (raw: RawBookingSlot): BookingSlot => ({
+  ...raw,
+  date: new Date(raw.date),
+})
+
+const parsePropertyMerge = (raw: RawPropertyMerge): PropertyMerge => ({
+  ...raw,
+  createdAt: new Date(raw.createdAt),
+})
+
+const parseTechnician = (raw: RawTechnicianProfile): TechnicianProfile => ({
+  ...raw,
+  availability: raw.availability.map((value) => new Date(value)),
+})
+
+const parseMockData = (raw: RawMockData) => ({
+  properties: Array.isArray(raw.properties) ? raw.properties.map(parseProperty) : [],
+  leads: Array.isArray(raw.leads) ? raw.leads.map(parseLead) : [],
+  visitors: Array.isArray(raw.visitors) ? raw.visitors.map(parseVisitor) : [],
+  captureServices: Array.isArray(raw.captureServices)
+    ? raw.captureServices.map(parseCaptureService)
+    : [],
+  bookingSlots: Array.isArray(raw.bookingSlots) ? raw.bookingSlots.map(parseBookingSlot) : [],
+  propertyMerges: Array.isArray(raw.propertyMerges)
+    ? raw.propertyMerges.map(parsePropertyMerge)
+    : [],
+  crossPlatformShares: raw.crossPlatformShares ?? [],
+  floorPlans: raw.floorPlans ?? [],
+  modelAssets: raw.modelAssets ?? [],
+  sceneTypeConfigs: raw.sceneTypeConfigs ?? [],
+  technicians: Array.isArray(raw.technicians) ? raw.technicians.map(parseTechnician) : [],
+  brandingSettings: raw.brandingSettings ?? {},
+})
 
 interface DataContextType {
   properties: Property[]
@@ -45,6 +130,7 @@ interface DataContextType {
   sceneTypeConfigs: SceneTypeConfig[]
   technicians: TechnicianProfile[]
   brandingSettings: Record<string, CSSCustomization>
+  isLoading: boolean
   addProperty: (property: Property) => void
   updateProperty: (id: string, property: Partial<Property>) => void
   deleteProperty: (id: string) => void
@@ -73,21 +159,61 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined)
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
-  const [properties, setProperties] = useState<Property[]>(mockProperties)
-  const [leads, setLeads] = useState<Lead[]>(mockLeads)
-  const [visitors, setVisitors] = useState<Visitor[]>(mockVisitors)
-  const [captureServices, setCaptureServices] = useState<CaptureService[]>(mockCaptureServices)
-  const [bookingSlots, setBookingSlots] = useState<BookingSlot[]>(mockBookingSlots)
-  const [propertyMerges, setPropertyMerges] = useState<PropertyMerge[]>(mockPropertyMerges)
-  const [crossPlatformShares, setCrossPlatformShares] =
-    useState<CrossPlatformShare[]>(mockCrossPlatformShares)
-  const [floorPlans] = useState<FloorPlan[]>(mockFloorPlans)
-  const [modelAssets, setModelAssets] = useState<Model3DAsset[]>(mockModelAssets)
-  const [sceneTypeConfigs, setSceneTypeConfigs] = useState<SceneTypeConfig[]>(mockSceneTypeConfigs)
-  const [technicians] = useState<TechnicianProfile[]>(mockTechnicians)
-  const [brandingSettings, setBrandingSettings] = useState<Record<string, CSSCustomization>>(
-    mockBrandingSettings,
-  )
+  const [properties, setProperties] = useState<Property[]>([])
+  const [leads, setLeads] = useState<Lead[]>([])
+  const [visitors, setVisitors] = useState<Visitor[]>([])
+  const [captureServices, setCaptureServices] = useState<CaptureService[]>([])
+  const [bookingSlots, setBookingSlots] = useState<BookingSlot[]>([])
+  const [propertyMerges, setPropertyMerges] = useState<PropertyMerge[]>([])
+  const [crossPlatformShares, setCrossPlatformShares] = useState<CrossPlatformShare[]>([])
+  const [floorPlans, setFloorPlans] = useState<FloorPlan[]>([])
+  const [modelAssets, setModelAssets] = useState<Model3DAsset[]>([])
+  const [sceneTypeConfigs, setSceneTypeConfigs] = useState<SceneTypeConfig[]>([])
+  const [technicians, setTechnicians] = useState<TechnicianProfile[]>([])
+  const [brandingSettings, setBrandingSettings] = useState<Record<string, CSSCustomization>>({})
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadData = async () => {
+      try {
+        const response = await fetch("/mock-data.json")
+        if (!response.ok) {
+          throw new Error(`Failed to load mock data: ${response.status}`)
+        }
+        const raw = (await response.json()) as RawMockData
+        if (cancelled) {
+          return
+        }
+        const parsed = parseMockData(raw)
+        setProperties(parsed.properties)
+        setLeads(parsed.leads)
+        setVisitors(parsed.visitors)
+        setCaptureServices(parsed.captureServices)
+        setBookingSlots(parsed.bookingSlots)
+        setPropertyMerges(parsed.propertyMerges)
+        setCrossPlatformShares(parsed.crossPlatformShares)
+        setFloorPlans(parsed.floorPlans)
+        setModelAssets(parsed.modelAssets)
+        setSceneTypeConfigs(parsed.sceneTypeConfigs)
+        setTechnicians(parsed.technicians)
+        setBrandingSettings(parsed.brandingSettings)
+      } catch (error) {
+        console.error("Unable to load mock data", error)
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    loadData()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const addProperty = useCallback((property: Property) => {
     setProperties((prev) => [...prev, property])
@@ -243,17 +369,18 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         captureServices,
         bookingSlots,
         propertyMerges,
-        crossPlatformShares,
-        floorPlans,
-        modelAssets,
-        sceneTypeConfigs,
-        technicians,
-        brandingSettings,
-        addProperty,
-        updateProperty,
-        deleteProperty,
-        addLead,
-        updateLead,
+      crossPlatformShares,
+      floorPlans,
+      modelAssets,
+      sceneTypeConfigs,
+      technicians,
+      brandingSettings,
+      isLoading,
+      addProperty,
+      updateProperty,
+      deleteProperty,
+      addLead,
+      updateLead,
         addVisitor,
         getPropertyStats,
         updateCaptureService,
