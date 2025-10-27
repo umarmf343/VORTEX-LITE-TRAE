@@ -7,7 +7,6 @@ import type {
   BookingSlot,
   PropertyMerge,
   CrossPlatformShare,
-  WooCommerceProduct,
   Model3DAsset,
   SceneTypeConfig,
   TechnicianProfile,
@@ -695,27 +694,6 @@ export const mockCrossPlatformShares: CrossPlatformShare[] = [
       realtorCom: "https://www.realtor.com/...",
       zillow: "https://www.zillow.com/...",
     },
-  },
-]
-
-export const mockWooCommerceProducts: WooCommerceProduct[] = [
-  {
-    id: "product-001",
-    propertyId: "prop-001",
-    name: "Smart Lighting Package",
-    price: 499,
-    sku: "SL-500",
-    image: "/open-concept-living-area.jpg",
-    hotspotId: "hotspot-002",
-  },
-  {
-    id: "product-002",
-    propertyId: "prop-002",
-    name: "Outdoor Furniture Set",
-    price: 899,
-    sku: "OF-899",
-    image: "/backyard-with-pool.png",
-    hotspotId: "hotspot-008",
   },
 ]
 

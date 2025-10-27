@@ -12,7 +12,6 @@ import type {
   Scene,
   SceneEngagementPayload,
   TourPoint,
-  WooCommerceProduct,
 } from "@/lib/types"
 import { SceneViewer } from "./scene-viewer"
 import { FloorPlanViewer } from "./floor-plan-viewer"
@@ -28,7 +27,6 @@ import {
   Mail,
   Share2,
   Heart,
-  ShoppingCart,
   PlayCircle,
   Square,
   ArrowUp,
@@ -75,7 +73,6 @@ interface TourPlayerProps {
   floorPlan?: FloorPlan | null
   onLeadCapture?: (lead: LeadCapturePayload) => void
   onEngagementTrack?: (engagement: SceneEngagementPayload) => void
-  products?: WooCommerceProduct[]
 }
 
 const detectWebGL2Support = () => {
@@ -98,13 +95,7 @@ const detectWebGL2Support = () => {
   }
 }
 
-export function TourPlayer({
-  property,
-  floorPlan,
-  onLeadCapture,
-  onEngagementTrack,
-  products = [],
-}: TourPlayerProps) {
+export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTrack }: TourPlayerProps) {
   const [currentSceneIndex, setCurrentSceneIndex] = useState(0)
   const [showLeadForm, setShowLeadForm] = useState(false)
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", message: "" })
@@ -112,7 +103,6 @@ export function TourPlayer({
   const [isFavorite, setIsFavorite] = useState(property.isFavorite ?? false)
   const [showShareMenu, setShowShareMenu] = useState(false)
   const [showFloorPlan, setShowFloorPlan] = useState(false)
-  const [selectedProduct, setSelectedProduct] = useState<WooCommerceProduct | null>(null)
   const [tourPoints, setTourPoints] = useState<TourPoint[]>([])
   const [isTourPlaying, setIsTourPlaying] = useState(false)
   const [activeTourIndex, setActiveTourIndex] = useState(0)
@@ -160,21 +150,6 @@ export function TourPlayer({
   const sceneEngagement = useRef<Record<string, number>>({})
   const tourTimeoutRef = useRef<number | null>(null)
   const TOUR_STEP_DURATION = 8000
-  const { productHotspotMap, productHotspotIds } = useMemo(() => {
-    const map = new Map<string, WooCommerceProduct>()
-    const ids: string[] = []
-
-    for (const product of products) {
-      if (product.hotspotId) {
-        map.set(product.hotspotId, product)
-        if (!ids.includes(product.hotspotId)) {
-          ids.push(product.hotspotId)
-        }
-      }
-    }
-
-    return { productHotspotMap: map, productHotspotIds: ids }
-  }, [products])
 
   useEffect(() => {
     setShowFloorPlan(false)
@@ -182,7 +157,6 @@ export function TourPlayer({
     setSessionStart(Date.now())
     setIsFavorite(property.isFavorite ?? false)
     setShowShareMenu(false)
-    setSelectedProduct(null)
     sceneEngagement.current = {}
     setTourPoints([])
     setIsTourPlaying(false)
@@ -223,13 +197,6 @@ export function TourPlayer({
       setIsTourPlaying(false)
     }
   }, [is3DEnabled])
-
-  useEffect(() => {
-    if (selectedProduct && !products.some((product) => product.id === selectedProduct.id)) {
-      setSelectedProduct(null)
-    }
-  }, [products, selectedProduct])
-
   useEffect(() => {
     fallbackOffsetRef.current = fallbackOffset
   }, [fallbackOffset])
@@ -454,12 +421,8 @@ export function TourPlayer({
   const activateHotspot = useCallback(
     (hotspot: Hotspot) => {
       setActiveHotspot(hotspot)
-      const productMatch = productHotspotMap.get(hotspot.id)
-      if (productMatch) {
-        setSelectedProduct(productMatch)
-      }
     },
-    [productHotspotMap],
+    [],
   )
 
   const focusHotspot = useCallback(
@@ -623,14 +586,6 @@ export function TourPlayer({
     }
   }
 
-  const handleProductSelect = (product: WooCommerceProduct) => {
-    setSelectedProduct(product)
-  }
-
-  const handleProductPurchase = (product: WooCommerceProduct) => {
-    alert(`Purchase initiated for ${product.name}. We will redirect you to checkout shortly.`)
-  }
-
   const handleHotspotMediaPreview = useCallback(
     (hotspot: Hotspot) => {
       activateHotspot(hotspot)
@@ -790,7 +745,6 @@ export function TourPlayer({
               dayNightImages={property.dayNightImages}
               enableVR
               enableGyroscope
-              productHotspotIds={productHotspotIds}
               sceneTransition={property.sceneTransition ?? "fade"}
               onTourPointCreate={handleTourPointCreate}
               targetOrientation={pendingOrientation}
@@ -1430,92 +1384,6 @@ export function TourPlayer({
               </Button>
             </div>
           </Card>
-
-          {products.length > 0 && (
-            <Card className="p-4 bg-gray-900 border-gray-800">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-white">Available Upgrades</h3>
-                <span className="text-xs text-gray-400">{products.length} options</span>
-              </div>
-              <div className="space-y-3">
-                {products.map((product) => (
-                  <div key={product.id} className="flex gap-3 rounded-lg bg-gray-800/60 p-3">
-                    {product.image && (
-                      <img
-                        src={product.image || "/placeholder.svg"}
-                        alt={product.name}
-                        className="w-16 h-16 object-cover rounded"
-                      />
-                    )}
-                    <div className="flex-1">
-                      <p className="font-medium text-white text-sm">{product.name}</p>
-                      <p className="text-xs text-gray-400 mb-2">{formatCurrency(product.price)}</p>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() => handleProductSelect(product)}
-                          className="flex-1 gap-2"
-                          style={{ backgroundColor: property.branding.primaryColor }}
-                        >
-                          <ShoppingCart className="w-4 h-4" />
-                          View
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleProductPurchase(product)}
-                          className="flex-1"
-                        >
-                          Buy Now
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          )}
-
-          {selectedProduct && (
-            <Card className="p-4 bg-gray-900 border-gray-800">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
-                  <ShoppingCart className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-white">Selected Upgrade</h3>
-                  <p className="text-xs text-gray-400">Checkout without leaving the virtual tour.</p>
-                </div>
-              </div>
-              <div className="space-y-3">
-                {selectedProduct.image && (
-                  <img
-                    src={selectedProduct.image || "/placeholder.svg"}
-                    alt={selectedProduct.name}
-                    className="w-full h-32 object-cover rounded"
-                  />
-                )}
-                <div className="text-sm text-gray-300 space-y-1">
-                  <p className="font-semibold text-white">{selectedProduct.name}</p>
-                  <p className="text-xs text-gray-400">SKU: {selectedProduct.sku}</p>
-                  <p className="text-base font-semibold text-white">{formatCurrency(selectedProduct.price)}</p>
-                </div>
-              </div>
-              <div className="flex gap-2 mt-4">
-                <Button
-                  className="flex-1 gap-2"
-                  onClick={() => handleProductPurchase(selectedProduct)}
-                  style={{ backgroundColor: property.branding.primaryColor }}
-                >
-                  <ShoppingCart className="w-4 h-4" />
-                  Add to Cart
-                </Button>
-                <Button variant="outline" className="flex-1" onClick={() => setSelectedProduct(null)}>
-                  Close
-                </Button>
-              </div>
-            </Card>
-          )}
 
           {/* Share */}
           <Card className="p-4 bg-gray-900 border-gray-800">
