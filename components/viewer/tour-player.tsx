@@ -179,6 +179,30 @@ export function TourPlayer({
   }, [])
   const guidedTours = property.guidedTours ?? []
 
+  const handleSceneEngagement = useCallback(
+    (sceneId: string, dwellTime: number) => {
+      sceneEngagement.current[sceneId] = (sceneEngagement.current[sceneId] || 0) + dwellTime
+      onEngagementTrack?.({
+        sceneId,
+        dwellTime,
+        totalEngagement: sceneEngagement.current,
+      })
+    },
+    [onEngagementTrack],
+  )
+
+  const flushSphrDwell = useCallback(() => {
+    if (!sphrActiveNodeRef.current) {
+      return
+    }
+    const dwell = (Date.now() - sphrNodeStartRef.current) / 1000
+    if (dwell > 0.1) {
+      handleSceneEngagement(sphrActiveNodeRef.current, dwell)
+    }
+    sphrActiveNodeRef.current = null
+    sphrNodeStartRef.current = Date.now()
+  }, [handleSceneEngagement])
+
   useEffect(() => {
     setShowFloorPlan(false)
     setCurrentSceneIndex(0)
@@ -745,30 +769,6 @@ export function TourPlayer({
   }, [activeTourIndex, stopTourTimer, tourPoints.length])
 
   useEffect(() => () => stopTourTimer(), [stopTourTimer])
-
-  const handleSceneEngagement = useCallback(
-    (sceneId: string, dwellTime: number) => {
-      sceneEngagement.current[sceneId] = (sceneEngagement.current[sceneId] || 0) + dwellTime
-      onEngagementTrack?.({
-        sceneId,
-        dwellTime,
-        totalEngagement: sceneEngagement.current,
-      })
-    },
-    [onEngagementTrack],
-  )
-
-  const flushSphrDwell = useCallback(() => {
-    if (!sphrActiveNodeRef.current) {
-      return
-    }
-    const dwell = (Date.now() - sphrNodeStartRef.current) / 1000
-    if (dwell > 0.1) {
-      handleSceneEngagement(sphrActiveNodeRef.current, dwell)
-    }
-    sphrActiveNodeRef.current = null
-    sphrNodeStartRef.current = Date.now()
-  }, [handleSceneEngagement])
 
   const handleSphrNodeChange = useCallback(
     (node: SphrSpaceNode) => {
