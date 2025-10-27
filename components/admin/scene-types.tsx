@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Globe, Plus, Trash2 } from "lucide-react"
+import { Globe, Plus, Trash2 } from "@/lib/icons"
 import type { SceneTypeConfig } from "@/lib/types"
 
 interface SceneTypesProps {

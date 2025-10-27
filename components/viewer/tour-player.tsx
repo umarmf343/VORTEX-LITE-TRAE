@@ -47,7 +47,7 @@ import {
   MousePointerClick,
   Ruler,
   Layers,
-} from "lucide-react"
+} from "@/lib/icons"
 import { ZoomControls } from "./zoom-controls"
 
 type SharePlatform = "facebook" | "twitter" | "linkedin" | "email"

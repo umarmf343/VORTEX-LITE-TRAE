@@ -13,7 +13,7 @@ import {
   Pie,
   Cell,
 } from "recharts"
-import { Eye, Users, Clock, TrendingUp, Zap } from "lucide-react"
+import { Eye, Users, Clock, TrendingUp, Zap } from "@/lib/icons"
 
 interface AnalyticsDashboardProps {
   property: Property

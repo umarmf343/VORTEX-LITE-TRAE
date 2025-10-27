@@ -4,7 +4,7 @@ import type { Property, Visitor, Lead } from "@/lib/types"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
-import { Download } from "lucide-react"
+import { Download } from "@/lib/icons"
 
 interface AdvancedAnalyticsProps {
   property: Property

@@ -8,7 +8,7 @@ import type {
 } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Download, FileJson, FileText } from "lucide-react"
+import { Download, FileJson, FileText } from "@/lib/icons"
 import { useState } from "react"
 
 interface PropertyReportsProps {

@@ -4,7 +4,7 @@ import type { TechnicianProfile, CaptureService } from "@/lib/types"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
-import { Star, Calendar, CheckCircle } from "lucide-react"
+import { Star, Calendar, CheckCircle } from "@/lib/icons"
 
 interface TechnicianManagementProps {
   technicians: TechnicianProfile[]

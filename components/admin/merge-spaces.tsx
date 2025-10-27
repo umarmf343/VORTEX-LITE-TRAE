@@ -4,7 +4,7 @@ import type { Property, PropertyMerge } from "@/lib/types"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
-import { Plus, Trash2 } from "lucide-react"
+import { Plus, Trash2 } from "@/lib/icons"
 
 interface MergeSpacesProps {
   properties: Property[]
