@@ -39,7 +39,7 @@ export function Models3D({ propertyId, models = [], onAddModel, onRemoveModel }:
   return (
     <div className="space-y-6">
       <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-center gap-3">
             <Cube className="w-6 h-6 text-purple-600" />
             <div>
@@ -107,14 +107,17 @@ export function Models3D({ propertyId, models = [], onAddModel, onRemoveModel }:
             <p className="text-gray-500 text-sm">No 3D models added yet</p>
           ) : (
             models.map((model) => (
-              <div key={model.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+              <div
+                key={model.id}
+                className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 bg-gray-50 rounded"
+              >
                 <div>
                   <p className="font-medium">{model.name}</p>
                   <p className="text-sm text-gray-600">
                     {model.format.toUpperCase()} • Scale: {model.scale}x
                   </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2 sm:justify-end">
                   <Button
                     size="sm"
                     variant="outline"
@@ -140,7 +143,7 @@ export function Models3D({ propertyId, models = [], onAddModel, onRemoveModel }:
 
       {selectedModel && (
         <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h3 className="font-semibold">Preview: {selectedModel.name}</h3>
             <Button variant="outline" size="sm" onClick={() => setSelectedModel(null)}>
               Close

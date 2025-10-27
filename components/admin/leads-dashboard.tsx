@@ -26,7 +26,7 @@ export function LeadsDashboard({ leads, onUpdateLead }: LeadsDashboardProps) {
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         {(["all", "new", "contacted", "qualified", "lost"] as const).map((status) => (
           <Button
             key={status}
@@ -45,7 +45,7 @@ export function LeadsDashboard({ leads, onUpdateLead }: LeadsDashboardProps) {
           const StatusIcon = statusConfig[lead.status].icon
           return (
             <Card key={lead.id} className="p-4">
-              <div className="flex items-start justify-between">
+              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="font-semibold text-lg">{lead.name}</h3>
@@ -69,7 +69,7 @@ export function LeadsDashboard({ leads, onUpdateLead }: LeadsDashboardProps) {
                     </div>
                   </div>
                   <p className="text-sm text-gray-700 mb-2">{lead.message}</p>
-                  <div className="flex gap-4 text-xs text-gray-500">
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
                     <span>Visit Duration: {lead.visitDuration.toFixed(1)} min</span>
                     <span>Scenes Viewed: {lead.scenesViewed}</span>
                     <span>Created: {new Date(lead.createdAt).toLocaleDateString()}</span>
@@ -80,7 +80,7 @@ export function LeadsDashboard({ leads, onUpdateLead }: LeadsDashboardProps) {
                     </div>
                   )}
                 </div>
-                <div className="flex gap-2 ml-4">
+                <div className="flex flex-wrap gap-2 md:ml-4 md:justify-end">
                   {lead.status !== "qualified" && (
                     <Button
                       size="sm"

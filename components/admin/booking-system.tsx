@@ -46,7 +46,7 @@ export function BookingSystem({ propertyId, slots, onBook }: BookingSystemProps)
                 }`}
                 onClick={() => setSelectedSlot(slot)}
               >
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3">
                     <Calendar className="w-4 h-4 text-gray-600" />
                     <div>
@@ -92,7 +92,7 @@ export function BookingSystem({ propertyId, slots, onBook }: BookingSystemProps)
               onChange={(e) => setVisitorInfo({ ...visitorInfo, phone: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg"
             />
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <Button onClick={handleBooking} className="flex-1">
                 Confirm Booking
               </Button>

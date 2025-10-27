@@ -60,7 +60,7 @@ export function AnalyticsDashboard({ property, visitors, leads }: AnalyticsDashb
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-gray-600 text-sm">Total Visits</p>
               <p className="text-2xl font-bold">{propertyVisitors.length}</p>
@@ -69,7 +69,7 @@ export function AnalyticsDashboard({ property, visitors, leads }: AnalyticsDashb
           </div>
         </Card>
         <Card className="p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-gray-600 text-sm">Unique Visitors</p>
               <p className="text-2xl font-bold">{new Set(propertyVisitors.map((v) => v.sessionId)).size}</p>
@@ -78,7 +78,7 @@ export function AnalyticsDashboard({ property, visitors, leads }: AnalyticsDashb
           </div>
         </Card>
         <Card className="p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-gray-600 text-sm">Avg Duration</p>
               <p className="text-2xl font-bold">{avgDuration}m</p>
@@ -87,7 +87,7 @@ export function AnalyticsDashboard({ property, visitors, leads }: AnalyticsDashb
           </div>
         </Card>
         <Card className="p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-gray-600 text-sm">Leads Generated</p>
               <p className="text-2xl font-bold">{propertyLeads.length}</p>
@@ -96,7 +96,7 @@ export function AnalyticsDashboard({ property, visitors, leads }: AnalyticsDashb
           </div>
         </Card>
         <Card className="p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-gray-600 text-sm">Conversion Rate</p>
               <p className="text-2xl font-bold">{conversionRate}%</p>
@@ -150,12 +150,12 @@ export function AnalyticsDashboard({ property, visitors, leads }: AnalyticsDashb
         <h3 className="font-semibold mb-4">Recent Leads</h3>
         <div className="space-y-3">
           {propertyLeads.slice(0, 5).map((lead) => (
-            <div key={lead.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-              <div>
+            <div key={lead.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 bg-gray-50 rounded">
+              <div className="w-full sm:w-auto">
                 <p className="font-medium">{lead.name}</p>
                 <p className="text-sm text-gray-600">{lead.email}</p>
               </div>
-              <div className="text-right">
+              <div className="text-sm text-gray-600 sm:text-right">
                 <p className="text-sm font-medium">{lead.phone}</p>
                 <p
                   className={`text-xs px-2 py-1 rounded ${

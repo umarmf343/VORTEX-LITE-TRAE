@@ -112,7 +112,7 @@ export function CrossPlatformSharing({ propertyId, sharing }: CrossPlatformShari
                   isEnabled ? "border-green-300 bg-green-50" : "border-gray-200 bg-gray-50"
                 }`}
               >
-                <div className="flex items-start justify-between mb-3">
+                <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <p className="font-semibold">{platform.name}</p>
                     <p className="text-sm text-gray-600">{platform.description}</p>
@@ -121,7 +121,7 @@ export function CrossPlatformSharing({ propertyId, sharing }: CrossPlatformShari
                 </div>
 
                 {isEnabled && (
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row">
                     <Button
                       size="sm"
                       variant="outline"

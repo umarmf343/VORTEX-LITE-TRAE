@@ -39,7 +39,7 @@ export function TechnicianManagement({ technicians, services, onAssignTechnician
                 }`}
                 onClick={() => setSelectedTech(tech.id)}
               >
-                <div className="flex items-start justify-between mb-2">
+                <div className="mb-2 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <p className="font-semibold">{tech.name}</p>
                     <p className="text-sm text-gray-600">{tech.email}</p>
