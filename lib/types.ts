@@ -59,6 +59,11 @@ export interface Hotspot {
   clickCount?: number
 }
 
+export interface MeasurementPoint {
+  x: number
+  y: number
+}
+
 export interface Measurement {
   id: string
   startX: number
@@ -68,6 +73,10 @@ export interface Measurement {
   distance: number
   unit: "ft" | "m"
   measurementType: "distance" | "area" | "volume"
+  label?: string
+  points?: MeasurementPoint[]
+  height?: number
+  createdAt?: string
 }
 
 export interface Annotation {

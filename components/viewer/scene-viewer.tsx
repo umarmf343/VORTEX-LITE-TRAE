@@ -196,22 +196,10 @@ const recordEqual = (a: Record<string, ProjectedPoint>, b: Record<string, Projec
   return true
 }
 
-const measurementRecordEqual = (
-  a: Record<string, { start: ProjectedPoint; end: ProjectedPoint }>,
-  b: Record<string, { start: ProjectedPoint; end: ProjectedPoint }>,
-) => {
-  const keysA = Object.keys(a)
-  const keysB = Object.keys(b)
-  if (keysA.length !== keysB.length) return false
-  for (const key of keysA) {
-    const valueA = a[key]
-    const valueB = b[key]
-    if (!valueA || !valueB) return false
-    if (!pointsEqual(valueA.start, valueB.start) || !pointsEqual(valueA.end, valueB.end)) {
-      return false
-    }
-  }
-  return true
+type ProjectedMeasurement = {
+  start: ProjectedPoint
+  end: ProjectedPoint
+  points?: ProjectedPoint[]
 }
 
 const projectedArrayEqual = (a: ProjectedPoint[], b: ProjectedPoint[]) => {
@@ -220,6 +208,107 @@ const projectedArrayEqual = (a: ProjectedPoint[], b: ProjectedPoint[]) => {
     if (!pointsEqual(a[i], b[i])) return false
   }
   return true
+}
+
+const measurementRecordEqual = (
+  a: Record<string, ProjectedMeasurement>,
+  b: Record<string, ProjectedMeasurement>,
+) => {
+  const keysA = Object.keys(a)
+  const keysB = Object.keys(b)
+  if (keysA.length !== keysB.length) return false
+  for (const key of keysA) {
+    const measurementA = a[key]
+    const measurementB = b[key]
+    if (!measurementA || !measurementB) return false
+    if (!pointsEqual(measurementA.start, measurementB.start)) return false
+    if (!pointsEqual(measurementA.end, measurementB.end)) return false
+    const pointsA = measurementA.points ?? []
+    const pointsB = measurementB.points ?? []
+    if (!projectedArrayEqual(pointsA, pointsB)) return false
+  }
+  return true
+}
+
+const distanceBetweenPercentPoints = (
+  a: { x: number; y: number },
+  b: { x: number; y: number },
+) => Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2))
+
+const polygonAreaPercent = (points: Array<{ x: number; y: number }>) => {
+  if (points.length < 3) return 0
+  let area = 0
+  for (let i = 0; i < points.length; i++) {
+    const current = points[i]
+    const next = points[(i + 1) % points.length]
+    area += current.x * next.y - next.x * current.y
+  }
+  return Math.abs(area / 2)
+}
+
+const polygonCentroid = (points: Array<{ x: number; y: number }>) => {
+  if (points.length === 0) return { x: 0, y: 0 }
+  const twiceArea =
+    points.length < 3
+      ? points.reduce((sum, point) => ({ x: sum.x + point.x, y: sum.y + point.y }), { x: 0, y: 0 })
+      : null
+  if (twiceArea === null) {
+    let cx = 0
+    let cy = 0
+    let area = 0
+    for (let i = 0; i < points.length; i++) {
+      const current = points[i]
+      const next = points[(i + 1) % points.length]
+      const cross = current.x * next.y - next.x * current.y
+      cx += (current.x + next.x) * cross
+      cy += (current.y + next.y) * cross
+      area += cross
+    }
+    area *= 0.5
+    if (area === 0) {
+      const fallback = points.reduce(
+        (sum, point) => ({ x: sum.x + point.x, y: sum.y + point.y }),
+        { x: 0, y: 0 },
+      )
+      return { x: fallback.x / points.length, y: fallback.y / points.length }
+    }
+    const factor = 1 / (6 * area)
+    return { x: cx * factor, y: cy * factor }
+  }
+  return { x: twiceArea.x / points.length, y: twiceArea.y / points.length }
+}
+
+const isCloseToPoint = (
+  a: { x: number; y: number },
+  b: { x: number; y: number },
+  threshold = 2,
+) => distanceBetweenPercentPoints(a, b) <= threshold
+
+const convertMeasurementValue = (
+  value: number,
+  fromUnit: "ft" | "m",
+  toUnit: "ft" | "m",
+  type: Measurement["measurementType"],
+) => {
+  if (fromUnit === toUnit) return value
+  const factor = fromUnit === "ft" ? 0.3048 : 3.28084
+  if (type === "area") {
+    return value * Math.pow(factor, 2)
+  }
+  if (type === "volume") {
+    return value * Math.pow(factor, 3)
+  }
+  return value * factor
+}
+
+const measurementUnitLabel = (unit: "ft" | "m", type: Measurement["measurementType"]) => {
+  if (type === "area") {
+    return `${unit}²`
+  }
+  if (type === "volume") {
+    return `${unit}³`
+  }
+  return unit
 }
 
 interface SceneViewerProps {
@@ -295,6 +384,11 @@ export function SceneViewer({
   const [audioVolume, setAudioVolume] = useState(0.5)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [areaPoints, setAreaPoints] = useState<Array<{ x: number; y: number }>>([])
+  const [volumePoints, setVolumePoints] = useState<Array<{ x: number; y: number }>>([])
+  const [hoverPoint, setHoverPoint] = useState<{ x: number; y: number } | null>(null)
+  const [displayUnit, setDisplayUnit] = useState<"ft" | "m">("ft")
+  const [pendingVolumeHeight, setPendingVolumeHeight] = useState(9)
+  const [showMeasurementPanel, setShowMeasurementPanel] = useState(false)
   const [showViewModes, setShowViewModes] = useState(false)
   const [cameraFov, setCameraFov] = useState(DEFAULT_FOV)
   const [showWalkthroughGuides, setShowWalkthroughGuides] = useState(true)
@@ -315,6 +409,7 @@ export function SceneViewer({
         setMeasureStart(null)
         setAreaPoints([])
         setVolumePoints([])
+        setHoverPoint(null)
       }
     },
     [],
@@ -342,7 +437,6 @@ export function SceneViewer({
       : resolvedViewModes[0] ?? "360"
     return preferred
   })
-  const [volumePoints, setVolumePoints] = useState<Array<{ x: number; y: number; z: number }>>([])
   const [renderError, setRenderError] = useState<string | null>(null)
   const [transitionActive, setTransitionActive] = useState(false)
   const [transitionKey, setTransitionKey] = useState(0)
@@ -386,8 +480,93 @@ export function SceneViewer({
   const visibleAnnotationsRef = useRef<Annotation[]>([])
   const showAnnotationsRef = useRef(showAnnotations)
   const areaPointsRef = useRef<Array<{ x: number; y: number }>>([])
-  const volumePointsRef = useRef<Array<{ x: number; y: number; z: number }>>([])
+  const volumePointsRef = useRef<Array<{ x: number; y: number }>>([])
   const keyStateRef = useRef<Record<string, boolean>>({})
+  const distanceScaleFt = useMemo(() => {
+    const sample = measurements.find(
+      (measurement) => measurement.measurementType === "distance" && measurement.distance > 0,
+    )
+    if (!sample) return 1
+    const raw = distanceBetweenPercentPoints(
+      { x: sample.startX, y: sample.startY },
+      { x: sample.endX, y: sample.endY },
+    )
+    if (raw === 0) return 1
+    const distanceFt =
+      sample.unit === "ft"
+        ? sample.distance
+        : convertMeasurementValue(sample.distance, sample.unit, "ft", "distance")
+    if (!Number.isFinite(distanceFt) || distanceFt <= 0) {
+      return 1
+    }
+    return distanceFt / raw
+  }, [measurements])
+
+  const convertRawDistance = useCallback(
+    (raw: number, unit: "ft" | "m" = "ft") => {
+      const base = raw * distanceScaleFt
+      return unit === "ft" ? base : convertMeasurementValue(base, "ft", unit, "distance")
+    },
+    [distanceScaleFt],
+  )
+
+  const convertRawArea = useCallback(
+    (raw: number, unit: "ft" | "m" = "ft") => {
+      const base = Math.pow(distanceScaleFt, 2) * raw
+      return unit === "ft" ? base : convertMeasurementValue(base, "ft", unit, "area")
+    },
+    [distanceScaleFt],
+  )
+
+  const formatMeasurementDisplay = useCallback(
+    (measurement: Measurement) => {
+      const converted = convertMeasurementValue(
+        measurement.distance,
+        measurement.unit,
+        displayUnit,
+        measurement.measurementType,
+      )
+      const decimals = measurement.measurementType === "distance" ? 2 : 1
+      return `${converted.toFixed(decimals)} ${measurementUnitLabel(displayUnit, measurement.measurementType)}`
+    },
+    [displayUnit],
+  )
+
+  const getNextMeasurementLabel = useCallback(
+    (type: Measurement["measurementType"]) => {
+      const existing = measurements.filter((measurement) => measurement.measurementType === type).length
+      const baseLabel =
+        type === "distance" ? "Distance" : type === "area" ? "Area" : "Volume"
+      return `${baseLabel} ${existing + 1}`
+    },
+    [measurements],
+  )
+
+  const addMeasurement = useCallback(
+    (measurement: Measurement) => {
+      setMeasurements((prev) => [...prev, measurement])
+      onMeasure?.(measurement)
+    },
+    [onMeasure],
+  )
+  const removeMeasurement = useCallback((id: string) => {
+    setMeasurements((prev) => prev.filter((measurement) => measurement.id !== id))
+  }, [])
+
+  const clearMeasurements = useCallback(() => {
+    setMeasurements([])
+  }, [])
+
+  const measurementCounts = useMemo(() => {
+    return {
+      total: measurements.length,
+      distance: measurements.filter((measurement) => measurement.measurementType === "distance").length,
+      area: measurements.filter((measurement) => measurement.measurementType === "area").length,
+      volume: measurements.filter((measurement) => measurement.measurementType === "volume").length,
+    }
+  }, [measurements])
+  const hasMeasurements = measurementCounts.total > 0
+  const measurementPanelVisible = showMeasurementPanel || measuring
   const updateCameraFov = useCallback((nextFov: number) => {
     const clamped = Math.max(MIN_FOV, Math.min(MAX_FOV, nextFov))
     const context = threeContextRef.current
@@ -400,9 +579,7 @@ export function SceneViewer({
   }, [])
   const [projectedHotspots, setProjectedHotspots] = useState<Record<string, ProjectedPoint>>({})
   const [projectedAnnotations, setProjectedAnnotations] = useState<Record<string, ProjectedPoint>>({})
-  const [projectedMeasurements, setProjectedMeasurements] = useState<
-    Record<string, { start: ProjectedPoint; end: ProjectedPoint }>
-  >({})
+  const [projectedMeasurements, setProjectedMeasurements] = useState<Record<string, ProjectedMeasurement>>({})
   const [projectedAreaPoints, setProjectedAreaPoints] = useState<ProjectedPoint[]>([])
   const [projectedVolumePoints, setProjectedVolumePoints] = useState<ProjectedPoint[]>([])
   const visibleAnnotations = useMemo(
@@ -431,8 +608,11 @@ export function SceneViewer({
     setMeasureStart(null)
     setAreaPoints([])
     setVolumePoints([])
+    setHoverPoint(null)
     setShowAnnotationInput(false)
     setAnnotationText("")
+    setShowMeasurementPanel(false)
+    setPendingVolumeHeight(9)
     lonRef.current = 0
     latRef.current = 0
     hotspotsRef.current = scene.hotspots
@@ -477,11 +657,24 @@ export function SceneViewer({
   }, [measurementMode, updateMeasuring])
 
   useEffect(() => {
+    if (measuring) {
+      setShowMeasurementPanel(true)
+    }
+  }, [measuring])
+
+  useEffect(() => {
     if (measurementsOverride !== undefined) {
       setMeasurements(measurementsOverride)
       measurementsRef.current = measurementsOverride
     }
   }, [measurementsOverride])
+
+  useEffect(() => {
+    setMeasureStart(null)
+    setAreaPoints([])
+    setVolumePoints([])
+    setHoverPoint(null)
+  }, [measurementType])
 
   useEffect(() => {
     visibleAnnotationsRef.current = visibleAnnotations
@@ -628,11 +821,15 @@ export function SceneViewer({
     }
     setProjectedAnnotations((prev) => (recordEqual(prev, nextAnnotations) ? prev : nextAnnotations))
 
-    const nextMeasurements: Record<string, { start: ProjectedPoint; end: ProjectedPoint }> = {}
+    const nextMeasurements: Record<string, ProjectedMeasurement> = {}
     for (const measurement of measurementsRef.current) {
       const start = projectPercent(measurement.startX, measurement.startY)
       const end = projectPercent(measurement.endX, measurement.endY)
-      nextMeasurements[measurement.id] = { start, end }
+      const projected: ProjectedMeasurement = { start, end }
+      if (measurement.points && measurement.points.length > 0) {
+        projected.points = measurement.points.map((point) => projectPercent(point.x, point.y))
+      }
+      nextMeasurements[measurement.id] = projected
     }
     setProjectedMeasurements((prev) => (measurementRecordEqual(prev, nextMeasurements) ? prev : nextMeasurements))
 
@@ -1031,6 +1228,79 @@ export function SceneViewer({
     [currentViewMode],
   )
 
+  const finalizeDistanceMeasurement = useCallback(
+    (start: { x: number; y: number }, end: { x: number; y: number }) => {
+      const raw = distanceBetweenPercentPoints(start, end)
+      if (raw === 0) return
+      const distanceFt = convertRawDistance(raw, "ft")
+      const measurement: Measurement = {
+        id: `measure-${Date.now()}`,
+        startX: start.x,
+        startY: start.y,
+        endX: end.x,
+        endY: end.y,
+        distance: Number.parseFloat(distanceFt.toFixed(2)),
+        unit: "ft",
+        measurementType: "distance",
+        label: getNextMeasurementLabel("distance"),
+        createdAt: new Date().toISOString(),
+      }
+      addMeasurement(measurement)
+    },
+    [addMeasurement, convertRawDistance, getNextMeasurementLabel],
+  )
+
+  const finalizeAreaMeasurement = useCallback(
+    (points: Array<{ x: number; y: number }>) => {
+      if (points.length < 3) return
+      const rawArea = polygonAreaPercent(points)
+      if (rawArea === 0) return
+      const areaFt = convertRawArea(rawArea, "ft")
+      const measurement: Measurement = {
+        id: `measure-${Date.now()}`,
+        startX: points[0].x,
+        startY: points[0].y,
+        endX: points[points.length - 1].x,
+        endY: points[points.length - 1].y,
+        distance: Number.parseFloat(areaFt.toFixed(1)),
+        unit: "ft",
+        measurementType: "area",
+        points: points.map((point) => ({ ...point })),
+        label: getNextMeasurementLabel("area"),
+        createdAt: new Date().toISOString(),
+      }
+      addMeasurement(measurement)
+    },
+    [addMeasurement, convertRawArea, getNextMeasurementLabel],
+  )
+
+  const finalizeVolumeMeasurement = useCallback(
+    (points: Array<{ x: number; y: number }>, heightFt: number) => {
+      if (points.length < 3) return
+      const rawArea = polygonAreaPercent(points)
+      if (rawArea === 0) return
+      const baseAreaFt = convertRawArea(rawArea, "ft")
+      const safeHeight = Math.max(0.1, heightFt)
+      const volumeFt = baseAreaFt * safeHeight
+      const measurement: Measurement = {
+        id: `measure-${Date.now()}`,
+        startX: points[0].x,
+        startY: points[0].y,
+        endX: points[points.length - 1].x,
+        endY: points[points.length - 1].y,
+        distance: Number.parseFloat(volumeFt.toFixed(1)),
+        unit: "ft",
+        measurementType: "volume",
+        points: points.map((point) => ({ ...point })),
+        height: Number.parseFloat(safeHeight.toFixed(2)),
+        label: getNextMeasurementLabel("volume"),
+        createdAt: new Date().toISOString(),
+      }
+      addMeasurement(measurement)
+    },
+    [addMeasurement, convertRawArea, getNextMeasurementLabel],
+  )
+
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const percent = getPointerPercent(e)
     if (!percent) return
@@ -1038,62 +1308,34 @@ export function SceneViewer({
     const { x, y } = percent
 
     if (measuring) {
+      setShowMeasurementPanel(true)
       if (measurementType === "distance") {
         if (!measureStart) {
           setMeasureStart({ x, y })
         } else {
-          const distance = Math.sqrt(Math.pow(x - measureStart.x, 2) + Math.pow(y - measureStart.y, 2))
-          const newMeasurement: Measurement = {
-            id: `measure-${Date.now()}`,
-            startX: measureStart.x,
-            startY: measureStart.y,
-            endX: x,
-            endY: y,
-            distance: Number.parseFloat((distance * 10).toFixed(2)),
-            unit: "ft",
-            measurementType: "distance",
-          }
-          setMeasurements((prev) => [...prev, newMeasurement])
+          finalizeDistanceMeasurement(measureStart, { x, y })
           setMeasureStart(null)
-          onMeasure?.(newMeasurement)
+          setHoverPoint(null)
         }
       } else if (measurementType === "area") {
         const newPoints = [...areaPoints, { x, y }]
-        setAreaPoints(newPoints)
-        if (newPoints.length >= 3) {
-          const area = calculatePolygonArea(newPoints)
-          const newMeasurement: Measurement = {
-            id: `measure-${Date.now()}`,
-            startX: newPoints[0].x,
-            startY: newPoints[0].y,
-            endX: newPoints[newPoints.length - 1].x,
-            endY: newPoints[newPoints.length - 1].y,
-            distance: area,
-            unit: "ft",
-            measurementType: "area",
-          }
-          setMeasurements((prev) => [...prev, newMeasurement])
+        if (newPoints.length >= 3 && isCloseToPoint(newPoints[0], newPoints[newPoints.length - 1])) {
+          newPoints.pop()
+          finalizeAreaMeasurement(newPoints)
           setAreaPoints([])
-          onMeasure?.(newMeasurement)
+          setHoverPoint(null)
+        } else {
+          setAreaPoints(newPoints)
         }
       } else if (measurementType === "volume") {
-        const newPoints = [...volumePoints, { x, y, z: Math.random() * 100 }]
-        setVolumePoints(newPoints)
-        if (newPoints.length >= 4) {
-          const volume = calculateVolume(newPoints)
-          const newMeasurement: Measurement = {
-            id: `measure-${Date.now()}`,
-            startX: newPoints[0].x,
-            startY: newPoints[0].y,
-            endX: newPoints[newPoints.length - 1].x,
-            endY: newPoints[newPoints.length - 1].y,
-            distance: volume,
-            unit: "ft",
-            measurementType: "volume",
-          }
-          setMeasurements((prev) => [...prev, newMeasurement])
+        const newPoints = [...volumePoints, { x, y }]
+        if (newPoints.length >= 3 && isCloseToPoint(newPoints[0], newPoints[newPoints.length - 1])) {
+          newPoints.pop()
+          finalizeVolumeMeasurement(newPoints, pendingVolumeHeight)
           setVolumePoints([])
-          onMeasure?.(newMeasurement)
+          setHoverPoint(null)
+        } else {
+          setVolumePoints(newPoints)
         }
       }
     } else if (showAnnotationInput) {
@@ -1112,21 +1354,70 @@ export function SceneViewer({
     }
   }
 
-  const calculatePolygonArea = (points: Array<{ x: number; y: number }>) => {
-    let area = 0
-    for (let i = 0; i < points.length; i++) {
-      const j = (i + 1) % points.length
-      area += points[i].x * points[j].y
-      area -= points[j].x * points[i].y
-    }
-    return Math.abs(area / 2) * 10
+  const handlePointerMove = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      if (!measuring) {
+        if (hoverPoint) {
+          setHoverPoint(null)
+        }
+        return
+      }
+      const percent = getPointerPercent(event)
+      if (!percent) return
+      setHoverPoint(percent)
+    },
+    [getPointerPercent, hoverPoint, measuring],
+  )
+
+  const handlePointerLeave = useCallback(() => {
+    setHoverPoint(null)
+  }, [])
+
+  const handleViewerDoubleClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      if (!measuring) return
+      if (measurementType === "area" && areaPoints.length >= 3) {
+        event.preventDefault()
+        event.stopPropagation()
+        finalizeAreaMeasurement(areaPoints)
+        setAreaPoints([])
+        setHoverPoint(null)
+        setShowMeasurementPanel(true)
+      } else if (measurementType === "volume" && volumePoints.length >= 3) {
+        event.preventDefault()
+        event.stopPropagation()
+        finalizeVolumeMeasurement(volumePoints, pendingVolumeHeight)
+        setVolumePoints([])
+        setHoverPoint(null)
+        setShowMeasurementPanel(true)
+      }
+    },
+    [
+      areaPoints,
+      finalizeAreaMeasurement,
+      finalizeVolumeMeasurement,
+      measuring,
+      measurementType,
+      pendingVolumeHeight,
+      volumePoints,
+    ],
+  )
+
+  const calculatePolygonArea = (points: Array<{ x: number; y: number }>, unit: "ft" | "m" = displayUnit) => {
+    const rawArea = polygonAreaPercent(points)
+    return convertRawArea(rawArea, unit)
   }
 
-  const calculateVolume = (points: Array<{ x: number; y: number; z: number }>) => {
-    if (points.length < 4) return 0
-    const baseArea = calculatePolygonArea(points.map((p) => ({ x: p.x, y: p.y })))
-    const avgHeight = points.reduce((sum, p) => sum + p.z, 0) / points.length
-    return baseArea * avgHeight
+  const calculateVolume = (
+    points: Array<{ x: number; y: number }>,
+    heightFt: number,
+    unit: "ft" | "m" = displayUnit,
+  ) => {
+    if (points.length < 3) return 0
+    const rawArea = polygonAreaPercent(points)
+    const baseAreaFt = convertRawArea(rawArea, "ft")
+    const volumeFt = baseAreaFt * Math.max(0.1, heightFt)
+    return convertMeasurementValue(volumeFt, "ft", unit, "volume")
   }
 
   const handleHotspotClick = (hotspot: Hotspot) => {
@@ -1214,6 +1505,19 @@ export function SceneViewer({
     }
   }
 
+  const handleDisplayUnitChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const nextUnit = event.target.value === "m" ? "m" : "ft"
+    setDisplayUnit(nextUnit)
+  }
+
+  const handleVolumeHeightChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const nextValue = Number.parseFloat(event.target.value)
+    if (!Number.isFinite(nextValue)) {
+      return
+    }
+    setPendingVolumeHeight(Math.max(0.1, nextValue))
+  }
+
   const renderViewMode = () => {
     if (sphericalViewModes.includes(currentViewMode)) {
       return <div className="w-full h-full bg-black" />
@@ -1262,6 +1566,9 @@ export function SceneViewer({
           sphericalViewModes.includes(currentViewMode) ? "bg-black" : ""
         }`}
         onClick={handleImageClick}
+        onDoubleClick={handleViewerDoubleClick}
+        onMouseMove={handlePointerMove}
+        onMouseLeave={handlePointerLeave}
       >
         {renderError && sphericalViewModes.includes(currentViewMode) ? (
           <>
@@ -1383,16 +1690,63 @@ export function SceneViewer({
             {/* Measurement Lines */}
           </>
         )}
-        {measurements.map((m) => {
+        {measurements.map((measurement) => {
+          const measurementLabel = formatMeasurementDisplay(measurement)
+          const name = measurement.label ??
+            (measurement.measurementType === "distance"
+              ? "Distance"
+              : measurement.measurementType === "area"
+                ? "Area"
+                : "Volume")
+
           if (sphericalViewModes.includes(currentViewMode)) {
-            const projection = projectedMeasurements[m.id]
+            const projection = projectedMeasurements[measurement.id]
             if (!projection || !projection.start.visible || !projection.end.visible) {
               return null
             }
+
+            if (
+              (measurement.measurementType === "area" || measurement.measurementType === "volume") &&
+              projection.points &&
+              projection.points.length >= 3
+            ) {
+              const visiblePoints = projection.points.filter((point) => point.visible)
+              if (visiblePoints.length < 3) {
+                return null
+              }
+              const centroid = polygonCentroid(visiblePoints.map((point) => ({ x: point.x, y: point.y })))
+              const polygonPoints = visiblePoints.map((point) => `${point.x},${point.y}`).join(" ")
+              return (
+                <svg key={measurement.id} className="absolute inset-0 w-full h-full pointer-events-none">
+                  <polygon
+                    points={polygonPoints}
+                    fill={`${branding.secondaryColor}33`}
+                    stroke={branding.secondaryColor}
+                    strokeWidth="2"
+                  />
+                  <text
+                    x={`${centroid.x}%`}
+                    y={`${centroid.y}%`}
+                    fill={branding.secondaryColor}
+                    fontSize="12"
+                    textAnchor="middle"
+                  >
+                    <tspan x={`${centroid.x}%`} dy="0">{name}</tspan>
+                    <tspan x={`${centroid.x}%`} dy="1.2em">
+                      {measurementLabel}
+                      {measurement.measurementType === "volume" && measurement.height
+                        ? ` • h ${measurement.height.toFixed(1)} ft`
+                        : ""}
+                    </tspan>
+                  </text>
+                </svg>
+              )
+            }
+
             const midX = (projection.start.x + projection.end.x) / 2
             const midY = (projection.start.y + projection.end.y) / 2
             return (
-              <svg key={m.id} className="absolute inset-0 w-full h-full pointer-events-none">
+              <svg key={measurement.id} className="absolute inset-0 w-full h-full pointer-events-none">
                 <line
                   x1={`${projection.start.x}%`}
                   y1={`${projection.start.y}%`}
@@ -1410,106 +1764,401 @@ export function SceneViewer({
                   fontSize="12"
                   textAnchor="middle"
                 >
-                  {m.distance.toFixed(1)} {m.unit}
+                  <tspan x={`${midX}%`} dy="0">
+                    {name}
+                  </tspan>
+                  <tspan x={`${midX}%`} dy="1.2em">
+                    {measurementLabel}
+                  </tspan>
                 </text>
               </svg>
             )
           }
 
+          if (measurement.measurementType === "area" || measurement.measurementType === "volume") {
+            const points = measurement.points ?? []
+            if (points.length >= 3) {
+              const centroid = polygonCentroid(points)
+              const polygonPoints = points.map((point) => `${point.x},${point.y}`).join(" ")
+              return (
+                <svg key={measurement.id} className="absolute inset-0 w-full h-full pointer-events-none">
+                  <polygon
+                    points={polygonPoints}
+                    fill={`${branding.secondaryColor}33`}
+                    stroke={branding.secondaryColor}
+                    strokeWidth="2"
+                  />
+                  <text
+                    x={`${centroid.x}%`}
+                    y={`${centroid.y}%`}
+                    fill={branding.secondaryColor}
+                    fontSize="12"
+                    textAnchor="middle"
+                  >
+                    <tspan x={`${centroid.x}%`} dy="0">{name}</tspan>
+                    <tspan x={`${centroid.x}%`} dy="1.2em">
+                      {measurementLabel}
+                      {measurement.measurementType === "volume" && measurement.height
+                        ? ` • h ${measurement.height.toFixed(1)} ft`
+                        : ""}
+                    </tspan>
+                  </text>
+                </svg>
+              )
+            }
+          }
+
+          const midX = (measurement.startX + measurement.endX) / 2
+          const midY = (measurement.startY + measurement.endY) / 2
           return (
-            <svg key={m.id} className="absolute inset-0 w-full h-full pointer-events-none">
+            <svg key={measurement.id} className="absolute inset-0 w-full h-full pointer-events-none">
               <line
-                x1={`${m.startX}%`}
-                y1={`${m.startY}%`}
-                x2={`${m.endX}%`}
-                y2={`${m.endY}%`}
+                x1={`${measurement.startX}%`}
+                y1={`${measurement.startY}%`}
+                x2={`${measurement.endX}%`}
+                y2={`${measurement.endY}%`}
                 stroke={branding.secondaryColor}
                 strokeWidth="2"
               />
-              <circle cx={`${m.startX}%`} cy={`${m.startY}%`} r="4" fill={branding.secondaryColor} />
-              <circle cx={`${m.endX}%`} cy={`${m.endY}%`} r="4" fill={branding.secondaryColor} />
+              <circle cx={`${measurement.startX}%`} cy={`${measurement.startY}%`} r="4" fill={branding.secondaryColor} />
+              <circle cx={`${measurement.endX}%`} cy={`${measurement.endY}%`} r="4" fill={branding.secondaryColor} />
               <text
-                x={`${(m.startX + m.endX) / 2}%`}
-                y={`${(m.startY + m.endY) / 2 - 5}%`}
+                x={`${midX}%`}
+                y={`${midY - 5}%`}
                 fill={branding.secondaryColor}
                 fontSize="12"
                 textAnchor="middle"
               >
-                {m.distance.toFixed(1)} {m.unit}
+                <tspan x={`${midX}%`} dy="0">
+                  {name}
+                </tspan>
+                <tspan x={`${midX}%`} dy="1.2em">
+                  {measurementLabel}
+                </tspan>
               </text>
             </svg>
           )
         })}
 
         {/* Area Measurement Points */}
-        {(sphericalViewModes.includes(currentViewMode) ? projectedAreaPoints : areaPoints).map((point, idx) => {
-          if (sphericalViewModes.includes(currentViewMode)) {
-            const projectedPoint = point as ProjectedPoint
-            if (!projectedPoint.visible) {
-              return null
+        {measurementType === "area" &&
+          (sphericalViewModes.includes(currentViewMode) ? projectedAreaPoints : areaPoints).map((point, idx) => {
+            if (sphericalViewModes.includes(currentViewMode)) {
+              const projectedPoint = point as ProjectedPoint
+              if (!projectedPoint.visible) {
+                return null
+              }
+              return (
+                <div
+                  key={idx}
+                  className="absolute w-3 h-3 rounded-full transform -translate-x-1/2 -translate-y-1/2"
+                  style={{
+                    left: `${projectedPoint.x}%`,
+                    top: `${projectedPoint.y}%`,
+                    backgroundColor: branding.secondaryColor,
+                  }}
+                />
+              )
             }
+
+            const flatPoint = point as { x: number; y: number }
             return (
               <div
                 key={idx}
                 className="absolute w-3 h-3 rounded-full transform -translate-x-1/2 -translate-y-1/2"
                 style={{
-                  left: `${projectedPoint.x}%`,
-                  top: `${projectedPoint.y}%`,
+                  left: `${flatPoint.x}%`,
+                  top: `${flatPoint.y}%`,
                   backgroundColor: branding.secondaryColor,
                 }}
               />
             )
-          }
+          })}
 
-          const flatPoint = point as { x: number; y: number }
-          return (
-            <div
-              key={idx}
-              className="absolute w-3 h-3 rounded-full transform -translate-x-1/2 -translate-y-1/2"
-              style={{
-                left: `${flatPoint.x}%`,
-                top: `${flatPoint.y}%`,
-                backgroundColor: branding.secondaryColor,
-              }}
-            />
-          )
-        })}
+        {measurementType === "area" && areaPoints.length > 0 && (
+          <svg className="absolute inset-0 w-full h-full pointer-events-none">
+            {(() => {
+              const basePoints = areaPoints
+              const projectedPoints = sphericalViewModes.includes(currentViewMode)
+                ? projectedAreaPoints.filter((point) => point.visible)
+                : basePoints
+              if (projectedPoints.length < 2) return null
+              const pointString = projectedPoints
+                .map((point) => `${point.x},${point.y}`)
+                .join(" ")
+              const hoverCandidate =
+                !sphericalViewModes.includes(currentViewMode) && hoverPoint
+                  ? `${hoverPoint.x},${hoverPoint.y}`
+                  : null
+              const pathPoints = hoverCandidate ? `${pointString} ${hoverCandidate}` : pointString
+              const centroidBase = polygonCentroid(basePoints)
+              const centroidDisplay = sphericalViewModes.includes(currentViewMode)
+                ? polygonCentroid(
+                    projectedPoints.map((point) => ({ x: point.x, y: point.y })),
+                  )
+                : centroidBase
+              const areaValue =
+                basePoints.length >= 3
+                  ? calculatePolygonArea(basePoints, displayUnit)
+                  : null
+              return (
+                <>
+                  <polyline
+                    points={pathPoints}
+                    stroke={branding.secondaryColor}
+                    strokeWidth="2"
+                    fill="none"
+                    strokeDasharray={basePoints.length >= 3 ? "" : "4 4"}
+                  />
+                  {areaValue !== null && projectedPoints.length >= 3 ? (
+                    <text
+                      x={`${centroidDisplay.x}%`}
+                      y={`${centroidDisplay.y}%`}
+                      fill={branding.secondaryColor}
+                      fontSize="12"
+                      textAnchor="middle"
+                    >
+                      <tspan x={`${centroidDisplay.x}%`} dy="0">
+                        Draft Area
+                      </tspan>
+                      <tspan x={`${centroidDisplay.x}%`} dy="1.2em">
+                        {areaValue.toFixed(1)} {measurementUnitLabel(displayUnit, "area")}
+                      </tspan>
+                    </text>
+                  ) : null}
+                </>
+              )
+            })()}
+          </svg>
+        )}
 
-        {/* Volume Measurement Points */}
-        {(sphericalViewModes.includes(currentViewMode) ? projectedVolumePoints : volumePoints).map((point, idx) => {
-          if (sphericalViewModes.includes(currentViewMode)) {
-            const projectedPoint = point as ProjectedPoint
-            if (!projectedPoint.visible) {
-              return null
+        {measurementType === "volume" &&
+          (sphericalViewModes.includes(currentViewMode) ? projectedVolumePoints : volumePoints).map((point, idx) => {
+            if (sphericalViewModes.includes(currentViewMode)) {
+              const projectedPoint = point as ProjectedPoint
+              if (!projectedPoint.visible) {
+                return null
+              }
+              return (
+                <div
+                  key={`vol-${idx}`}
+                  className="absolute w-4 h-4 rounded-full transform -translate-x-1/2 -translate-y-1/2 border-2"
+                  style={{
+                    left: `${projectedPoint.x}%`,
+                    top: `${projectedPoint.y}%`,
+                    borderColor: branding.secondaryColor,
+                    backgroundColor: "transparent",
+                  }}
+                />
+              )
             }
+
+            const flatPoint = point as { x: number; y: number }
             return (
               <div
                 key={`vol-${idx}`}
                 className="absolute w-4 h-4 rounded-full transform -translate-x-1/2 -translate-y-1/2 border-2"
                 style={{
-                  left: `${projectedPoint.x}%`,
-                  top: `${projectedPoint.y}%`,
+                  left: `${flatPoint.x}%`,
+                  top: `${flatPoint.y}%`,
                   borderColor: branding.secondaryColor,
                   backgroundColor: "transparent",
                 }}
               />
             )
-          }
+          })}
 
-          const flatPoint = point as { x: number; y: number }
-          return (
-            <div
-              key={`vol-${idx}`}
-              className="absolute w-4 h-4 rounded-full transform -translate-x-1/2 -translate-y-1/2 border-2"
-              style={{
-                left: `${flatPoint.x}%`,
-                top: `${flatPoint.y}%`,
-                borderColor: branding.secondaryColor,
-                backgroundColor: "transparent",
-              }}
-            />
-          )
-        })}
+        {measurementType === "volume" && volumePoints.length > 0 && (
+          <svg className="absolute inset-0 w-full h-full pointer-events-none">
+            {(() => {
+              const basePoints = volumePoints
+              const projectedPoints = sphericalViewModes.includes(currentViewMode)
+                ? projectedVolumePoints.filter((point) => point.visible)
+                : basePoints
+              if (projectedPoints.length < 2) return null
+              const pointString = projectedPoints
+                .map((point) => `${point.x},${point.y}`)
+                .join(" ")
+              const hoverCandidate =
+                !sphericalViewModes.includes(currentViewMode) && hoverPoint
+                  ? `${hoverPoint.x},${hoverPoint.y}`
+                  : null
+              const pathPoints = hoverCandidate ? `${pointString} ${hoverCandidate}` : pointString
+              const centroidBase = polygonCentroid(basePoints)
+              const centroidDisplay = sphericalViewModes.includes(currentViewMode)
+                ? polygonCentroid(
+                    projectedPoints.map((point) => ({ x: point.x, y: point.y })),
+                  )
+                : centroidBase
+              const volumeValue =
+                basePoints.length >= 3
+                  ? calculateVolume(basePoints, pendingVolumeHeight, displayUnit)
+                  : null
+              return (
+                <>
+                  <polyline
+                    points={pathPoints}
+                    stroke={branding.secondaryColor}
+                    strokeWidth="2"
+                    fill="none"
+                    strokeDasharray={basePoints.length >= 3 ? "" : "4 4"}
+                  />
+                  {volumeValue !== null && projectedPoints.length >= 3 ? (
+                    <text
+                      x={`${centroidDisplay.x}%`}
+                      y={`${centroidDisplay.y}%`}
+                      fill={branding.secondaryColor}
+                      fontSize="12"
+                      textAnchor="middle"
+                    >
+                      <tspan x={`${centroidDisplay.x}%`} dy="0">
+                        Draft Volume
+                      </tspan>
+                      <tspan x={`${centroidDisplay.x}%`} dy="1.2em">
+                        {volumeValue.toFixed(1)} {measurementUnitLabel(displayUnit, "volume")}
+                      </tspan>
+                    </text>
+                  ) : null}
+                </>
+              )
+            })()}
+          </svg>
+        )}
+
+        {measurementPanelVisible && (
+          <div className="absolute top-4 right-4 z-30 w-80 max-w-[90vw] overflow-hidden rounded-xl border border-gray-800 bg-gray-900/95 shadow-2xl backdrop-blur">
+            <div className="flex items-center justify-between border-b border-gray-800 px-4 py-3">
+              <div className="flex items-center gap-2 text-sm font-semibold text-white">
+                <Ruler className="h-4 w-4 text-blue-400" />
+                Measurements
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-gray-500">{measurementCounts.total} total</span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-xs text-gray-300 hover:text-white"
+                  onClick={() => setShowMeasurementPanel(false)}
+                  disabled={measuring}
+                >
+                  Hide
+                </Button>
+              </div>
+            </div>
+            <div className="px-4 pt-3 pb-2 text-[11px] text-gray-400">
+              <p>
+                {measurementType === "distance"
+                  ? "Click once to start and again to finish a distance measurement."
+                  : measurementType === "area"
+                    ? "Click to drop vertices, then double-click or close the loop to capture an area."
+                    : "Mark the footprint, then adjust height to estimate volume."}
+              </p>
+            </div>
+            <div className="flex items-center justify-between px-4 pb-2 text-xs text-gray-300">
+              <label className="flex items-center gap-2">
+                <span>Display units</span>
+                <select
+                  value={displayUnit}
+                  onChange={handleDisplayUnitChange}
+                  className="rounded-md border border-gray-700 bg-gray-900 px-2 py-1 text-xs text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="ft">Feet</option>
+                  <option value="m">Meters</option>
+                </select>
+              </label>
+              <div className="text-[11px] text-gray-500">
+                {measurementCounts.distance} distance • {measurementCounts.area} area • {measurementCounts.volume} volume
+              </div>
+            </div>
+            <div className="max-h-48 overflow-y-auto px-4 pb-2">
+              {hasMeasurements ? (
+                <ul className="space-y-2">
+                  {measurements.map((measurement) => {
+                    const typeLabel =
+                      measurement.measurementType === "distance"
+                        ? "Distance"
+                        : measurement.measurementType === "area"
+                          ? "Area"
+                          : "Volume"
+                    const valueLabel = formatMeasurementDisplay(measurement)
+                    return (
+                      <li
+                        key={measurement.id}
+                        className="flex items-start justify-between gap-3 rounded-lg border border-gray-800 bg-gray-900/70 px-3 py-2"
+                      >
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium text-white">
+                            {measurement.label ?? typeLabel}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {typeLabel} • {valueLabel}
+                          </p>
+                          {measurement.measurementType === "volume" && measurement.height ? (
+                            <p className="text-[11px] text-gray-500">Height {measurement.height.toFixed(1)} ft</p>
+                          ) : null}
+                          {measurement.points?.length ? (
+                            <p className="text-[11px] text-gray-500">{measurement.points.length} points</p>
+                          ) : null}
+                        </div>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 text-gray-400 hover:text-red-400"
+                          onClick={() => removeMeasurement(measurement.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              ) : (
+                <p className="text-xs text-gray-500">
+                  No measurements yet. Enable measurement mode to start capturing dimensions.
+                </p>
+              )}
+            </div>
+            <div className="space-y-3 border-t border-gray-800 px-4 py-3">
+              {measurementType === "volume" ? (
+                <label className="flex items-center justify-between text-xs text-gray-300">
+                  <span>Volume height (ft)</span>
+                  <input
+                    type="number"
+                    min={0.1}
+                    step={0.1}
+                    value={pendingVolumeHeight.toFixed(1)}
+                    onChange={handleVolumeHeightChange}
+                    className="w-20 rounded-md border border-gray-700 bg-gray-900 px-2 py-1 text-right text-xs text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </label>
+              ) : null}
+              <div className="flex items-center justify-between text-[11px] text-gray-500">
+                <span>
+                  {measuring ? "Measurement mode active" : hasMeasurements ? "Review captured measurements" : "Measurement mode idle"}
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-xs text-red-400 hover:text-red-300"
+                  onClick={clearMeasurements}
+                  disabled={!hasMeasurements}
+                >
+                  Clear all
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!measurementPanelVisible && hasMeasurements && (
+          <button
+            type="button"
+            onClick={() => setShowMeasurementPanel(true)}
+            className="absolute top-4 right-4 z-20 rounded-full border border-gray-800 bg-gray-900/80 px-4 py-2 text-xs font-medium text-gray-200 shadow-lg backdrop-blur transition hover:text-white"
+          >
+            Show measurements ({measurementCounts.total})
+          </button>
+        )}
 
         {/* Annotations */}
         {showAnnotations &&
@@ -1586,6 +2235,9 @@ export function SceneViewer({
               setMeasureStart(null)
               setAreaPoints([])
               setVolumePoints([])
+              if (next) {
+                setShowMeasurementPanel(true)
+              }
             }}
             className="gap-2"
           >
