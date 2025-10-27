@@ -41,8 +41,22 @@ The application highlights capabilities such as:
 - Immersive 3D virtual tours with multiple navigation modes
 - AI-powered property intelligence and interactive hotspots
 - Measurement, analytics, and multimedia enhancements for listings
+- Seamless Matterport Showcase integration with one-click toggling between renderers
 
 See `FEATURES.txt` for a complete feature breakdown.
+
+## Matterport Showcase Integration
+
+The tour player now embeds the official Matterport Showcase alongside the native VORTEX renderer. To enable SDK-powered
+interactions (highlight reels, analytics, VR mode), create an environment file such as `.env.local` with your application key:
+
+```bash
+NEXT_PUBLIC_MATTERPORT_SDK=your-matterport-application-key
+```
+
+Link individual properties by providing a `matterportModelId` (and optional `matterportExperienceLabel`) in `lib/mock-data.ts` or
+your data source. Once configured, switch to the **Matterport Showcase** tab on any property to load the live model, open it in a
+new window, or continue with the default VORTEX experience.
 
 ## Scripts
 - `pnpm dev` – start the development server

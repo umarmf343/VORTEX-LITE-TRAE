@@ -28,6 +28,8 @@ export interface Property {
   tags?: string[]
   sceneTransition?: "fade" | "slide"
   supportedViewModes?: SceneViewMode[]
+  matterportModelId?: string
+  matterportExperienceLabel?: string
   guidedTours?: GuidedTour[]
 }
 

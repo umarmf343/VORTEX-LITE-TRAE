@@ -1,5 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
+import Script from "next/script"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { DataProvider } from "@/lib/data-context"
@@ -20,6 +21,7 @@ export default function RootLayout({
       <body className={`font-sans antialiased`}>
         <DataProvider>{children}</DataProvider>
         <Analytics />
+        <Script src="https://static.matterport.com/showcase-sdk/latest.js" strategy="beforeInteractive" />
       </body>
     </html>
   )
