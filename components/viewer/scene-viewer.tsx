@@ -30,9 +30,6 @@ import {
   Navigation,
   MousePointerClick,
   ArrowLeftRight,
-  RefreshCw,
-  ZoomIn,
-  ZoomOut,
 } from "lucide-react"
 import {
   MathUtils,
@@ -51,6 +48,7 @@ import {
 } from "three"
 import WebGLCapabilities from "three/examples/jsm/capabilities/WebGL.js"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
+import { ZoomControls } from "./zoom-controls"
 
 type WebGLContextType = "webgl2" | "webgl" | "experimental-webgl"
 
@@ -1544,43 +1542,17 @@ export function SceneViewer({
       {/* Controls */}
       <div className="bg-gray-900 border-t border-gray-800 p-4 flex gap-2 items-center justify-between overflow-x-auto flex-wrap">
         <div className="flex gap-2 flex-wrap">
-          {canZoom && (
-            <div className="flex items-center gap-1 rounded-md border border-gray-800 bg-gray-900/60 px-2 py-1">
-              <Button
-                size="icon-sm"
-                variant="outline"
-                onClick={handleZoomOut}
-                disabled={atMaxZoom}
-                aria-label="Zoom out"
-                className="bg-transparent"
-              >
-                <ZoomOut className="h-4 w-4" />
-              </Button>
-              <span className="px-2 text-xs font-medium text-gray-300 min-w-[3.5rem] text-center">
-                ×{zoomDisplay}
-              </span>
-              <Button
-                size="icon-sm"
-                variant="outline"
-                onClick={handleZoomIn}
-                disabled={atMinZoom}
-                aria-label="Zoom in"
-                className="bg-transparent"
-              >
-                <ZoomIn className="h-4 w-4" />
-              </Button>
-              <Button
-                size="icon-sm"
-                variant="outline"
-                onClick={handleZoomReset}
-                disabled={atDefaultZoom}
-                aria-label="Reset zoom"
-                className="bg-transparent"
-              >
-                <RefreshCw className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
+          {canZoom ? (
+            <ZoomControls
+              zoomDisplay={`×${zoomDisplay}`}
+              onZoomIn={handleZoomIn}
+              onZoomOut={handleZoomOut}
+              onReset={handleZoomReset}
+              disableZoomIn={atMinZoom}
+              disableZoomOut={atMaxZoom}
+              disableReset={atDefaultZoom}
+            />
+          ) : null}
           <Button
             size="sm"
             variant={measuring ? "default" : "outline"}
