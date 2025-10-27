@@ -8,6 +8,7 @@ import type {
   DataLayer,
   Hotspot,
   Measurement,
+  MeasurementExportRecord,
   Scene as SceneType,
   SceneViewMode,
   TourPoint,
@@ -31,6 +32,13 @@ import {
   MousePointerClick,
   ArrowLeftRight,
   X,
+  Download,
+  FileJson,
+  FileText,
+  History,
+  Loader2,
+  Trash2,
+  Undo2,
 } from "@/lib/icons"
 import {
   MathUtils,
@@ -284,24 +292,27 @@ const isCloseToPoint = (
   threshold = 2,
 ) => distanceBetweenPercentPoints(a, b) <= threshold
 
+const UNIT_TO_METERS: Record<Measurement["unit"], number> = {
+  ft: 0.3048,
+  m: 1,
+  in: 0.0254,
+}
+
 const convertMeasurementValue = (
   value: number,
-  fromUnit: "ft" | "m",
-  toUnit: "ft" | "m",
+  fromUnit: Measurement["unit"],
+  toUnit: Measurement["unit"],
   type: Measurement["measurementType"],
 ) => {
   if (fromUnit === toUnit) return value
-  const factor = fromUnit === "ft" ? 0.3048 : 3.28084
-  if (type === "area") {
-    return value * Math.pow(factor, 2)
-  }
-  if (type === "volume") {
-    return value * Math.pow(factor, 3)
-  }
-  return value * factor
+  const fromFactor = UNIT_TO_METERS[fromUnit] ?? 1
+  const toFactor = UNIT_TO_METERS[toUnit] ?? 1
+  const exponent = type === "distance" ? 1 : type === "area" ? 2 : 3
+  const baseMeters = value * Math.pow(fromFactor, exponent)
+  return baseMeters / Math.pow(toFactor, exponent)
 }
 
-const measurementUnitLabel = (unit: "ft" | "m", type: Measurement["measurementType"]) => {
+const measurementUnitLabel = (unit: Measurement["unit"], type: Measurement["measurementType"]) => {
   if (type === "area") {
     return `${unit}²`
   }
@@ -386,7 +397,7 @@ export function SceneViewer({
   const [areaPoints, setAreaPoints] = useState<Array<{ x: number; y: number }>>([])
   const [volumePoints, setVolumePoints] = useState<Array<{ x: number; y: number }>>([])
   const [hoverPoint, setHoverPoint] = useState<{ x: number; y: number } | null>(null)
-  const [displayUnit, setDisplayUnit] = useState<"ft" | "m">("ft")
+  const [displayUnit, setDisplayUnit] = useState<Measurement["unit"]>("ft")
   const [pendingVolumeHeight, setPendingVolumeHeight] = useState(9)
   const [showMeasurementPanel, setShowMeasurementPanel] = useState(false)
   const [showViewModes, setShowViewModes] = useState(false)
@@ -402,6 +413,21 @@ export function SceneViewer({
   )
   const visibleLayerIds = activeDataLayers ?? internalVisibleLayers
   const [showLayerMenu, setShowLayerMenu] = useState(false)
+  const sessionIdRef = useRef<string>("")
+  if (!sessionIdRef.current) {
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+      sessionIdRef.current = crypto.randomUUID()
+    } else {
+      sessionIdRef.current = `session-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+    }
+  }
+  const [savingExport, setSavingExport] = useState(false)
+  const [saveFeedback, setSaveFeedback] = useState<{ status: "success" | "error"; message: string } | null>(
+    null,
+  )
+  const [measurementHistory, setMeasurementHistory] = useState<MeasurementExportRecord[]>([])
+  const [loadingHistory, setLoadingHistory] = useState(false)
+  const [historyError, setHistoryError] = useState<string | null>(null)
   const updateMeasuring = useCallback(
     (value: boolean) => {
       setMeasuringState(value)
@@ -503,7 +529,7 @@ export function SceneViewer({
   }, [measurements])
 
   const convertRawDistance = useCallback(
-    (raw: number, unit: "ft" | "m" = "ft") => {
+    (raw: number, unit: Measurement["unit"] = "ft") => {
       const base = raw * distanceScaleFt
       return unit === "ft" ? base : convertMeasurementValue(base, "ft", unit, "distance")
     },
@@ -511,7 +537,7 @@ export function SceneViewer({
   )
 
   const convertRawArea = useCallback(
-    (raw: number, unit: "ft" | "m" = "ft") => {
+    (raw: number, unit: Measurement["unit"] = "ft") => {
       const base = Math.pow(distanceScaleFt, 2) * raw
       return unit === "ft" ? base : convertMeasurementValue(base, "ft", unit, "area")
     },
@@ -567,6 +593,17 @@ export function SceneViewer({
   }, [measurements])
   const hasMeasurements = measurementCounts.total > 0
   const measurementPanelVisible = showMeasurementPanel || measuring
+  const canUndoDraftPoint =
+    measurementType === "area"
+      ? areaPoints.length > 0
+      : measurementType === "volume"
+        ? volumePoints.length > 0
+        : measureStart !== null
+  const canUndoMeasurement = measurements.length > 0
+  const pendingVolumeHeightDisplay = useMemo(
+    () => convertMeasurementValue(pendingVolumeHeight, "ft", displayUnit, "distance"),
+    [displayUnit, pendingVolumeHeight],
+  )
   const updateCameraFov = useCallback((nextFov: number) => {
     const clamped = Math.max(MIN_FOV, Math.min(MAX_FOV, nextFov))
     const context = threeContextRef.current
@@ -732,6 +769,21 @@ export function SceneViewer({
   useEffect(() => {
     volumePointsRef.current = volumePoints
   }, [volumePoints])
+
+  useEffect(() => {
+    loadMeasurementHistory()
+  }, [loadMeasurementHistory])
+
+  useEffect(() => {
+    if (!saveFeedback) {
+      return
+    }
+    if (typeof window === "undefined") {
+      return
+    }
+    const timeout = window.setTimeout(() => setSaveFeedback(null), 5000)
+    return () => window.clearTimeout(timeout)
+  }, [saveFeedback])
 
   useEffect(() => {
     if (!immersiveModeActive) {
@@ -1403,7 +1455,10 @@ export function SceneViewer({
     ],
   )
 
-  const calculatePolygonArea = (points: Array<{ x: number; y: number }>, unit: "ft" | "m" = displayUnit) => {
+  const calculatePolygonArea = (
+    points: Array<{ x: number; y: number }>,
+    unit: Measurement["unit"] = displayUnit,
+  ) => {
     const rawArea = polygonAreaPercent(points)
     return convertRawArea(rawArea, unit)
   }
@@ -1411,7 +1466,7 @@ export function SceneViewer({
   const calculateVolume = (
     points: Array<{ x: number; y: number }>,
     heightFt: number,
-    unit: "ft" | "m" = displayUnit,
+    unit: Measurement["unit"] = displayUnit,
   ) => {
     if (points.length < 3) return 0
     const rawArea = polygonAreaPercent(points)
@@ -1419,6 +1474,239 @@ export function SceneViewer({
     const volumeFt = baseAreaFt * Math.max(0.1, heightFt)
     return convertMeasurementValue(volumeFt, "ft", unit, "volume")
   }
+
+  const downloadBlob = useCallback((blob: Blob, filename: string) => {
+    if (typeof window === "undefined") {
+      return
+    }
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement("a")
+    anchor.href = url
+    anchor.download = filename
+    anchor.style.display = "none"
+    document.body.appendChild(anchor)
+    anchor.click()
+    document.body.removeChild(anchor)
+    URL.revokeObjectURL(url)
+  }, [])
+
+  const loadMeasurementHistory = useCallback(async () => {
+    const sessionId = sessionIdRef.current
+    if (!sessionId) {
+      return
+    }
+    setLoadingHistory(true)
+    setHistoryError(null)
+    try {
+      const response = await fetch(
+        `/api/measurements?sessionId=${encodeURIComponent(sessionId)}&sceneId=${encodeURIComponent(scene.id)}`,
+        { cache: "no-store" },
+      )
+      if (!response.ok) {
+        const message = await response.text()
+        throw new Error(message || "Failed to fetch measurement history")
+      }
+      const data = (await response.json()) as { history?: MeasurementExportRecord[] }
+      setMeasurementHistory(Array.isArray(data.history) ? data.history : [])
+    } catch (error) {
+      setHistoryError(error instanceof Error ? error.message : "Failed to load measurement history")
+    } finally {
+      setLoadingHistory(false)
+    }
+  }, [scene.id])
+
+  const handleSaveMeasurements = useCallback(async () => {
+    if (measurements.length === 0) {
+      setSaveFeedback({ status: "error", message: "Add at least one measurement before saving." })
+      return
+    }
+    setSavingExport(true)
+    setSaveFeedback(null)
+    try {
+      const response = await fetch("/api/measurements", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId: sessionIdRef.current,
+          sceneId: scene.id,
+          measurements,
+        }),
+      })
+      if (!response.ok) {
+        const message = await response.text()
+        throw new Error(message || "Failed to save measurements")
+      }
+      const payload = (await response.json()) as { record: MeasurementExportRecord }
+      if (payload.record) {
+        setMeasurementHistory((previous) => [payload.record, ...previous].slice(0, 20))
+        await loadMeasurementHistory()
+      }
+      setSaveFeedback({
+        status: "success",
+        message: `Saved ${measurements.length} measurement${measurements.length === 1 ? "" : "s"} to this session.`,
+      })
+    } catch (error) {
+      setSaveFeedback({
+        status: "error",
+        message: error instanceof Error ? error.message : "Unable to save measurements",
+      })
+    } finally {
+      setSavingExport(false)
+    }
+  }, [loadMeasurementHistory, measurements, scene.id])
+
+  const exportMeasurements = useCallback(
+    (format: "json" | "csv") => {
+      if (measurements.length === 0) {
+        setSaveFeedback({ status: "error", message: "No measurements available to export." })
+        return
+      }
+      if (typeof window === "undefined") {
+        setSaveFeedback({ status: "error", message: "Exports are only available in the browser." })
+        return
+      }
+
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-")
+      const commonData = measurements.map((measurement) => {
+        const decimals = measurement.measurementType === "distance" ? 2 : 1
+        const convertedValue = convertMeasurementValue(
+          measurement.distance,
+          measurement.unit,
+          displayUnit,
+          measurement.measurementType,
+        )
+        const heightDisplay =
+          measurement.height !== undefined
+            ? convertMeasurementValue(measurement.height, "ft", displayUnit, "distance")
+            : undefined
+        return {
+          id: measurement.id,
+          label: measurement.label ?? null,
+          type: measurement.measurementType,
+          value: Number(convertedValue.toFixed(decimals)),
+          unit: measurementUnitLabel(displayUnit, measurement.measurementType),
+          originalValue: Number(measurement.distance.toFixed(decimals)),
+          originalUnit: measurementUnitLabel(measurement.unit, measurement.measurementType),
+          height:
+            heightDisplay !== undefined
+              ? Number(heightDisplay.toFixed(2))
+              : measurement.height !== undefined
+                ? Number(measurement.height.toFixed(2))
+                : undefined,
+          heightUnit: measurement.height !== undefined ? measurementUnitLabel(displayUnit, "distance") : undefined,
+          start: { x: measurement.startX, y: measurement.startY },
+          end: { x: measurement.endX, y: measurement.endY },
+          points: measurement.points ?? [],
+          createdAt: measurement.createdAt ?? null,
+        }
+      })
+
+      if (format === "json") {
+        const exportPayload = {
+          sceneId: scene.id,
+          sceneName: scene.name,
+          sessionId: sessionIdRef.current,
+          exportedAt: new Date().toISOString(),
+          displayUnit,
+          measurements: commonData,
+        }
+        const blob = new Blob([JSON.stringify(exportPayload, null, 2)], {
+          type: "application/json",
+        })
+        downloadBlob(blob, `measurements-${scene.id}-${timestamp}.json`)
+        setSaveFeedback({ status: "success", message: "Exported measurements as JSON." })
+        return
+      }
+
+      const csvHeader = [
+        "Label",
+        "Type",
+        "Value",
+        "Unit",
+        "Original Value",
+        "Original Unit",
+        "Height",
+        "Height Unit",
+        "Start (x,y)",
+        "End (x,y)",
+        "Points",
+        "Created At",
+      ]
+
+      const escapeCsv = (value: string | number | null | undefined) => {
+        if (value === null || value === undefined) return ""
+        const stringValue = String(value)
+        return /[",\n]/.test(stringValue)
+          ? `"${stringValue.replace(/"/g, '""')}"`
+          : stringValue
+      }
+
+      const csvRows = commonData.map((entry) => {
+        const points = entry.points
+          .map((point) => `${point.x.toFixed(2)}:${point.y.toFixed(2)}`)
+          .join(" | ")
+        const start = `${entry.start.x.toFixed(2)},${entry.start.y.toFixed(2)}`
+        const end = `${entry.end.x.toFixed(2)},${entry.end.y.toFixed(2)}`
+        return [
+          escapeCsv(entry.label ?? ""),
+          escapeCsv(entry.type),
+          escapeCsv(entry.value),
+          escapeCsv(entry.unit),
+          escapeCsv(entry.originalValue),
+          escapeCsv(entry.originalUnit),
+          escapeCsv(entry.height ?? ""),
+          escapeCsv(entry.heightUnit ?? ""),
+          escapeCsv(start),
+          escapeCsv(end),
+          escapeCsv(points),
+          escapeCsv(entry.createdAt ?? ""),
+        ].join(",")
+      })
+
+      const csvContent = [csvHeader.join(","), ...csvRows].join("\n")
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+      downloadBlob(blob, `measurements-${scene.id}-${timestamp}.csv`)
+      setSaveFeedback({ status: "success", message: "Exported measurements as CSV." })
+    },
+    [displayUnit, downloadBlob, measurements, scene.id, scene.name],
+  )
+
+  const undoLastMeasurement = useCallback(() => {
+    setMeasurements((previous) => {
+      if (previous.length === 0) {
+        return previous
+      }
+      const next = previous.slice(0, -1)
+      setSaveFeedback({ status: "success", message: "Removed the most recent saved measurement." })
+      return next
+    })
+  }, [])
+
+  const undoLastDraftPoint = useCallback(() => {
+    if (measurementType === "area") {
+      setAreaPoints((previous) => {
+        if (previous.length === 0) {
+          return previous
+        }
+        const next = previous.slice(0, -1)
+        setSaveFeedback({ status: "success", message: "Removed the last area vertex." })
+        return next
+      })
+    } else if (measurementType === "volume") {
+      setVolumePoints((previous) => {
+        if (previous.length === 0) {
+          return previous
+        }
+        const next = previous.slice(0, -1)
+        setSaveFeedback({ status: "success", message: "Removed the last volume vertex." })
+        return next
+      })
+    } else if (measurementType === "distance" && measureStart) {
+      setMeasureStart(null)
+      setHoverPoint(null)
+      setSaveFeedback({ status: "success", message: "Reset the in-progress distance measurement." })
+    }
+  }, [measureStart, measurementType])
 
   const handleHotspotClick = (hotspot: Hotspot) => {
     setSelectedHotspot(hotspot)
@@ -1506,8 +1794,10 @@ export function SceneViewer({
   }
 
   const handleDisplayUnitChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const nextUnit = event.target.value === "m" ? "m" : "ft"
-    setDisplayUnit(nextUnit)
+    const value = event.target.value as Measurement["unit"]
+    if (["ft", "m", "in"].includes(value)) {
+      setDisplayUnit(value)
+    }
   }
 
   const handleVolumeHeightChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1515,7 +1805,8 @@ export function SceneViewer({
     if (!Number.isFinite(nextValue)) {
       return
     }
-    setPendingVolumeHeight(Math.max(0.1, nextValue))
+    const nextHeightFt = convertMeasurementValue(nextValue, displayUnit, "ft", "distance")
+    setPendingVolumeHeight(Math.max(0.1, nextHeightFt))
   }
 
   const renderViewMode = () => {
@@ -1903,6 +2194,12 @@ export function SceneViewer({
                   : null
               return (
                 <>
+                  {projectedPoints.length >= 3 ? (
+                    <polygon
+                      points={projectedPoints.map((point) => `${point.x},${point.y}`).join(" ")}
+                      fill={`${branding.secondaryColor}22`}
+                    />
+                  ) : null}
                   <polyline
                     points={pathPoints}
                     stroke={branding.secondaryColor}
@@ -1996,6 +2293,12 @@ export function SceneViewer({
                   : null
               return (
                 <>
+                  {projectedPoints.length >= 3 ? (
+                    <polygon
+                      points={projectedPoints.map((point) => `${point.x},${point.y}`).join(" ")}
+                      fill={`${branding.secondaryColor}22`}
+                    />
+                  ) : null}
                   <polyline
                     points={pathPoints}
                     stroke={branding.secondaryColor}
@@ -2054,6 +2357,52 @@ export function SceneViewer({
                     : "Mark the footprint, then adjust height to estimate volume."}
               </p>
             </div>
+            <div className="flex flex-wrap items-center gap-2 px-4 pb-3">
+              <Button
+                size="sm"
+                className="gap-2"
+                onClick={handleSaveMeasurements}
+                disabled={savingExport || !hasMeasurements}
+              >
+                {savingExport ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                Save session
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-2"
+                onClick={() => exportMeasurements("json")}
+                disabled={!hasMeasurements}
+              >
+                <FileJson className="h-4 w-4" />
+                Export JSON
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-2"
+                onClick={() => exportMeasurements("csv")}
+                disabled={!hasMeasurements}
+              >
+                <FileText className="h-4 w-4" />
+                Export CSV
+              </Button>
+            </div>
+            {saveFeedback ? (
+              <div
+                className={`mx-4 mb-2 rounded-md border px-3 py-2 text-xs ${
+                  saveFeedback.status === "success"
+                    ? "border-green-500/40 bg-green-500/10 text-green-200"
+                    : "border-red-500/40 bg-red-500/10 text-red-200"
+                }`}
+              >
+                {saveFeedback.message}
+              </div>
+            ) : null}
             <div className="flex items-center justify-between px-4 pb-2 text-xs text-gray-300">
               <label className="flex items-center gap-2">
                 <span>Display units</span>
@@ -2064,6 +2413,7 @@ export function SceneViewer({
                 >
                   <option value="ft">Feet</option>
                   <option value="m">Meters</option>
+                  <option value="in">Inches</option>
                 </select>
               </label>
               <div className="text-[11px] text-gray-500">
@@ -2121,31 +2471,95 @@ export function SceneViewer({
             <div className="space-y-3 border-t border-gray-800 px-4 py-3">
               {measurementType === "volume" ? (
                 <label className="flex items-center justify-between text-xs text-gray-300">
-                  <span>Volume height (ft)</span>
+                  <span>
+                    Volume height ({measurementUnitLabel(displayUnit, "distance")})
+                  </span>
                   <input
                     type="number"
                     min={0.1}
                     step={0.1}
-                    value={pendingVolumeHeight.toFixed(1)}
+                    value={pendingVolumeHeightDisplay.toFixed(1)}
                     onChange={handleVolumeHeightChange}
                     className="w-20 rounded-md border border-gray-700 bg-gray-900 px-2 py-1 text-right text-xs text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </label>
               ) : null}
-              <div className="flex items-center justify-between text-[11px] text-gray-500">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-gray-500">
                 <span>
-                  {measuring ? "Measurement mode active" : hasMeasurements ? "Review captured measurements" : "Measurement mode idle"}
+                  {measuring
+                    ? "Measurement mode active"
+                    : hasMeasurements
+                      ? "Review captured measurements"
+                      : "Measurement mode idle"}
                 </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="gap-1 text-xs text-gray-300 hover:text-white"
+                    onClick={undoLastDraftPoint}
+                    disabled={!canUndoDraftPoint}
+                  >
+                    <Undo2 className="h-3.5 w-3.5" />
+                    Undo step
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="gap-1 text-xs text-gray-300 hover:text-white"
+                    onClick={undoLastMeasurement}
+                    disabled={!canUndoMeasurement}
+                  >
+                    <Undo2 className="h-3.5 w-3.5" />
+                    Undo measurement
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-xs text-red-400 hover:text-red-300"
+                    onClick={clearMeasurements}
+                    disabled={!hasMeasurements}
+                  >
+                    Clear all
+                  </Button>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2 border-t border-gray-800 px-4 py-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-semibold text-white">
+                  <History className="h-4 w-4 text-blue-400" />
+                  Session history
+                </div>
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="text-xs text-red-400 hover:text-red-300"
-                  onClick={clearMeasurements}
-                  disabled={!hasMeasurements}
+                  className="text-xs text-gray-300 hover:text-white"
+                  onClick={loadMeasurementHistory}
+                  disabled={loadingHistory}
                 >
-                  Clear all
+                  {loadingHistory ? <Loader2 className="h-4 w-4 animate-spin" /> : "Refresh"}
                 </Button>
               </div>
+              {historyError ? (
+                <p className="text-xs text-red-400">{historyError}</p>
+              ) : null}
+              {measurementHistory.length > 0 ? (
+                <ul className="space-y-2 text-[11px] text-gray-300">
+                  {measurementHistory.map((record) => (
+                    <li key={record.id} className="rounded-lg border border-gray-800 bg-gray-900/70 p-3">
+                      <p className="text-xs font-semibold text-white">
+                        {new Date(record.savedAt).toLocaleString()} • {record.measurements.length} measurements
+                      </p>
+                      <p className="text-[10px] text-gray-500">Scene: {scene.name} ({record.sceneId})</p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs text-gray-500">
+                  No saved measurements for this session yet. Use “Save session” to capture a snapshot.
+                </p>
+              )}
             </div>
           </div>
         )}

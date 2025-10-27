@@ -74,12 +74,20 @@ export interface Measurement {
   endX: number
   endY: number
   distance: number
-  unit: "ft" | "m"
+  unit: "ft" | "m" | "in"
   measurementType: "distance" | "area" | "volume"
   label?: string
   points?: MeasurementPoint[]
   height?: number
   createdAt?: string
+}
+
+export interface MeasurementExportRecord {
+  id: string
+  sessionId: string
+  sceneId: string
+  savedAt: string
+  measurements: Measurement[]
 }
 
 export interface Annotation {
