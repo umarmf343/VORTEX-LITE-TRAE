@@ -24,7 +24,6 @@ import {
   Moon,
   Maximize2,
   Layers,
-  ShoppingCart,
   RotateCcw,
   RotateCw,
   MapPin,
@@ -235,7 +234,6 @@ interface SceneViewerProps {
   enableGyroscope?: boolean
   backgroundAudio?: string
   sceneTransition?: "fade" | "slide"
-  productHotspotIds?: string[]
   onTourPointCreate?: (tourPoint: TourPoint) => void
   targetOrientation?: { sceneId: string; yaw: number; pitch: number; key: number } | null
   availableViewModes?: SceneViewMode[]
@@ -266,7 +264,6 @@ export function SceneViewer({
   enableGyroscope,
   backgroundAudio,
   sceneTransition = "fade",
-  productHotspotIds,
   onTourPointCreate,
   targetOrientation,
   availableViewModes,
@@ -369,7 +366,6 @@ export function SceneViewer({
   const audioRef = useRef<HTMLAudioElement>(null)
   const sceneStartTime = useRef(Date.now())
   const cameraFovRef = useRef(DEFAULT_FOV)
-  const productHotspotSet = useMemo(() => new Set(productHotspotIds ?? []), [productHotspotIds])
   const threeContextRef = useRef<ThreeContext | null>(null)
   const textureRef = useRef<Texture | null>(null)
   const raycasterRef = useRef<Raycaster | null>(null)
@@ -1326,7 +1322,6 @@ export function SceneViewer({
 
             {/* Hotspots */}
             {scene.hotspots.map((hotspot) => {
-              const isProductHotspot = productHotspotSet.has(hotspot.id)
               const projected = projectedHotspots[hotspot.id]
               if (sphericalViewModes.includes(currentViewMode) && (!projected || !projected.visible)) {
                 return null
@@ -1355,7 +1350,6 @@ export function SceneViewer({
                       {hotspot.type === "video" && <Play className="w-4 h-4 text-white" />}
                       {hotspot.type === "audio" && <Volume2 className="w-4 h-4 text-white" />}
                       {hotspot.type === "image" && <ImageIcon className="w-4 h-4 text-white" />}
-                      {isProductHotspot && <ShoppingCart className="w-3 h-3 text-white" />}
                     </div>
                     <div
                       className="absolute inset-0 rounded-full animate-pulse"

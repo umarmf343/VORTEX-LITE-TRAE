@@ -34,11 +34,10 @@
 * Publish tours to platforms like Google Street View, VRBO, and Realtor.com.
 * Embed 3D spaces on websites and share via social media channels.
 
-#### 6. **E-commerce & Lead Generation**
+#### 6. **Lead Generation Tools**
 
-* WooCommerce integration for product hotspots.
-* Direct purchase options within the tour.
-* Lead capture forms and booking buttons for enhanced user interaction.
+* Lead capture forms to gather visitor interest directly from the tour experience.
+* Booking buttons for scheduling property viewings or consultations.
 
 #### 7. **Customization & Branding**
 

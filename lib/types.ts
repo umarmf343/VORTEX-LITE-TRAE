@@ -105,16 +105,6 @@ export interface BrandingConfig {
   whiteLabelMode?: boolean
 }
 
-export interface WooCommerceProduct {
-  id: string
-  propertyId: string
-  name: string
-  price: number
-  sku: string
-  image: string
-  hotspotId?: string
-}
-
 export interface Model3DAsset {
   id: string
   propertyId: string

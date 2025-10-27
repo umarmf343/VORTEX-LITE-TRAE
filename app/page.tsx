@@ -12,18 +12,7 @@ import { CaptureServices } from "@/components/admin/capture-services"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/lib/utils"
-import {
-  Building2,
-  BarChart3,
-  Users,
-  Zap,
-  FileText,
-  Calendar,
-  Share2,
-  Code,
-  Map,
-  ShoppingCart,
-} from "lucide-react"
+import { Building2, BarChart3, Users, Zap, FileText, Calendar, Share2, Code, Map } from "lucide-react"
 import PropertyReports from "@/components/admin/property-reports"
 import BookingSystem from "@/components/admin/booking-system"
 import CrossPlatformSharing from "@/components/admin/cross-platform-sharing"
@@ -33,7 +22,6 @@ import { CustomBranding } from "@/components/admin/custom-branding"
 import { TechnicianManagement } from "@/components/admin/technician-management"
 import { EmbedCodeGenerator } from "@/components/admin/embed-code-generator"
 import { VisitorJourneyMap } from "@/components/admin/visitor-journey-map"
-import { WooCommerceIntegration } from "@/components/admin/woocommerce-integration"
 import { Models3D } from "@/components/admin/3d-models"
 import { SceneTypes } from "@/components/admin/scene-types"
 
@@ -55,7 +43,6 @@ type ViewMode =
   | "technicians"
   | "embed"
   | "journey"
-  | "woocommerce"
   | "3d-models"
   | "scene-types"
 
@@ -70,7 +57,6 @@ const ADMIN_VIEW_MODES: readonly ViewMode[] = [
   "sharing",
   "branding",
   "technicians",
-  "woocommerce",
   "3d-models",
   "scene-types",
   "leads",
@@ -98,9 +84,6 @@ export default function Page() {
     createPropertyMerge,
     deletePropertyMerge,
     getShareForProperty,
-    getProductsForProperty,
-    addProduct,
-    removeProduct,
     getModelsForProperty,
     addModelAsset,
     removeModelAsset,
@@ -176,8 +159,6 @@ export default function Page() {
     shareLinks: {},
   }
   const selectedShareConfig = getShareForProperty(selectedAnalyticsProperty.id) || defaultShareConfig
-  const propertyProducts = getProductsForProperty(selectedAnalyticsProperty.id)
-  const tourProducts = getProductsForProperty(selectedProperty.id)
   const propertyModels = getModelsForProperty(selectedAnalyticsProperty.id)
   const propertySceneTypes = getSceneTypesForProperty(selectedAnalyticsProperty.id)
   const selectedBranding: CSSCustomization =
@@ -336,7 +317,6 @@ export default function Page() {
           property={selectedProperty}
           onLeadCapture={handleLeadCapture}
           floorPlan={selectedFloorPlan}
-          products={tourProducts}
         />
       </div>
     )
@@ -425,14 +405,6 @@ export default function Page() {
                 className="gap-2"
               >
                 Technicians
-              </Button>
-              <Button
-                variant={viewMode === "woocommerce" ? "default" : "outline"}
-                onClick={() => setViewMode("woocommerce")}
-                className="gap-2"
-              >
-                <ShoppingCart className="w-4 h-4" />
-                WooCommerce
               </Button>
               <Button
                 variant={viewMode === "3d-models" ? "default" : "outline"}
@@ -645,18 +617,6 @@ export default function Page() {
             <div>
               <h2 className="text-xl font-bold mb-6">Visitor Journey - {selectedAnalyticsProperty.name}</h2>
               <VisitorJourneyMap visitors={visitors} propertyId={selectedAnalyticsProperty.id} />
-            </div>
-          )}
-
-          {viewMode === "woocommerce" && (
-            <div>
-              <h2 className="text-xl font-bold mb-6">WooCommerce Integration - {selectedAnalyticsProperty.name}</h2>
-              <WooCommerceIntegration
-                propertyId={selectedAnalyticsProperty.id}
-                products={propertyProducts}
-                onAddProduct={addProduct}
-                onRemoveProduct={removeProduct}
-              />
             </div>
           )}
 

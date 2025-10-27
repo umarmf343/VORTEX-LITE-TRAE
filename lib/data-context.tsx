@@ -11,7 +11,6 @@ import type {
   PropertyMerge,
   CrossPlatformShare,
   FloorPlan,
-  WooCommerceProduct,
   Model3DAsset,
   SceneTypeConfig,
   TechnicianProfile,
@@ -27,7 +26,6 @@ import {
   mockPropertyMerges,
   mockCrossPlatformShares,
   mockFloorPlans,
-  mockWooCommerceProducts,
   mockModelAssets,
   mockSceneTypeConfigs,
   mockTechnicians,
@@ -43,7 +41,6 @@ interface DataContextType {
   propertyMerges: PropertyMerge[]
   crossPlatformShares: CrossPlatformShare[]
   floorPlans: FloorPlan[]
-  products: WooCommerceProduct[]
   modelAssets: Model3DAsset[]
   sceneTypeConfigs: SceneTypeConfig[]
   technicians: TechnicianProfile[]
@@ -62,8 +59,6 @@ interface DataContextType {
   createPropertyMerge: (merge: PropertyMerge) => void
   deletePropertyMerge: (mergeId: string) => void
   upsertCrossPlatformShare: (share: CrossPlatformShare) => void
-  addProduct: (product: WooCommerceProduct) => void
-  removeProduct: (productId: string) => void
   addModelAsset: (model: Model3DAsset) => void
   removeModelAsset: (modelId: string) => void
   addSceneTypeConfig: (config: SceneTypeConfig) => void
@@ -71,7 +66,6 @@ interface DataContextType {
   updateBranding: (propertyId: string, branding: CSSCustomization) => void
   getFloorPlan: (floorPlanId?: string) => FloorPlan | undefined
   getShareForProperty: (propertyId: string) => CrossPlatformShare | undefined
-  getProductsForProperty: (propertyId: string) => WooCommerceProduct[]
   getModelsForProperty: (propertyId: string) => Model3DAsset[]
   getSceneTypesForProperty: (propertyId: string) => SceneTypeConfig[]
 }
@@ -88,7 +82,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [crossPlatformShares, setCrossPlatformShares] =
     useState<CrossPlatformShare[]>(mockCrossPlatformShares)
   const [floorPlans] = useState<FloorPlan[]>(mockFloorPlans)
-  const [products, setProducts] = useState<WooCommerceProduct[]>(mockWooCommerceProducts)
   const [modelAssets, setModelAssets] = useState<Model3DAsset[]>(mockModelAssets)
   const [sceneTypeConfigs, setSceneTypeConfigs] = useState<SceneTypeConfig[]>(mockSceneTypeConfigs)
   const [technicians] = useState<TechnicianProfile[]>(mockTechnicians)
@@ -201,14 +194,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     })
   }, [])
 
-  const addProduct = useCallback((product: WooCommerceProduct) => {
-    setProducts((prev) => [...prev, product])
-  }, [])
-
-  const removeProduct = useCallback((productId: string) => {
-    setProducts((prev) => prev.filter((product) => product.id !== productId))
-  }, [])
-
   const addModelAsset = useCallback((model: Model3DAsset) => {
     setModelAssets((prev) => [...prev, model])
   }, [])
@@ -239,11 +224,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     [crossPlatformShares],
   )
 
-  const getProductsForProperty = useCallback(
-    (propertyId: string) => products.filter((product) => product.propertyId === propertyId),
-    [products],
-  )
-
   const getModelsForProperty = useCallback(
     (propertyId: string) => modelAssets.filter((model) => model.propertyId === propertyId),
     [modelAssets],
@@ -265,7 +245,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         propertyMerges,
         crossPlatformShares,
         floorPlans,
-        products,
         modelAssets,
         sceneTypeConfigs,
         technicians,
@@ -284,8 +263,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         createPropertyMerge,
         deletePropertyMerge,
         upsertCrossPlatformShare,
-        addProduct,
-        removeProduct,
         addModelAsset,
         removeModelAsset,
         addSceneTypeConfig,
@@ -293,7 +270,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         updateBranding,
         getFloorPlan,
         getShareForProperty,
-        getProductsForProperty,
         getModelsForProperty,
         getSceneTypesForProperty,
       }}
