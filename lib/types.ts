@@ -31,6 +31,7 @@ export interface Property {
   matterportModelId?: string
   matterportExperienceLabel?: string
   guidedTours?: GuidedTour[]
+  sphrSpace?: SphrSpace
 }
 
 export interface Scene {
@@ -122,6 +123,35 @@ export interface GuidedTour {
     totalDistanceFeet?: number
     featuredScenes?: string[]
   }
+}
+
+export type SphrHotspotType = "info" | "navigation" | "media"
+
+export interface SphrHotspot {
+  id: string
+  title: string
+  description?: string
+  type: SphrHotspotType
+  yaw: number
+  pitch: number
+  targetNodeId?: string
+  mediaUrl?: string
+}
+
+export interface SphrSpaceNode {
+  id: string
+  name: string
+  panoramaUrl: string
+  hotspots: SphrHotspot[]
+  initialYaw?: number
+  initialPitch?: number
+}
+
+export interface SphrSpace {
+  nodes: SphrSpaceNode[]
+  initialNodeId: string
+  defaultFov?: number
+  description?: string
 }
 
 export interface BrandingConfig {

@@ -14,7 +14,21 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { cn, formatCurrency } from "@/lib/utils"
 import { buildMatterportUrl } from "@/lib/matterport"
-import { Building2, BarChart3, Users, Zap, FileText, Calendar, Share2, Code, Map, Globe, ExternalLink, AlertCircle } from "@/lib/icons"
+import {
+  Building2,
+  BarChart3,
+  Users,
+  Zap,
+  FileText,
+  Calendar,
+  Share2,
+  Code,
+  Map,
+  Globe,
+  ExternalLink,
+  AlertCircle,
+  Navigation,
+} from "@/lib/icons"
 import PropertyReports from "@/components/admin/property-reports"
 import BookingSystem from "@/components/admin/booking-system"
 import CrossPlatformSharing from "@/components/admin/cross-platform-sharing"
@@ -100,7 +114,7 @@ export default function Page() {
   const [selectedAnalyticsProperty, setSelectedAnalyticsProperty] = useState<Property | undefined>(
     properties[0],
   )
-  const [tourExperience, setTourExperience] = useState<"vortex" | "matterport">("vortex")
+  const [tourExperience, setTourExperience] = useState<"vortex" | "matterport" | "sphr">("vortex")
   const matterportApplicationKey = process.env.NEXT_PUBLIC_MATTERPORT_SDK ?? ""
 
   const featureHighlights = [
@@ -147,10 +161,13 @@ export default function Page() {
   }, [viewMode])
 
   useEffect(() => {
-    if (!selectedProperty?.matterportModelId) {
+    if (tourExperience === "matterport" && !selectedProperty?.matterportModelId) {
       setTourExperience("vortex")
     }
-  }, [selectedProperty?.matterportModelId])
+    if (tourExperience === "sphr" && !selectedProperty?.sphrSpace) {
+      setTourExperience("vortex")
+    }
+  }, [selectedProperty?.matterportModelId, selectedProperty?.sphrSpace, tourExperience])
 
   if (!selectedProperty || !selectedAnalyticsProperty) {
     return (
@@ -342,6 +359,7 @@ export default function Page() {
   // Tour View
   if (viewMode === "tour") {
     const matterportAvailable = Boolean(selectedProperty.matterportModelId)
+    const sphrAvailable = Boolean(selectedProperty.sphrSpace)
     const matterportUrl = matterportAvailable
       ? buildMatterportUrl(selectedProperty.matterportModelId!, {
           applicationKey: matterportApplicationKey || undefined,
@@ -349,6 +367,7 @@ export default function Page() {
         })
       : undefined
     const matterportViewActive = tourExperience === "matterport" && matterportAvailable
+    const sphrViewActive = tourExperience === "sphr" && sphrAvailable
 
     return (
       <div className="flex h-screen w-full flex-col bg-slate-950 text-slate-50">
@@ -365,6 +384,16 @@ export default function Page() {
               >
                 Vortex Tour
               </Button>
+              {sphrAvailable ? (
+                <Button
+                  variant={tourExperience === "sphr" ? "default" : "outline"}
+                  onClick={() => setTourExperience("sphr")}
+                  className="gap-2"
+                >
+                  <Navigation className="h-4 w-4" />
+                  SPHR Immersive
+                </Button>
+              ) : null}
               <Button
                 variant={tourExperience === "matterport" ? "default" : "outline"}
                 onClick={() => setTourExperience("matterport")}
@@ -374,8 +403,13 @@ export default function Page() {
                 <Globe className="h-4 w-4" />
                 Matterport Showcase
               </Button>
+              {!sphrAvailable && (
+                <span className="basis-full text-xs text-slate-300">
+                  Import SPHR nodes to unlock the immersive viewer option.
+                </span>
+              )}
               {!matterportAvailable && (
-                <span className="text-xs text-slate-300">
+                <span className="basis-full text-xs text-slate-300">
                   Link a Matterport model ID to unlock the showcase view.
                 </span>
               )}
@@ -439,7 +473,12 @@ export default function Page() {
               </aside>
             </div>
           ) : (
-            <TourPlayer property={selectedProperty} onLeadCapture={handleLeadCapture} floorPlan={selectedFloorPlan} />
+            <TourPlayer
+              property={selectedProperty}
+              onLeadCapture={handleLeadCapture}
+              floorPlan={selectedFloorPlan}
+              experienceMode={sphrViewActive ? "sphr" : "vortex"}
+            />
           )}
         </div>
       </div>
