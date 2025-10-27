@@ -1,15 +1,22 @@
 "use client"
 
-import { useEffect, useState, type ElementType } from "react"
+import { useEffect, useState, type ComponentType, type ElementType } from "react"
+import dynamic from "next/dynamic"
 import { useData } from "@/lib/data-context"
-import type { CSSCustomization, CrossPlatformShare, LeadCapturePayload, Property } from "@/lib/types"
-import { TourPlayer } from "@/components/viewer/tour-player"
-import { MatterportEmbed } from "@/components/viewer/matterport-embed"
-import { PropertyList } from "@/components/admin/property-list"
-import { AnalyticsDashboard } from "@/components/admin/analytics-dashboard"
-import { AdvancedAnalytics } from "@/components/admin/advanced-analytics"
-import { LeadsDashboard } from "@/components/admin/leads-dashboard"
-import { CaptureServices } from "@/components/admin/capture-services"
+import type {
+  BookingSlot,
+  CaptureService,
+  CSSCustomization,
+  CrossPlatformShare,
+  Lead,
+  LeadCapturePayload,
+  Model3DAsset,
+  Property,
+  PropertyMerge,
+  SceneTypeConfig,
+  TechnicianProfile,
+  Visitor,
+} from "@/lib/types"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { cn, formatCurrency } from "@/lib/utils"
@@ -28,18 +35,8 @@ import {
   ExternalLink,
   AlertCircle,
   Navigation,
+  Loader2,
 } from "@/lib/icons"
-import PropertyReports from "@/components/admin/property-reports"
-import BookingSystem from "@/components/admin/booking-system"
-import CrossPlatformSharing from "@/components/admin/cross-platform-sharing"
-import { PropertyComparison } from "@/components/admin/property-comparison"
-import { MergeSpaces } from "@/components/admin/merge-spaces"
-import { CustomBranding } from "@/components/admin/custom-branding"
-import { TechnicianManagement } from "@/components/admin/technician-management"
-import { EmbedCodeGenerator } from "@/components/admin/embed-code-generator"
-import { VisitorJourneyMap } from "@/components/admin/visitor-journey-map"
-import { Models3D } from "@/components/admin/3d-models"
-import { SceneTypes } from "@/components/admin/scene-types"
 
 type ViewMode =
   | "home"
@@ -81,6 +78,250 @@ const ADMIN_VIEW_MODES: readonly ViewMode[] = [
   "journey",
 ] as const
 
+type LazyComponentFactory<Props> = () => Promise<{ default: ComponentType<Props> }>
+
+function ViewerFallback({ message }: { message: string }) {
+  return (
+    <div className="flex h-full min-h-[240px] w-full items-center justify-center rounded-xl border border-dashed border-slate-700/70 bg-slate-900/40 text-slate-200">
+      <div className="flex items-center gap-2">
+        <Loader2 className="h-5 w-5 animate-spin" />
+        <span>{message}</span>
+      </div>
+    </div>
+  )
+}
+
+function AdminModuleSkeleton({ label }: { label: string }) {
+  return (
+    <Card className="flex min-h-[200px] items-center justify-center border border-dashed border-slate-700/70 bg-slate-900/40">
+      <div className="flex items-center gap-2 text-slate-200">
+        <Loader2 className="h-5 w-5 animate-spin" />
+        <span>Loading {label}…</span>
+      </div>
+    </Card>
+  )
+}
+
+function createAdminModule<Props>(loader: LazyComponentFactory<Props>, label: string) {
+  return dynamic<Props>(loader, {
+    ssr: false,
+    loading: () => <AdminModuleSkeleton label={label} />,
+  })
+}
+
+const PropertyList = createAdminModule<{
+  properties: Property[]
+  onView?: (property: Property) => void
+  onEdit?: (property: Property) => void
+  onDelete?: (propertyId: string) => void
+  onStats?: (property: Property) => void
+}>(
+  () =>
+    import("@/components/admin/property-list").then((mod) => ({
+      default: mod.PropertyList,
+    })),
+  "property list",
+)
+
+const TourPlayer = dynamic(
+  () =>
+    import("@/components/viewer/tour-player").then((mod) => ({
+      default: mod.TourPlayer,
+    })),
+  {
+    ssr: false,
+    loading: () => <ViewerFallback message="Preparing interactive tour…" />,
+  },
+)
+
+const MatterportEmbed = dynamic(
+  () =>
+    import("@/components/viewer/matterport-embed").then((mod) => ({
+      default: mod.MatterportEmbed,
+    })),
+  {
+    ssr: false,
+    loading: () => <ViewerFallback message="Loading Matterport Showcase…" />,
+  },
+)
+
+const AnalyticsDashboard = createAdminModule<{
+  property: Property
+  visitors: Visitor[]
+  leads: Lead[]
+}>(
+  () =>
+    import("@/components/admin/analytics-dashboard").then((mod) => ({
+      default: mod.AnalyticsDashboard,
+    })),
+  "analytics",
+)
+
+const AdvancedAnalytics = createAdminModule<{
+  property: Property
+  visitors: Visitor[]
+  leads: Lead[]
+}>(
+  () =>
+    import("@/components/admin/advanced-analytics").then((mod) => ({
+      default: mod.AdvancedAnalytics,
+    })),
+  "advanced analytics",
+)
+
+const LeadsDashboard = createAdminModule<{
+  leads: Lead[]
+  onUpdateLead?: (leadId: string, updates: Partial<Lead>) => void
+}>(
+  () =>
+    import("@/components/admin/leads-dashboard").then((mod) => ({
+      default: mod.LeadsDashboard,
+    })),
+  "lead management",
+)
+
+const CaptureServices = createAdminModule<{
+  services: CaptureService[]
+  properties?: Property[]
+  onUpdateService?: (id: string, updates: Partial<CaptureService>) => void
+  onCreateService?: (service: CaptureService) => void
+}>(
+  () =>
+    import("@/components/admin/capture-services").then((mod) => ({
+      default: mod.CaptureServices,
+    })),
+  "capture services",
+)
+
+const PropertyReports = createAdminModule<{
+  property: Property
+}>(
+  () =>
+    import("@/components/admin/property-reports").then((mod) => ({
+      default: mod.default,
+    })),
+  "reports",
+)
+
+const BookingSystem = createAdminModule<{
+  propertyId: string
+  slots: BookingSlot[]
+  onBook?: (slotId: string, booking: { name: string; email: string; phone?: string }) => void
+}>(
+  () =>
+    import("@/components/admin/booking-system").then((mod) => ({
+      default: mod.default,
+    })),
+  "booking system",
+)
+
+const CrossPlatformSharing = createAdminModule<{
+  propertyId: string
+  sharing: CrossPlatformShare
+}>(
+  () =>
+    import("@/components/admin/cross-platform-sharing").then((mod) => ({
+      default: mod.default,
+    })),
+  "cross-platform sharing",
+)
+
+const PropertyComparison = createAdminModule<{
+  properties: Property[]
+  onClose?: () => void
+}>(
+  () =>
+    import("@/components/admin/property-comparison").then((mod) => ({
+      default: mod.PropertyComparison,
+    })),
+  "property comparison",
+)
+
+const MergeSpaces = createAdminModule<{
+  properties: Property[]
+  merges: PropertyMerge[]
+  onCreateMerge?: (merge: PropertyMerge) => void
+  onDeleteMerge?: (mergeId: string) => void
+}>(
+  () =>
+    import("@/components/admin/merge-spaces").then((mod) => ({
+      default: mod.MergeSpaces,
+    })),
+  "merge spaces",
+)
+
+const CustomBranding = createAdminModule<{
+  propertyId: string
+  branding?: CSSCustomization
+  onSave?: (branding: CSSCustomization) => void
+}>(
+  () =>
+    import("@/components/admin/custom-branding").then((mod) => ({
+      default: mod.CustomBranding,
+    })),
+  "custom branding",
+)
+
+const TechnicianManagement = createAdminModule<{
+  technicians: TechnicianProfile[]
+  services: CaptureService[]
+  onAssignTechnician?: (serviceId: string, technicianId: string) => void
+}>(
+  () =>
+    import("@/components/admin/technician-management").then((mod) => ({
+      default: mod.TechnicianManagement,
+    })),
+  "technician management",
+)
+
+const EmbedCodeGenerator = createAdminModule<{
+  propertyId: string
+  propertyName: string
+}>(
+  () =>
+    import("@/components/admin/embed-code-generator").then((mod) => ({
+      default: mod.EmbedCodeGenerator,
+    })),
+  "embed tools",
+)
+
+const VisitorJourneyMap = createAdminModule<{
+  visitors: Visitor[]
+  propertyId: string
+}>(
+  () =>
+    import("@/components/admin/visitor-journey-map").then((mod) => ({
+      default: mod.VisitorJourneyMap,
+    })),
+  "visitor journey",
+)
+
+const Models3D = createAdminModule<{
+  propertyId: string
+  models?: Model3DAsset[]
+  onAddModel?: (model: Model3DAsset) => void
+  onRemoveModel?: (modelId: string) => void
+}>(
+  () =>
+    import("@/components/admin/3d-models").then((mod) => ({
+      default: mod.Models3D,
+    })),
+  "3d models",
+)
+
+const SceneTypes = createAdminModule<{
+  propertyId: string
+  scenes?: SceneTypeConfig[]
+  onAddSceneType?: (scene: SceneTypeConfig) => void
+  onRemoveSceneType?: (sceneId: string) => void
+}>(
+  () =>
+    import("@/components/admin/scene-types").then((mod) => ({
+      default: mod.SceneTypes,
+    })),
+  "scene types",
+)
+
 export default function Page() {
   const {
     properties,
@@ -91,6 +332,7 @@ export default function Page() {
     propertyMerges,
     technicians,
     brandingSettings,
+    isLoading,
     addLead,
     updateLead,
     updateCaptureService,
@@ -110,12 +352,21 @@ export default function Page() {
     updateBranding,
   } = useData()
   const [viewMode, setViewMode] = useState<ViewMode>("home")
-  const [selectedProperty, setSelectedProperty] = useState<Property | undefined>(properties[0])
+  const [selectedProperty, setSelectedProperty] = useState<Property | undefined>(undefined)
   const [selectedAnalyticsProperty, setSelectedAnalyticsProperty] = useState<Property | undefined>(
-    properties[0],
+    undefined,
   )
   const [tourExperience, setTourExperience] = useState<"vortex" | "matterport" | "sphr">("vortex")
   const matterportApplicationKey = process.env.NEXT_PUBLIC_MATTERPORT_SDK ?? ""
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-slate-200">
+        <Loader2 className="mb-4 h-8 w-8 animate-spin" />
+        <p className="text-sm text-slate-400">Loading virtual experience data…</p>
+      </div>
+    )
+  }
 
   const featureHighlights = [
     {

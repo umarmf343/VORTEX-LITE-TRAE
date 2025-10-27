@@ -1,0 +1,1135 @@
+{
+  "properties": [
+    {
+      "id": "prop-001",
+      "name": "Luxury Downtown Penthouse",
+      "address": "123 Park Avenue, New York, NY 10022",
+      "price": 4500000,
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "sqft": 4200,
+      "description": "Stunning penthouse with panoramic city views, high-end finishes, and smart home automation.",
+      "images": [
+        "/luxury-penthouse-living-room.png",
+        "/modern-kitchen-with-marble-counters.jpg",
+        "/master-bedroom-with-city-view.jpg"
+      ],
+      "thumbnail": "/penthouse-exterior.jpg",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "updatedAt": "2024-10-20T00:00:00.000Z",
+      "isFavorite": false,
+      "tags": [
+        "luxury",
+        "penthouse",
+        "city-view",
+        "smart-home"
+      ],
+      "floorPlanId": "floor-001",
+      "dayNightImages": {
+        "day": "/luxury-penthouse-day.jpg",
+        "night": "/luxury-penthouse-night.jpg"
+      },
+      "matterportModelId": "SxQL3iGyoDo",
+      "matterportExperienceLabel": "Matterport Showcase",
+      "branding": {
+        "primaryColor": "#1a3a52",
+        "secondaryColor": "#d4af37",
+        "logo": "/baladshelter-logo.jpg",
+        "companyName": "BaladShelter",
+        "contactEmail": "info@baladshelter.com",
+        "contactPhone": "+1 (555) 123-4567",
+        "whiteLabelMode": false
+      },
+      "supportedViewModes": [
+        "walkthrough",
+        "360",
+        "first-person",
+        "orbit",
+        "dollhouse",
+        "floor-plan"
+      ],
+      "guidedTours": [
+        {
+          "id": "penthouse-highlight",
+          "name": "Signature Showcase",
+          "description": "Experience the dramatic entry sequence and the most requested vantage points of the residence in under four minutes.",
+          "coverImage": "/luxury-penthouse-living-room.png",
+          "estimatedDurationMinutes": 3.5,
+          "callouts": [
+            "Guided storyline across the three hero scenes",
+            "Stop-level callouts with lifestyle talking points",
+            "Optimized pacing for live sales presentations"
+          ],
+          "highlightMetrics": {
+            "totalStops": 4,
+            "totalDistanceFeet": 180,
+            "featuredScenes": [
+              "Living Room",
+              "Master Bedroom",
+              "Kitchen"
+            ]
+          },
+          "stops": [
+            {
+              "id": "penthouse-highlight-1",
+              "sceneId": "scene-001",
+              "sceneName": "Living Room",
+              "yaw": 12,
+              "pitch": -4,
+              "note": "Foyer Arrival",
+              "durationSeconds": 9,
+              "highlight": "Reveal the volume of the double-height living space on arrival."
+            },
+            {
+              "id": "penthouse-highlight-2",
+              "sceneId": "scene-001",
+              "sceneName": "Living Room",
+              "yaw": -48,
+              "pitch": -2,
+              "note": "Skyline Panorama",
+              "durationSeconds": 10,
+              "highlight": "Pause on the 270° skyline wrap for the wow moment.",
+              "mediaUrl": "/luxury-penthouse-living-room-360.jpg"
+            },
+            {
+              "id": "penthouse-highlight-3",
+              "sceneId": "scene-002",
+              "sceneName": "Master Bedroom",
+              "yaw": 35,
+              "pitch": -8,
+              "note": "Owner's Retreat",
+              "durationSeconds": 8,
+              "highlight": "Call out the custom upholstered headboard and ensuite connection."
+            },
+            {
+              "id": "penthouse-highlight-4",
+              "sceneId": "scene-003",
+              "sceneName": "Kitchen",
+              "yaw": -22,
+              "pitch": -6,
+              "note": "Entertainer's Kitchen",
+              "durationSeconds": 9,
+              "highlight": "Finish with the chef-grade appliance wall and marble waterfall island."
+            }
+          ]
+        },
+        {
+          "id": "penthouse-evening-twilight",
+          "name": "Twilight Lifestyle Walkthrough",
+          "description": "An evening-focused flow that pairs the night lighting package with lifestyle talking points for remote showings.",
+          "coverImage": "/luxury-penthouse-night.jpg",
+          "estimatedDurationMinutes": 4.2,
+          "callouts": [
+            "Leans into the integrated lighting scenes",
+            "Pairs perfectly with night-time photography",
+            "Designed for remote buyer consultations"
+          ],
+          "highlightMetrics": {
+            "totalStops": 5,
+            "totalDistanceFeet": 210,
+            "featuredScenes": [
+              "Living Room",
+              "Master Bedroom",
+              "Kitchen"
+            ]
+          },
+          "stops": [
+            {
+              "id": "penthouse-evening-1",
+              "sceneId": "scene-001",
+              "sceneName": "Living Room",
+              "yaw": 78,
+              "pitch": -5,
+              "note": "Lounge Gathering",
+              "durationSeconds": 8,
+              "highlight": "Introduce the backlit shelving and integrated audio system."
+            },
+            {
+              "id": "penthouse-evening-2",
+              "sceneId": "scene-001",
+              "sceneName": "Living Room",
+              "yaw": -95,
+              "pitch": -3,
+              "note": "City Lights",
+              "durationSeconds": 10,
+              "highlight": "Hold the frame on the evening skyline to reinforce location value."
+            },
+            {
+              "id": "penthouse-evening-3",
+              "sceneId": "scene-002",
+              "sceneName": "Master Bedroom",
+              "yaw": -18,
+              "pitch": -7,
+              "note": "Relaxed Evening",
+              "durationSeconds": 9,
+              "highlight": "Point out the automation shades and ambient lighting scenes."
+            },
+            {
+              "id": "penthouse-evening-4",
+              "sceneId": "scene-003",
+              "sceneName": "Kitchen",
+              "yaw": 58,
+              "pitch": -4,
+              "note": "Culinary Prep",
+              "durationSeconds": 8,
+              "highlight": "Call attention to the waterfall island and concealed appliance garage."
+            },
+            {
+              "id": "penthouse-evening-5",
+              "sceneId": "scene-003",
+              "sceneName": "Kitchen",
+              "yaw": -160,
+              "pitch": -6,
+              "note": "Entertainers' Finale",
+              "durationSeconds": 9,
+              "highlight": "Close on the indoor-outdoor connection toward the terrace."
+            }
+          ]
+        }
+      ],
+      "sphrSpace": {
+        "initialNodeId": "penthouse-lobby",
+        "defaultFov": 70,
+        "description": "Port of the SPHR experience with Three.js powered navigation, allowing smooth jumps between immersive panoramas and rich info callouts.",
+        "nodes": [
+          {
+            "id": "penthouse-lobby",
+            "name": "Skyline Lobby",
+            "panoramaUrl": "https://static.mused.org/spaceshare/IMG_20231101_074927_00_479.jpg",
+            "initialYaw": 40,
+            "initialPitch": -5,
+            "hotspots": [
+              {
+                "id": "lobby-to-living",
+                "title": "Enter the Great Room",
+                "type": "navigation",
+                "yaw": 18,
+                "pitch": -8,
+                "targetNodeId": "penthouse-living"
+              },
+              {
+                "id": "lobby-to-suite",
+                "title": "Owner's Suite",
+                "type": "navigation",
+                "yaw": -120,
+                "pitch": -6,
+                "targetNodeId": "penthouse-suite"
+              },
+              {
+                "id": "lobby-lighting",
+                "title": "Layered Lighting",
+                "type": "info",
+                "yaw": -48,
+                "pitch": -12,
+                "description": "Programmable cove lighting and art spots wash the entry volume—ported directly from the SPHR tour lighting presets."
+              }
+            ]
+          },
+          {
+            "id": "penthouse-living",
+            "name": "Grand Living Room",
+            "panoramaUrl": "https://static.mused.org/spaceshare/IMG_20231101_075039_00_482.jpg",
+            "initialYaw": -110,
+            "initialPitch": -4,
+            "hotspots": [
+              {
+                "id": "living-to-lobby",
+                "title": "Back to Lobby",
+                "type": "navigation",
+                "yaw": 160,
+                "pitch": -4,
+                "targetNodeId": "penthouse-lobby"
+              },
+              {
+                "id": "living-to-suite",
+                "title": "Primary Suite",
+                "type": "navigation",
+                "yaw": -30,
+                "pitch": -6,
+                "targetNodeId": "penthouse-suite"
+              },
+              {
+                "id": "living-spotlight",
+                "title": "Skyline Spotlight",
+                "type": "info",
+                "yaw": 15,
+                "pitch": -2,
+                "description": "Floor-to-ceiling glass wraps 270° around this room. Hotspot metrics from SPHR highlight 82% engagement here."
+              },
+              {
+                "id": "living-media",
+                "title": "Designer Walkthrough",
+                "type": "media",
+                "yaw": -90,
+                "pitch": -3,
+                "mediaUrl": "https://cdn.mused.org/media/penthouse-design-story.mp4",
+                "description": "Play the designer's SPHR walkthrough with staging commentary."
+              }
+            ]
+          },
+          {
+            "id": "penthouse-suite",
+            "name": "Owner's Suite",
+            "panoramaUrl": "https://static.mused.org/spaceshare/IMG_20231101_075124_00_485.jpg",
+            "initialYaw": 95,
+            "initialPitch": -6,
+            "hotspots": [
+              {
+                "id": "suite-to-living",
+                "title": "Return to Great Room",
+                "type": "navigation",
+                "yaw": 40,
+                "pitch": -10,
+                "targetNodeId": "penthouse-living"
+              },
+              {
+                "id": "suite-terrace",
+                "title": "Step to Terrace",
+                "type": "info",
+                "yaw": -130,
+                "pitch": -5,
+                "description": "12' sliding glass walls stack to reveal the terrace. Imported SPHR depth maps power the parallax hint on hover."
+              },
+              {
+                "id": "suite-to-lobby",
+                "title": "Entry Gallery",
+                "type": "navigation",
+                "yaw": 170,
+                "pitch": -3,
+                "targetNodeId": "penthouse-lobby"
+              }
+            ]
+          }
+        ]
+      },
+      "scenes": [
+        {
+          "id": "scene-001",
+          "name": "Living Room",
+          "imageUrl": "/luxury-penthouse-living-room-360.jpg",
+          "thumbnail": "/luxury-penthouse-living-room.png",
+          "viewCount": 145,
+          "dwellTime": 45,
+          "defaultViewMode": "walkthrough",
+          "hotspots": [
+            {
+              "id": "hotspot-001",
+              "x": 45,
+              "y": 50,
+              "type": "info",
+              "title": "Floor-to-Ceiling Windows",
+              "description": "Premium glass with UV protection and smart tinting",
+              "clickCount": 23
+            },
+            {
+              "id": "hotspot-002",
+              "x": 70,
+              "y": 60,
+              "type": "video",
+              "title": "Smart Home Demo",
+              "description": "Watch the smart home automation in action",
+              "mediaUrl": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+              "clickCount": 15
+            },
+            {
+              "id": "hotspot-003",
+              "x": 30,
+              "y": 40,
+              "type": "cta",
+              "title": "Schedule Tour",
+              "description": "Book an in-person viewing",
+              "clickCount": 8
+            }
+          ],
+          "measurements": [
+            {
+              "id": "measure-living-01",
+              "startX": 22,
+              "startY": 52,
+              "endX": 68,
+              "endY": 52,
+              "distance": 18.5,
+              "unit": "ft",
+              "measurementType": "distance",
+              "label": "Sofa wall span",
+              "createdAt": "2024-01-18T14:18:00.000Z"
+            }
+          ],
+          "annotations": [
+            {
+              "id": "annotation-001",
+              "x": 54,
+              "y": 60,
+              "text": "Sectional seating with integrated storage",
+              "color": "#38bdf8",
+              "layerId": "layer-interior"
+            },
+            {
+              "id": "annotation-002",
+              "x": 34,
+              "y": 46,
+              "text": "Smart dimmer panel",
+              "color": "#f97316",
+              "layerId": "layer-electrical"
+            },
+            {
+              "id": "annotation-003",
+              "x": 62,
+              "y": 35,
+              "text": "360° city skyline vantage point",
+              "color": "#facc15"
+            }
+          ],
+          "dataLayers": [
+            {
+              "id": "layer-interior",
+              "name": "Interior Design",
+              "description": "Furniture placement and finish selections.",
+              "defaultVisible": true
+            },
+            {
+              "id": "layer-electrical",
+              "name": "Electrical Layout",
+              "description": "Outlet locations and smart controls.",
+              "defaultVisible": false
+            }
+          ],
+          "order": 1
+        },
+        {
+          "id": "scene-002",
+          "name": "Master Bedroom",
+          "imageUrl": "/luxury-master-bedroom-with-city-view.jpg",
+          "thumbnail": "/master-bedroom-with-city-view.jpg",
+          "viewCount": 98,
+          "dwellTime": 32,
+          "hotspots": [
+            {
+              "id": "hotspot-004",
+              "x": 50,
+              "y": 45,
+              "type": "link",
+              "title": "Back to Living Room",
+              "description": "Return to main area",
+              "targetSceneId": "scene-001",
+              "clickCount": 12
+            },
+            {
+              "id": "hotspot-005",
+              "x": 60,
+              "y": 55,
+              "type": "audio",
+              "title": "Room Audio System",
+              "description": "Premium Bose sound system",
+              "mediaUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+              "clickCount": 5
+            }
+          ],
+          "measurements": [
+            {
+              "id": "measure-bedroom-01",
+              "startX": 28,
+              "startY": 58,
+              "endX": 72,
+              "endY": 58,
+              "distance": 16.2,
+              "unit": "ft",
+              "measurementType": "distance",
+              "label": "Bed wall length",
+              "createdAt": "2024-01-19T09:42:00.000Z"
+            }
+          ],
+          "annotations": [
+            {
+              "id": "annotation-004",
+              "x": 48,
+              "y": 42,
+              "text": "Custom upholstered headboard",
+              "color": "#6366f1",
+              "layerId": "layer-interior-bedroom"
+            },
+            {
+              "id": "annotation-005",
+              "x": 66,
+              "y": 64,
+              "text": "Integrated reading sconces",
+              "color": "#f97316",
+              "layerId": "layer-lighting"
+            }
+          ],
+          "dataLayers": [
+            {
+              "id": "layer-interior-bedroom",
+              "name": "Interior Styling",
+              "description": "Furniture and textiles for the suite.",
+              "defaultVisible": true
+            },
+            {
+              "id": "layer-lighting",
+              "name": "Lighting Plan",
+              "description": "Fixture placement and electrical drops.",
+              "defaultVisible": false
+            }
+          ],
+          "order": 2
+        },
+        {
+          "id": "scene-003",
+          "name": "Kitchen",
+          "imageUrl": "/modern-luxury-kitchen-with-marble.jpg",
+          "thumbnail": "/modern-kitchen-with-marble-counters.jpg",
+          "viewCount": 87,
+          "dwellTime": 28,
+          "hotspots": [
+            {
+              "id": "hotspot-006",
+              "x": 40,
+              "y": 50,
+              "type": "image",
+              "title": "Marble Countertops",
+              "description": "Italian marble with professional appliances",
+              "mediaUrl": "/modern-kitchen-with-marble-counters.jpg",
+              "clickCount": 18
+            }
+          ],
+          "measurements": [
+            {
+              "id": "measure-kitchen-01",
+              "startX": 30,
+              "startY": 45,
+              "endX": 70,
+              "endY": 65,
+              "distance": 245,
+              "unit": "ft",
+              "measurementType": "area",
+              "label": "Kitchen footprint",
+              "points": [
+                {
+                  "x": 30,
+                  "y": 45
+                },
+                {
+                  "x": 68,
+                  "y": 44
+                },
+                {
+                  "x": 72,
+                  "y": 65
+                },
+                {
+                  "x": 34,
+                  "y": 66
+                }
+              ],
+              "createdAt": "2024-01-20T11:05:00.000Z"
+            }
+          ],
+          "annotations": [
+            {
+              "id": "annotation-006",
+              "x": 44,
+              "y": 52,
+              "text": "Waterfall island with seating for four",
+              "color": "#22d3ee",
+              "layerId": "layer-interior-kitchen"
+            },
+            {
+              "id": "annotation-007",
+              "x": 58,
+              "y": 40,
+              "text": "Concealed appliance garage",
+              "color": "#f97316",
+              "layerId": "layer-appliance"
+            },
+            {
+              "id": "annotation-008",
+              "x": 38,
+              "y": 68,
+              "text": "Floor-to-ceiling pantry wall",
+              "color": "#facc15"
+            }
+          ],
+          "dataLayers": [
+            {
+              "id": "layer-interior-kitchen",
+              "name": "Millwork & Finishes",
+              "description": "Cabinetry, countertops, and surfaces.",
+              "defaultVisible": true
+            },
+            {
+              "id": "layer-appliance",
+              "name": "Appliance Plan",
+              "description": "Placement of major appliances & utilities.",
+              "defaultVisible": true
+            }
+          ],
+          "order": 3
+        }
+      ],
+      "stats": {
+        "totalVisits": 342,
+        "uniqueVisitors": 287,
+        "avgDuration": 8.5,
+        "conversionRate": 12.5,
+        "leadsGenerated": 34,
+        "lastUpdated": "2025-10-27T12:12:12.085Z",
+        "hotspotEngagement": {
+          "hotspot-001": 23,
+          "hotspot-002": 15,
+          "hotspot-003": 8
+        },
+        "scenePopularity": {
+          "scene-001": 145,
+          "scene-002": 98,
+          "scene-003": 87
+        }
+      }
+    },
+    {
+      "id": "prop-002",
+      "name": "Modern Suburban Family Home",
+      "address": "456 Oak Street, Austin, TX 78704",
+      "price": 850000,
+      "bedrooms": 4,
+      "bathrooms": 2.5,
+      "sqft": 3100,
+      "description": "Contemporary home with open floor plan, energy-efficient features, and beautiful backyard.",
+      "images": [
+        "/modern-suburban-home-exterior.jpg",
+        "/open-concept-living-area.jpg",
+        "/backyard-with-pool.png"
+      ],
+      "thumbnail": "/suburban-home-front.jpg",
+      "createdAt": "2024-02-10T00:00:00.000Z",
+      "updatedAt": "2024-10-18T00:00:00.000Z",
+      "isFavorite": false,
+      "tags": [
+        "family-home",
+        "suburban",
+        "pool",
+        "modern"
+      ],
+      "floorPlanId": "floor-002",
+      "dayNightImages": {
+        "day": "/modern-suburban-home-exterior.jpg",
+        "night": "/suburban-home-front.jpg"
+      },
+      "matterportModelId": "9n7LZmjGgA3",
+      "matterportExperienceLabel": "Family Home Showcase",
+      "branding": {
+        "primaryColor": "#1a3a52",
+        "secondaryColor": "#d4af37",
+        "logo": "/baladshelter-logo.jpg",
+        "companyName": "BaladShelter",
+        "contactEmail": "info@baladshelter.com",
+        "contactPhone": "+1 (555) 123-4567",
+        "whiteLabelMode": false
+      },
+      "guidedTours": [
+        {
+          "id": "suburban-family-flow",
+          "name": "Family Living Flow",
+          "description": "A quick orientation to the family-friendly layout highlighting the foyer welcome, main gathering area, and resort-style backyard.",
+          "coverImage": "/open-concept-living-area.jpg",
+          "estimatedDurationMinutes": 2.6,
+          "callouts": [
+            "Great for weekend open-house recaps",
+            "Pairs voiceover prompts with every stop",
+            "Keeps buyers focused on the indoor-outdoor connection"
+          ],
+          "highlightMetrics": {
+            "totalStops": 3,
+            "totalDistanceFeet": 140,
+            "featuredScenes": [
+              "Foyer",
+              "Living Area",
+              "Backyard"
+            ]
+          },
+          "stops": [
+            {
+              "id": "suburban-flow-1",
+              "sceneId": "scene-004",
+              "sceneName": "Foyer",
+              "yaw": -5,
+              "pitch": -6,
+              "note": "Welcoming Entry",
+              "durationSeconds": 7,
+              "highlight": "Invite viewers to imagine greeting guests in the airy foyer."
+            },
+            {
+              "id": "suburban-flow-2",
+              "sceneId": "scene-005",
+              "sceneName": "Living Area",
+              "yaw": 32,
+              "pitch": -8,
+              "note": "Central Gathering",
+              "durationSeconds": 9,
+              "highlight": "Call out the open concept layout and flexible seating options."
+            },
+            {
+              "id": "suburban-flow-3",
+              "sceneId": "scene-006",
+              "sceneName": "Backyard",
+              "yaw": -54,
+              "pitch": -5,
+              "note": "Outdoor Escape",
+              "durationSeconds": 10,
+              "highlight": "Finish with the resort-style pool and outdoor kitchen zone."
+            }
+          ]
+        }
+      ],
+      "scenes": [
+        {
+          "id": "scene-004",
+          "name": "Foyer",
+          "imageUrl": "/modern-home-foyer-entrance.jpg",
+          "thumbnail": "/modern-home-foyer-entrance.jpg",
+          "viewCount": 76,
+          "dwellTime": 15,
+          "hotspots": [],
+          "measurements": [],
+          "annotations": [],
+          "order": 1
+        },
+        {
+          "id": "scene-005",
+          "name": "Living Area",
+          "imageUrl": "/open-concept-living-room.jpg",
+          "thumbnail": "/open-concept-living-room.jpg",
+          "viewCount": 92,
+          "dwellTime": 38,
+          "hotspots": [
+            {
+              "id": "hotspot-007",
+              "x": 50,
+              "y": 50,
+              "type": "info",
+              "title": "Open Concept Design",
+              "description": "Seamless flow between living and dining areas",
+              "clickCount": 14
+            }
+          ],
+          "measurements": [],
+          "annotations": [],
+          "order": 2
+        },
+        {
+          "id": "scene-006",
+          "name": "Backyard",
+          "imageUrl": "/backyard-with-pool.png",
+          "thumbnail": "/backyard-with-pool.png",
+          "viewCount": 68,
+          "dwellTime": 25,
+          "hotspots": [
+            {
+              "id": "hotspot-008",
+              "x": 45,
+              "y": 60,
+              "type": "info",
+              "title": "Resort-Style Pool",
+              "description": "Heated pool with spa jets and waterfall",
+              "clickCount": 11
+            }
+          ],
+          "measurements": [],
+          "annotations": [],
+          "order": 3
+        }
+      ],
+      "stats": {
+        "totalVisits": 156,
+        "uniqueVisitors": 128,
+        "avgDuration": 6.2,
+        "conversionRate": 8.3,
+        "leadsGenerated": 12,
+        "lastUpdated": "2025-10-27T12:12:12.085Z",
+        "hotspotEngagement": {
+          "hotspot-007": 14,
+          "hotspot-008": 11
+        },
+        "scenePopularity": {
+          "scene-004": 76,
+          "scene-005": 92,
+          "scene-006": 68
+        }
+      }
+    }
+  ],
+  "leads": [
+    {
+      "id": "lead-001",
+      "propertyId": "prop-001",
+      "name": "John Smith",
+      "email": "john.smith@email.com",
+      "phone": "+1 (555) 987-6543",
+      "message": "Very interested in the penthouse. Would like to schedule a viewing.",
+      "visitDuration": 12.5,
+      "scenesViewed": 3,
+      "createdAt": "2025-10-25T12:12:12.085Z",
+      "status": "qualified",
+      "notes": "High-value prospect, serious buyer",
+      "source": "virtual-tour"
+    },
+    {
+      "id": "lead-002",
+      "propertyId": "prop-001",
+      "name": "Sarah Johnson",
+      "email": "sarah.j@email.com",
+      "phone": "+1 (555) 234-5678",
+      "message": "Interested in learning more about the property.",
+      "visitDuration": 8.2,
+      "scenesViewed": 2,
+      "createdAt": "2025-10-22T12:12:12.085Z",
+      "status": "contacted",
+      "notes": "Relocating from California",
+      "source": "virtual-tour"
+    },
+    {
+      "id": "lead-003",
+      "propertyId": "prop-002",
+      "name": "Alicia Brown",
+      "email": "alicia.brown@email.com",
+      "phone": "+1 (555) 765-4321",
+      "message": "Interested in backyard amenities.",
+      "visitDuration": 6.8,
+      "scenesViewed": 2,
+      "createdAt": "2025-10-24T12:12:12.085Z",
+      "status": "new",
+      "notes": "Prefers weekend viewings",
+      "source": "virtual-tour"
+    }
+  ],
+  "visitors": [
+    {
+      "id": "visitor-001",
+      "propertyId": "prop-001",
+      "sessionId": "session-001",
+      "email": "visitor1@email.com",
+      "name": "Michael Chen",
+      "phone": "+1 (555) 111-2222",
+      "visitedAt": "2025-10-26T12:12:12.085Z",
+      "duration": 15.3,
+      "scenesViewed": [
+        "scene-001",
+        "scene-002",
+        "scene-003"
+      ],
+      "hotspotClicks": 5,
+      "measurements": 2,
+      "leadQuality": "hot",
+      "deviceType": "desktop",
+      "referralSource": "google",
+      "sceneEngagement": {
+        "scene-001": {
+          "sceneId": "scene-001",
+          "viewCount": 1,
+          "dwellTime": 45,
+          "hotspotInteractions": {
+            "hotspot-001": 1,
+            "hotspot-002": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "visitor-002",
+      "propertyId": "prop-001",
+      "sessionId": "session-002",
+      "visitedAt": "2025-10-27T00:12:12.085Z",
+      "duration": 9.2,
+      "scenesViewed": [
+        "scene-001",
+        "scene-003"
+      ],
+      "hotspotClicks": 3,
+      "measurements": 1,
+      "leadQuality": "warm",
+      "deviceType": "mobile",
+      "referralSource": "facebook"
+    },
+    {
+      "id": "visitor-003",
+      "propertyId": "prop-002",
+      "sessionId": "session-003",
+      "visitedAt": "2025-10-23T12:12:12.085Z",
+      "duration": 7.5,
+      "scenesViewed": [
+        "scene-004",
+        "scene-006"
+      ],
+      "hotspotClicks": 2,
+      "measurements": 0,
+      "leadQuality": "cold",
+      "deviceType": "desktop",
+      "referralSource": "email"
+    }
+  ],
+  "captureServices": [
+    {
+      "id": "capture-001",
+      "propertyId": "prop-001",
+      "clientName": "Robert Williams",
+      "clientEmail": "robert@email.com",
+      "clientPhone": "+1 (555) 555-5555",
+      "propertyAddress": "789 Maple Drive, Los Angeles, CA 90001",
+      "serviceType": "premium",
+      "status": "scheduled",
+      "scheduledDate": "2025-11-03T12:12:12.086Z",
+      "assignedTechnicianId": "tech-001",
+      "notes": "Luxury property, needs 360° coverage",
+      "createdAt": "2025-10-27T12:12:12.086Z"
+    }
+  ],
+  "bookingSlots": [
+    {
+      "id": "slot-001",
+      "propertyId": "prop-001",
+      "date": "2025-10-28T12:12:12.086Z",
+      "time": "10:00 AM",
+      "duration": 60,
+      "available": true
+    },
+    {
+      "id": "slot-002",
+      "propertyId": "prop-001",
+      "date": "2025-10-28T12:12:12.086Z",
+      "time": "2:00 PM",
+      "duration": 60,
+      "available": true
+    },
+    {
+      "id": "slot-003",
+      "propertyId": "prop-001",
+      "date": "2025-10-29T12:12:12.086Z",
+      "time": "10:00 AM",
+      "duration": 60,
+      "available": false,
+      "bookedBy": "John Smith"
+    },
+    {
+      "id": "slot-004",
+      "propertyId": "prop-002",
+      "date": "2025-10-30T12:12:12.086Z",
+      "time": "1:00 PM",
+      "duration": 45,
+      "available": true
+    }
+  ],
+  "propertyMerges": [
+    {
+      "id": "merge-001",
+      "name": "Downtown Complex",
+      "properties": [
+        "prop-001",
+        "prop-002"
+      ],
+      "floorOrder": [
+        "prop-001",
+        "prop-002"
+      ],
+      "createdAt": "2025-10-27T12:12:12.086Z"
+    }
+  ],
+  "crossPlatformShares": [
+    {
+      "propertyId": "prop-001",
+      "platforms": {
+        "googleStreetView": true,
+        "vrbo": true,
+        "realtorCom": true,
+        "zillow": false,
+        "facebook": true,
+        "twitter": true,
+        "linkedin": false
+      },
+      "shareLinks": {
+        "googleStreetView": "https://www.google.com/maps/...",
+        "vrbo": "https://www.vrbo.com/...",
+        "realtorCom": "https://www.realtor.com/..."
+      }
+    },
+    {
+      "propertyId": "prop-002",
+      "platforms": {
+        "googleStreetView": true,
+        "vrbo": false,
+        "realtorCom": true,
+        "zillow": true,
+        "facebook": true,
+        "twitter": false,
+        "linkedin": true
+      },
+      "shareLinks": {
+        "googleStreetView": "https://www.google.com/maps/...",
+        "realtorCom": "https://www.realtor.com/...",
+        "zillow": "https://www.zillow.com/..."
+      }
+    }
+  ],
+  "floorPlans": [
+    {
+      "id": "floor-001",
+      "name": "Penthouse Floor Plan",
+      "imageUrl": "/floor-plan-layout.jpg",
+      "scale": 1,
+      "rooms": [
+        {
+          "id": "room-001",
+          "name": "Living Room",
+          "x": 50,
+          "y": 30,
+          "width": 200,
+          "height": 150,
+          "sceneId": "scene-001",
+          "color": "#3b82f6",
+          "dimensions": "20ft x 15ft"
+        },
+        {
+          "id": "room-002",
+          "name": "Master Bedroom",
+          "x": 300,
+          "y": 30,
+          "width": 150,
+          "height": 120,
+          "sceneId": "scene-002",
+          "color": "#8b5cf6",
+          "dimensions": "15ft x 12ft"
+        },
+        {
+          "id": "room-003",
+          "name": "Kitchen",
+          "x": 50,
+          "y": 220,
+          "width": 180,
+          "height": 140,
+          "sceneId": "scene-003",
+          "color": "#ec4899",
+          "dimensions": "18ft x 14ft"
+        }
+      ]
+    },
+    {
+      "id": "floor-002",
+      "name": "Family Home Floor Plan",
+      "imageUrl": "/floor-plan-layout.jpg",
+      "scale": 1,
+      "rooms": [
+        {
+          "id": "room-101",
+          "name": "Foyer",
+          "x": 40,
+          "y": 40,
+          "width": 160,
+          "height": 120,
+          "sceneId": "scene-004",
+          "color": "#22c55e",
+          "dimensions": "12ft x 10ft"
+        },
+        {
+          "id": "room-102",
+          "name": "Living Room",
+          "x": 220,
+          "y": 40,
+          "width": 220,
+          "height": 180,
+          "sceneId": "scene-005",
+          "color": "#0ea5e9",
+          "dimensions": "18ft x 14ft"
+        },
+        {
+          "id": "room-103",
+          "name": "Backyard",
+          "x": 100,
+          "y": 240,
+          "width": 300,
+          "height": 200,
+          "sceneId": "scene-006",
+          "color": "#f97316",
+          "dimensions": "30ft x 20ft"
+        }
+      ]
+    }
+  ],
+  "modelAssets": [
+    {
+      "id": "model-001",
+      "propertyId": "prop-001",
+      "name": "Living Room Furniture",
+      "url": "https://models.baladshelter.com/living-room.glb",
+      "format": "glb",
+      "sceneId": "scene-001",
+      "scale": 1
+    },
+    {
+      "id": "model-002",
+      "propertyId": "prop-002",
+      "name": "Backyard Landscaping",
+      "url": "https://models.baladshelter.com/backyard.glb",
+      "format": "glb",
+      "sceneId": "scene-006",
+      "scale": 1
+    }
+  ],
+  "sceneTypeConfigs": [
+    {
+      "id": "scene-type-001",
+      "propertyId": "prop-001",
+      "sceneId": "scene-001",
+      "type": "equirectangular",
+      "imageUrl": "/luxury-penthouse-living-room-360.jpg",
+      "description": "Main living area captured in 8K"
+    },
+    {
+      "id": "scene-type-002",
+      "propertyId": "prop-002",
+      "sceneId": "scene-005",
+      "type": "sphere",
+      "imageUrl": "/open-concept-living-room.jpg",
+      "description": "Spherical panorama of living area"
+    }
+  ],
+  "technicians": [
+    {
+      "id": "tech-001",
+      "name": "Laura Mendes",
+      "email": "laura.mendes@votex360.com",
+      "phone": "+1 (555) 777-8899",
+      "specialization": "premium",
+      "availability": [
+        "2025-10-29T12:12:12.086Z"
+      ],
+      "completedJobs": 48,
+      "rating": 4.8
+    },
+    {
+      "id": "tech-002",
+      "name": "Ethan Patel",
+      "email": "ethan.patel@votex360.com",
+      "phone": "+1 (555) 222-1188",
+      "specialization": "vr",
+      "availability": [
+        "2025-10-31T12:12:12.086Z"
+      ],
+      "completedJobs": 36,
+      "rating": 4.7
+    }
+  ],
+  "brandingSettings": {
+    "prop-001": {
+      "propertyId": "prop-001",
+      "customCSS": ".tour-player { background: radial-gradient(circle at top, #0f172a, #020617); }",
+      "whiteLabel": false,
+      "removeBranding": false,
+      "customDomain": "penthouse.baladshelter.com"
+    },
+    "prop-002": {
+      "propertyId": "prop-002",
+      "customCSS": ".property-card { border-radius: 24px; }",
+      "whiteLabel": true,
+      "removeBranding": false,
+      "customDomain": "suburbanhomes.baladshelter.com"
+    }
+  }
+}

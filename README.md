@@ -54,7 +54,7 @@ interactions (highlight reels, analytics, VR mode), create an environment file s
 NEXT_PUBLIC_MATTERPORT_SDK=your-matterport-application-key
 ```
 
-Link individual properties by providing a `matterportModelId` (and optional `matterportExperienceLabel`) in `lib/mock-data.ts` or
+Link individual properties by providing a `matterportModelId` (and optional `matterportExperienceLabel`) in `public/mock-data.json` or
 your data source. Once configured, switch to the **Matterport Showcase** tab on any property to load the live model, open it in a
 new window, or continue with the default VORTEX experience.
 
