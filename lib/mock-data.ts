@@ -230,6 +230,8 @@ export const mockProperties: Property[] = [
             distance: 18.5,
             unit: "ft",
             measurementType: "distance",
+            label: "Sofa wall span",
+            createdAt: "2024-01-18T14:18:00.000Z",
           },
         ],
         annotations: [
@@ -312,6 +314,8 @@ export const mockProperties: Property[] = [
             distance: 16.2,
             unit: "ft",
             measurementType: "distance",
+            label: "Bed wall length",
+            createdAt: "2024-01-19T09:42:00.000Z",
           },
         ],
         annotations: [
@@ -377,6 +381,14 @@ export const mockProperties: Property[] = [
             distance: 245,
             unit: "ft",
             measurementType: "area",
+            label: "Kitchen footprint",
+            points: [
+              { x: 30, y: 45 },
+              { x: 68, y: 44 },
+              { x: 72, y: 65 },
+              { x: 34, y: 66 },
+            ],
+            createdAt: "2024-01-20T11:05:00.000Z",
           },
         ],
         annotations: [
