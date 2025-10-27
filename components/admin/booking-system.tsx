@@ -3,7 +3,7 @@
 import type { BookingSlot } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Calendar, Clock, Check } from "lucide-react"
+import { Calendar, Clock, Check } from "@/lib/icons"
 import { useState } from "react"
 
 interface BookingSystemProps {

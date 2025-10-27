@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { RefreshCw, ZoomIn, ZoomOut } from "lucide-react"
+import { RefreshCw, ZoomIn, ZoomOut } from "@/lib/icons"
 import type { ComponentProps } from "react"
 
 type ButtonVariant = ComponentProps<typeof Button>["variant"]

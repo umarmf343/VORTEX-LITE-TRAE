@@ -6,7 +6,7 @@ import { useEffect, useState } from "react"
 import type { CaptureService, Property } from "@/lib/types"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Calendar, MapPin, User, Phone, Mail } from "lucide-react"
+import { Calendar, MapPin, User, Phone, Mail } from "@/lib/icons"
 
 interface CaptureServicesProps {
   services: CaptureService[]

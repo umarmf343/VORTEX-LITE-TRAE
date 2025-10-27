@@ -3,7 +3,7 @@
 import type { CrossPlatformShare } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Copy, ExternalLink, Check } from "lucide-react"
+import { Copy, ExternalLink, Check } from "@/lib/icons"
 import { useState } from "react"
 
 interface CrossPlatformSharingProps {

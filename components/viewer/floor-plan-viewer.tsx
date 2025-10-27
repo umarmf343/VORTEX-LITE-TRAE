@@ -3,7 +3,7 @@ import { useState } from "react"
 import type { BrandingConfig, FloorPlan, Room } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { ZoomIn, ZoomOut, Download } from "lucide-react"
+import { ZoomIn, ZoomOut, Download } from "@/lib/icons"
 
 interface FloorPlanViewerProps {
   floorPlan: FloorPlan
