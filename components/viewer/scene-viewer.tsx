@@ -1245,7 +1245,7 @@ export function SceneViewer({
       {/* Viewer */}
       <div
         ref={viewerRef}
-        className={`flex-1 relative overflow-hidden ${viewerCursorClass} ${viewerFlexClass} ${
+        className={`flex-1 relative overflow-hidden min-h-[55vh] sm:min-h-[65vh] lg:min-h-0 ${viewerCursorClass} ${viewerFlexClass} ${
           sphericalViewModes.includes(currentViewMode) ? "bg-black" : ""
         }`}
         onClick={handleImageClick}
