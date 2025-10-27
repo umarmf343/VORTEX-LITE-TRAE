@@ -771,10 +771,6 @@ export function SceneViewer({
   }, [volumePoints])
 
   useEffect(() => {
-    loadMeasurementHistory()
-  }, [loadMeasurementHistory])
-
-  useEffect(() => {
     if (!saveFeedback) {
       return
     }
@@ -1514,6 +1510,10 @@ export function SceneViewer({
       setLoadingHistory(false)
     }
   }, [scene.id])
+
+  useEffect(() => {
+    loadMeasurementHistory()
+  }, [loadMeasurementHistory])
 
   const handleSaveMeasurements = useCallback(async () => {
     if (measurements.length === 0) {
