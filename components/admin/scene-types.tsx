@@ -55,7 +55,7 @@ export function SceneTypes({ propertyId, scenes = [], onAddSceneType, onRemoveSc
   return (
     <div className="space-y-6">
       <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-center gap-3">
             <Globe className="w-6 h-6 text-blue-600" />
             <div>
@@ -122,8 +122,11 @@ export function SceneTypes({ propertyId, scenes = [], onAddSceneType, onRemoveSc
             <p className="text-gray-500 text-sm">No scene types configured yet</p>
           ) : (
             scenes.map((scene) => (
-              <div key={scene.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                <div>
+              <div
+                key={scene.id}
+                className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 bg-gray-50 rounded"
+              >
+                <div className="w-full sm:w-auto">
                   <p className="font-medium">{scene.sceneId}</p>
                   <p className="text-sm text-gray-600 capitalize">
                     {scene.type} - {sceneTypeDescriptions[scene.type]}

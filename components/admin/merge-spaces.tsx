@@ -78,7 +78,7 @@ export function MergeSpaces({ properties, merges, onCreateMerge, onDeleteMerge }
 
           <div>
             <label className="block text-sm font-medium mb-2">Select Properties</label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {properties.map((prop) => (
                 <Button
                   key={prop.id}
@@ -102,7 +102,10 @@ export function MergeSpaces({ properties, merges, onCreateMerge, onDeleteMerge }
                 {floorOrder.map((propId, index) => {
                   const prop = properties.find((p) => p.id === propId)
                   return (
-                    <div key={propId} className="flex items-center justify-between bg-gray-100 p-2 rounded">
+                    <div
+                      key={propId}
+                      className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between bg-gray-100 p-2 rounded"
+                    >
                       <span className="text-sm font-medium">
                         Floor {index + 1}: {prop?.name}
                       </span>
@@ -138,8 +141,11 @@ export function MergeSpaces({ properties, merges, onCreateMerge, onDeleteMerge }
           <h3 className="text-lg font-semibold mb-4">Existing Merges</h3>
           <div className="space-y-3">
             {merges.map((merge) => (
-              <div key={merge.id} className="flex items-center justify-between bg-gray-100 p-3 rounded">
-                <div>
+              <div
+                key={merge.id}
+                className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-gray-100 p-3 rounded"
+              >
+                <div className="text-sm sm:text-base">
                   <p className="font-medium">{merge.name}</p>
                   <p className="text-sm text-gray-600">{merge.properties.length} properties</p>
                 </div>

@@ -55,7 +55,7 @@ export function PropertyComparison({ properties, onClose }: PropertyComparisonPr
     <div className="space-y-6">
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Select Properties to Compare</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
           {properties.map((prop) => (
               <Button
                 key={prop.id}

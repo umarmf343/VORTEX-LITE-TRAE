@@ -29,7 +29,7 @@ export function PropertyList({ properties, onView, onEdit, onDelete, onStats }: 
     <div className="grid gap-4">
       {properties.map((property) => (
         <Card key={property.id} className="p-4 hover:shadow-lg transition-shadow">
-          <div className="flex gap-4">
+          <div className="flex flex-col gap-4 md:flex-row">
             <img
               src={property.thumbnail || "/placeholder.svg"}
               alt={property.name}
@@ -38,13 +38,13 @@ export function PropertyList({ properties, onView, onEdit, onDelete, onStats }: 
             <div className="flex-1">
               <h3 className="font-semibold text-lg">{property.name}</h3>
               <p className="text-gray-600 text-sm mb-2">{property.address}</p>
-              <div className="flex gap-4 text-sm text-gray-600 mb-3">
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 mb-3">
                 <span>{formatCurrency(property.price)}</span>
                 <span>{property.bedrooms} bed</span>
                 <span>{property.bathrooms} bath</span>
                 <span>{property.sqft.toLocaleString()} sqft</span>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button size="sm" variant="outline" onClick={() => onView?.(property)} className="gap-2">
                   <Eye className="w-4 h-4" />
                   View Tour

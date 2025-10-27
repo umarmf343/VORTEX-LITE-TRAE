@@ -874,7 +874,7 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
         {/* Side Panel */}
         <div className="w-full lg:w-80 flex flex-col gap-4">
           <Card className="p-4 bg-gray-900 border-gray-800">
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-2">
                 <div className="text-sm font-semibold text-white">Immersive Viewer</div>
                 <p className="text-xs text-gray-400">
@@ -1038,7 +1038,7 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
                               : "border-gray-800 bg-gray-800/70"
                           }`}
                         >
-                          <div className="flex items-start justify-between gap-3">
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div className="min-w-0">
                               <p className="truncate text-sm font-medium text-gray-100">{hotspot.title}</p>
                               <p className="text-[11px] text-gray-400 capitalize">
@@ -1206,14 +1206,14 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
                 No measurements captured for this scene yet. Enable measurement mode and click inside the tour to begin.
               </p>
             )}
-            <div className="mt-4 flex items-center justify-between text-[11px] text-gray-500">
+            <div className="mt-4 flex flex-col gap-3 text-[11px] text-gray-500 sm:flex-row sm:items-center sm:justify-between">
               <span>
                 Mode: <span className="text-gray-200">{measurementMode ? "Active" : "Disabled"}</span>
               </span>
               <Button
                 size="sm"
                 variant="ghost"
-                className="text-xs text-gray-300 hover:text-white"
+                className="text-xs text-gray-300 hover:text-white self-start sm:self-auto"
                 onClick={clearMeasurementsForScene}
                 disabled={recentMeasurements.length === 0}
               >
@@ -1379,7 +1379,7 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
                             </p>
                           ) : null}
                         </div>
-                        <div className="flex gap-1">
+                        <div className="flex flex-wrap gap-1 sm:flex-nowrap">
                           <Button
                             size="icon"
                             variant="ghost"
@@ -1477,7 +1477,7 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
                 {property.branding.contactEmail}
               </div>
             </div>
-            <div className="flex gap-2 mt-4">
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
               <Button
                 onClick={() => setShowLeadForm(true)}
                 className="flex-1"
@@ -1529,30 +1529,32 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
       </div>
 
       {/* Scene Navigation */}
-      <div className="bg-gray-900 border-t border-gray-800 p-4 flex items-center justify-between max-w-7xl mx-auto w-full">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setCurrentSceneIndex(Math.max(0, currentSceneIndex - 1))}
-          disabled={currentSceneIndex === 0}
-          className="gap-2"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          Previous
-        </Button>
-        <div className="text-sm text-gray-400">
+      <div className="bg-gray-900 border-t border-gray-800 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between max-w-7xl mx-auto w-full">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentSceneIndex(Math.max(0, currentSceneIndex - 1))}
+            disabled={currentSceneIndex === 0}
+            className="gap-2"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentSceneIndex(Math.min(property.scenes.length - 1, currentSceneIndex + 1))}
+            disabled={currentSceneIndex === property.scenes.length - 1}
+            className="gap-2"
+          >
+            Next
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+        <div className="text-center text-sm text-gray-400 sm:text-left">
           Scene {currentSceneIndex + 1} of {property.scenes.length}
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setCurrentSceneIndex(Math.min(property.scenes.length - 1, currentSceneIndex + 1))}
-          disabled={currentSceneIndex === property.scenes.length - 1}
-          className="gap-2"
-        >
-          Next
-          <ChevronRight className="w-4 h-4" />
-        </Button>
       </div>
 
       {/* Lead Capture Modal */}
@@ -1591,7 +1593,7 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white placeholder-gray-500 h-24"
               />
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <Button type="submit" className="flex-1" style={{ backgroundColor: property.branding.primaryColor }}>
                   Submit
                 </Button>
@@ -1607,12 +1609,12 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
       {showFloorPlan && floorPlan && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-5xl bg-gray-900 border-gray-800">
-            <div className="flex items-center justify-between p-4 border-b border-gray-800">
-              <div>
+            <div className="flex flex-col gap-3 p-4 border-b border-gray-800 sm:flex-row sm:items-start sm:justify-between">
+              <div className="text-center sm:text-left">
                 <h2 className="text-lg font-semibold text-white">{floorPlan.name}</h2>
                 <p className="text-sm text-gray-400">Tap rooms to jump directly into their scenes.</p>
               </div>
-              <Button variant="outline" onClick={() => setShowFloorPlan(false)}>
+              <Button variant="outline" onClick={() => setShowFloorPlan(false)} className="self-center sm:self-auto">
                 Close
               </Button>
             </div>

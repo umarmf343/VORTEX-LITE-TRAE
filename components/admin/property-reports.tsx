@@ -132,7 +132,7 @@ export function PropertyReports({ property }: PropertyReportsProps) {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2">Export Format</label>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {(["json", "csv", "pdf"] as const).map((format) => (
                 <Button
                   key={format}
@@ -158,7 +158,7 @@ export function PropertyReports({ property }: PropertyReportsProps) {
       {/* Report Preview */}
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Report Summary</h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <p className="text-sm text-gray-600">Total Visits</p>
             <p className="text-2xl font-bold">{report.totalVisits}</p>
@@ -191,7 +191,7 @@ export function PropertyReports({ property }: PropertyReportsProps) {
         <h3 className="text-lg font-semibold mb-4">Device Breakdown</h3>
         <div className="space-y-2">
           {Object.entries(report.deviceBreakdown).map(([device, count]) => (
-            <div key={device} className="flex items-center justify-between">
+            <div key={device} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <span className="capitalize">{device}</span>
               <div className="flex items-center gap-2">
                 <div className="w-32 bg-gray-200 rounded-full h-2">
@@ -212,7 +212,7 @@ export function PropertyReports({ property }: PropertyReportsProps) {
         <h3 className="text-lg font-semibold mb-4">Referral Sources</h3>
         <div className="space-y-2">
           {Object.entries(report.referralSources).map(([source, count]) => (
-            <div key={source} className="flex items-center justify-between">
+            <div key={source} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <span className="capitalize">{source}</span>
               <div className="flex items-center gap-2">
                 <div className="w-32 bg-gray-200 rounded-full h-2">

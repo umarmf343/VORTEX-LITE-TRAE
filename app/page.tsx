@@ -199,12 +199,12 @@ export default function Page() {
         {/* Header */}
         <header className="border-b border-slate-700 bg-slate-900/50 backdrop-blur">
           <div className="max-w-7xl mx-auto px-4 py-6">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="text-center md:text-left">
                 <h1 className="text-3xl font-bold text-white">BaladShelter</h1>
                 <p className="text-slate-400">Premium Virtual Tour Platform</p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap items-center justify-center gap-2 md:justify-end">
                 <Button onClick={() => setViewMode("admin")} variant="outline" className="gap-2">
                   <Building2 className="w-4 h-4" />
                   Admin Dashboard
@@ -269,9 +269,9 @@ export default function Page() {
                   </div>
                 </div>
                 <div className="p-4">
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="text-2xl font-bold text-white">{formatCurrency(property.price)}</div>
-                    <div className="text-right text-sm text-slate-400">
+                    <div className="text-sm text-slate-400 sm:text-right">
                       <div>
                         {property.bedrooms} bed • {property.bathrooms} bath
                       </div>
@@ -327,9 +327,9 @@ export default function Page() {
     return (
       <div className="min-h-screen bg-gray-50">
         <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between overflow-x-auto">
-            <h1 className="text-2xl font-bold">BaladShelter Admin</h1>
-            <div className="flex gap-2 flex-wrap">
+          <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <h1 className="text-2xl font-bold text-center md:text-left">BaladShelter Admin</h1>
+            <div className="flex flex-wrap gap-2 justify-center md:justify-end">
               <Button
                 variant={viewMode === "admin" ? "default" : "outline"}
                 onClick={() => setViewMode("admin")}

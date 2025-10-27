@@ -91,7 +91,7 @@ export function CaptureServices({ services, properties = [], onUpdateService, on
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-2xl font-bold">Capture Services</h2>
         <Button onClick={() => setShowForm(!showForm)}>Request Capture Service</Button>
       </div>
@@ -100,7 +100,7 @@ export function CaptureServices({ services, properties = [], onUpdateService, on
         <Card className="p-6 bg-blue-50">
           <h3 className="font-semibold mb-4">New Capture Service Request</h3>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <input
                 type="text"
                 placeholder="Client Name"
@@ -161,7 +161,7 @@ export function CaptureServices({ services, properties = [], onUpdateService, on
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               className="w-full px-3 py-2 border rounded h-24"
             />
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <Button type="submit" className="flex-1">
                 Submit Request
               </Button>
@@ -177,7 +177,7 @@ export function CaptureServices({ services, properties = [], onUpdateService, on
       <div className="grid gap-4">
         {services.map((service) => (
           <Card key={service.id} className="p-4">
-            <div className="flex items-start justify-between">
+            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <User className="w-4 h-4" />
@@ -221,7 +221,7 @@ export function CaptureServices({ services, properties = [], onUpdateService, on
                 </div>
                 {service.notes && <p className="text-sm text-gray-700 mt-2">{service.notes}</p>}
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2 md:justify-end">
                 <Button
                   size="sm"
                   variant="outline"

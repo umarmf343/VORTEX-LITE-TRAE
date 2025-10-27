@@ -76,7 +76,7 @@ export function AdvancedAnalytics({ property, visitors, leads }: AdvancedAnalyti
   return (
     <div className="space-y-6">
       {/* Export Button */}
-      <div className="flex justify-end">
+      <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
         <Button onClick={handleExportReport} className="gap-2">
           <Download className="w-4 h-4" />
           Export Report

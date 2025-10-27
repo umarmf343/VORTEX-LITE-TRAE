@@ -108,9 +108,9 @@ export function CustomBranding({ propertyId, branding, onSave }: CustomBrandingP
 
       {/* Custom CSS */}
       <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h3 className="text-lg font-semibold">Custom CSS</h3>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button size="sm" variant="outline" onClick={handleCopyCSS} className="gap-2 bg-transparent">
               <Copy className="w-4 h-4" />
               {copied ? "Copied!" : "Copy"}
