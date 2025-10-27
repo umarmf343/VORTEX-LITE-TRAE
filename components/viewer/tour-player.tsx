@@ -816,7 +816,7 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
               walkthroughMeta={walkthroughMeta}
             />
           ) : (
-            <div className="relative h-full min-h-[360px] overflow-hidden rounded-xl border border-gray-800 bg-gray-900/60">
+            <div className="relative h-full min-h-[55vh] sm:min-h-[65vh] md:min-h-[70vh] overflow-hidden rounded-xl border border-gray-800 bg-gray-900/60">
               <div
                 ref={fallbackContainerRef}
                 className={`relative h-full w-full overflow-hidden bg-black/40 ${fallbackCursorClass}`}
