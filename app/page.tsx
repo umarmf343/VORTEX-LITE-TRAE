@@ -359,15 +359,6 @@ export default function Page() {
   const [tourExperience, setTourExperience] = useState<"vortex" | "matterport" | "sphr">("vortex")
   const matterportApplicationKey = process.env.NEXT_PUBLIC_MATTERPORT_SDK ?? ""
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-slate-200">
-        <Loader2 className="mb-4 h-8 w-8 animate-spin" />
-        <p className="text-sm text-slate-400">Loading virtual experience data…</p>
-      </div>
-    )
-  }
-
   const featureHighlights = [
     {
       title: "Vortex360 Interactive Labels",
@@ -419,6 +410,15 @@ export default function Page() {
       setTourExperience("vortex")
     }
   }, [selectedProperty?.matterportModelId, selectedProperty?.sphrSpace, tourExperience])
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-slate-200">
+        <Loader2 className="mb-4 h-8 w-8 animate-spin" />
+        <p className="text-sm text-slate-400">Loading virtual experience data…</p>
+      </div>
+    )
+  }
 
   if (!selectedProperty || !selectedAnalyticsProperty) {
     return (
