@@ -247,6 +247,8 @@ export function TourPlayer({
     setIs3DEnabled(supported)
   }, [])
 
+  const isTraditional3DViewerActive = !showSphrViewer && is3DEnabled
+
   useEffect(() => {
     if (!isTraditional3DViewerActive) {
       setMeasurementMode(false)
@@ -259,7 +261,6 @@ export function TourPlayer({
   }, [fallbackOffset])
 
   const currentScene = property.scenes[currentSceneIndex]
-  const isTraditional3DViewerActive = !showSphrViewer && is3DEnabled
 
   useEffect(() => {
     setFallbackZoom(1)
