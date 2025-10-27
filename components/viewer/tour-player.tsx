@@ -787,7 +787,7 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
 
       {/* Main Viewer */}
       <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 max-w-7xl mx-auto w-full">
-        <div className="flex-1 min-h-[360px]">
+        <div className="flex-1 min-h-[360px] h-[70vh] sm:h-[75vh] md:h-[80vh] lg:h-auto lg:min-h-[480px]">
           {is3DEnabled ? (
             <SceneViewer
               scene={currentScene}
