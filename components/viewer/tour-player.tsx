@@ -41,11 +41,34 @@ import {
   MousePointerClick,
   Ruler,
   Layers,
+  ZoomIn,
+  ZoomOut,
+  RefreshCw,
 } from "lucide-react"
 
 type SharePlatform = "facebook" | "twitter" | "linkedin" | "email"
 
 const sharePlatforms: SharePlatform[] = ["facebook", "twitter", "linkedin", "email"]
+
+const FALLBACK_MIN_ZOOM = 1
+const FALLBACK_MAX_ZOOM = 3
+const FALLBACK_ZOOM_STEP = 0.25
+
+const clampFallbackOffset = (
+  zoom: number,
+  offset: { x: number; y: number },
+  rect: DOMRect,
+) => {
+  if (zoom <= 1) {
+    return { x: 0, y: 0 }
+  }
+  const maxX = ((zoom - 1) * rect.width) / 2
+  const maxY = ((zoom - 1) * rect.height) / 2
+  return {
+    x: Math.max(-maxX, Math.min(maxX, offset.x)),
+    y: Math.max(-maxY, Math.min(maxY, offset.y)),
+  }
+}
 
 interface TourPlayerProps {
   property: Property
@@ -100,6 +123,15 @@ export function TourPlayer({
     key: number
   } | null>(null)
   const [activeHotspot, setActiveHotspot] = useState<Hotspot | null>(null)
+  const [fallbackZoom, setFallbackZoom] = useState(1)
+  const [fallbackOffset, setFallbackOffset] = useState({ x: 0, y: 0 })
+  const [isFallbackDragging, setIsFallbackDragging] = useState(false)
+  const fallbackPointerStartRef = useRef({ x: 0, y: 0 })
+  const fallbackOffsetStartRef = useRef({ x: 0, y: 0 })
+  const fallbackPointerIdRef = useRef<number | null>(null)
+  const fallbackBoundsRef = useRef<DOMRect | null>(null)
+  const fallbackContainerRef = useRef<HTMLDivElement | null>(null)
+  const fallbackOffsetRef = useRef({ x: 0, y: 0 })
   const deriveMeasurementDefaults = useCallback((scenes: Scene[]) => {
     const initial: Record<string, Measurement[]> = {}
     for (const scene of scenes) {
@@ -198,7 +230,44 @@ export function TourPlayer({
     }
   }, [products, selectedProduct])
 
+  useEffect(() => {
+    fallbackOffsetRef.current = fallbackOffset
+  }, [fallbackOffset])
+
   const currentScene = property.scenes[currentSceneIndex]
+
+  useEffect(() => {
+    setFallbackZoom(1)
+    setFallbackOffset({ x: 0, y: 0 })
+    setIsFallbackDragging(false)
+    fallbackPointerIdRef.current = null
+    fallbackBoundsRef.current = null
+  }, [is3DEnabled, currentScene.id])
+
+  useEffect(() => {
+    const container = fallbackContainerRef.current
+    if (!container) {
+      return
+    }
+    if (fallbackZoom <= 1) {
+      setFallbackOffset((prev) => {
+        if (prev.x === 0 && prev.y === 0) {
+          return prev
+        }
+        return { x: 0, y: 0 }
+      })
+      return
+    }
+
+    const rect = container.getBoundingClientRect()
+    setFallbackOffset((prev) => {
+      const clamped = clampFallbackOffset(fallbackZoom, prev, rect)
+      if (clamped.x === prev.x && clamped.y === prev.y) {
+        return prev
+      }
+      return clamped
+    })
+  }, [fallbackZoom])
   const mediaHotspots = useMemo(
     () =>
       currentScene.hotspots.filter((hotspot) => ["video", "audio", "image"].includes(hotspot.type)),
@@ -232,6 +301,123 @@ export function TourPlayer({
   const recentMeasurements = useMemo(
     () => currentMeasurements.slice(-5).reverse(),
     [currentMeasurements],
+  )
+
+  const showFallbackZoom = !is3DEnabled && Boolean(currentScene.imageUrl || currentScene.thumbnail)
+  const fallbackZoomDisplay = useMemo(() => fallbackZoom.toFixed(1), [fallbackZoom])
+  const fallbackAtMinZoom = fallbackZoom <= FALLBACK_MIN_ZOOM + 0.001
+  const fallbackAtMaxZoom = fallbackZoom >= FALLBACK_MAX_ZOOM - 0.001
+  const fallbackAtDefaultZoom = Math.abs(fallbackZoom - 1) < 0.001
+  const fallbackCursorClass = showFallbackZoom
+    ? fallbackZoom > 1
+      ? isFallbackDragging
+        ? "cursor-grabbing"
+        : "cursor-grab"
+      : "cursor-zoom-in"
+    : "cursor-default"
+
+  const adjustFallbackZoom = useCallback((delta: number) => {
+    setFallbackZoom((prev) => {
+      const next = Math.min(FALLBACK_MAX_ZOOM, Math.max(FALLBACK_MIN_ZOOM, prev + delta))
+      return Math.round(next * 100) / 100
+    })
+  }, [])
+
+  const handleFallbackZoomIn = useCallback(() => adjustFallbackZoom(FALLBACK_ZOOM_STEP), [adjustFallbackZoom])
+  const handleFallbackZoomOut = useCallback(() => adjustFallbackZoom(-FALLBACK_ZOOM_STEP), [adjustFallbackZoom])
+  const handleFallbackZoomReset = useCallback(() => {
+    setFallbackZoom(1)
+    setFallbackOffset({ x: 0, y: 0 })
+  }, [])
+
+  const handleFallbackWheel = useCallback(
+    (event: React.WheelEvent<HTMLDivElement>) => {
+      if (!showFallbackZoom) {
+        return
+      }
+      event.preventDefault()
+      if (event.deltaY < 0) {
+        adjustFallbackZoom(FALLBACK_ZOOM_STEP)
+      } else if (event.deltaY > 0) {
+        adjustFallbackZoom(-FALLBACK_ZOOM_STEP)
+      }
+    },
+    [adjustFallbackZoom, showFallbackZoom],
+  )
+
+  const finishFallbackDrag = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    if (fallbackPointerIdRef.current !== event.pointerId) {
+      return
+    }
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+    fallbackPointerIdRef.current = null
+    fallbackBoundsRef.current = null
+    setIsFallbackDragging(false)
+  }, [])
+
+  const handleFallbackPointerDown = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (!showFallbackZoom || fallbackZoom <= 1) {
+        return
+      }
+      setIsFallbackDragging(true)
+      fallbackPointerStartRef.current = { x: event.clientX, y: event.clientY }
+      fallbackOffsetStartRef.current = fallbackOffsetRef.current
+      fallbackPointerIdRef.current = event.pointerId
+      fallbackBoundsRef.current = event.currentTarget.getBoundingClientRect()
+      event.currentTarget.setPointerCapture(event.pointerId)
+    },
+    [fallbackZoom, showFallbackZoom],
+  )
+
+  const handleFallbackPointerMove = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (!showFallbackZoom || !isFallbackDragging || fallbackPointerIdRef.current !== event.pointerId) {
+        return
+      }
+
+      const bounds = fallbackBoundsRef.current ?? event.currentTarget.getBoundingClientRect()
+      const deltaX = event.clientX - fallbackPointerStartRef.current.x
+      const deltaY = event.clientY - fallbackPointerStartRef.current.y
+      const nextOffset = clampFallbackOffset(
+        fallbackZoom,
+        {
+          x: fallbackOffsetStartRef.current.x + deltaX,
+          y: fallbackOffsetStartRef.current.y + deltaY,
+        },
+        bounds,
+      )
+
+      setFallbackOffset((prev) => {
+        if (prev.x === nextOffset.x && prev.y === nextOffset.y) {
+          return prev
+        }
+        return nextOffset
+      })
+    },
+    [fallbackZoom, isFallbackDragging, showFallbackZoom],
+  )
+
+  const handleFallbackPointerUp = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (!showFallbackZoom) {
+        return
+      }
+      finishFallbackDrag(event)
+    },
+    [finishFallbackDrag, showFallbackZoom],
+  )
+
+  const handleFallbackPointerLeave = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (!showFallbackZoom) {
+        return
+      }
+      finishFallbackDrag(event)
+    },
+    [finishFallbackDrag, showFallbackZoom],
   )
 
   useEffect(() => {
@@ -621,23 +807,79 @@ export function TourPlayer({
             />
           ) : (
             <div className="relative h-full min-h-[360px] overflow-hidden rounded-xl border border-gray-800 bg-gray-900/60">
-              {(currentScene.imageUrl || currentScene.thumbnail) && (
-                <img
-                  src={currentScene.imageUrl || currentScene.thumbnail}
-                  alt={currentScene.name}
-                  className="absolute inset-0 h-full w-full object-cover opacity-40"
-                />
-              )}
-              <div className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-3 text-center p-8">
-                <h2 className="text-lg font-semibold text-white">3D Viewer Disabled</h2>
-                <p className="text-sm text-gray-300 max-w-md">
-                  {isWebGLSupported === null
-                    ? "Checking your device capabilities..."
-                    : isWebGLSupported
-                      ? "Enable the toggle in the viewer settings to explore this space in 3D when your device is ready."
-                      : "This device does not support the WebGL 2 features required for the 3D viewer. Try switching to a compatible browser or device."}
-                </p>
+              <div
+                ref={fallbackContainerRef}
+                className={`relative h-full w-full overflow-hidden bg-black/40 ${fallbackCursorClass}`}
+                onPointerDown={handleFallbackPointerDown}
+                onPointerMove={handleFallbackPointerMove}
+                onPointerUp={handleFallbackPointerUp}
+                onPointerLeave={handleFallbackPointerLeave}
+                onPointerCancel={handleFallbackPointerLeave}
+                onWheel={handleFallbackWheel}
+              >
+                {(currentScene.imageUrl || currentScene.thumbnail) && (
+                  <img
+                    src={currentScene.imageUrl || currentScene.thumbnail}
+                    alt={currentScene.name}
+                    className="absolute inset-0 h-full w-full select-none object-cover"
+                    draggable={false}
+                    style={{
+                      transform: `translate(${fallbackOffset.x}px, ${fallbackOffset.y}px) scale(${fallbackZoom})`,
+                      transition: isFallbackDragging ? "none" : "transform 0.2s ease-out",
+                      transformOrigin: "center center",
+                      willChange: "transform",
+                    }}
+                  />
+                )}
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-gray-950/70 via-transparent to-gray-950/40" />
               </div>
+              <div className="pointer-events-none absolute inset-0 flex h-full w-full flex-col items-center justify-center gap-3 p-8 text-center">
+                <div className="max-w-md rounded-lg bg-black/60 p-5 shadow-lg">
+                  <h2 className="text-lg font-semibold text-white">3D Viewer Disabled</h2>
+                  <p className="mt-2 text-sm text-gray-300">
+                    {isWebGLSupported === null
+                      ? "Checking your device capabilities..."
+                      : isWebGLSupported
+                        ? "Enable the toggle in the viewer settings to explore this space in 3D when your device is ready. Use the zoom controls below to inspect the panoramic image in the meantime."
+                        : "This device does not support the WebGL 2 features required for the 3D viewer. Try switching to a compatible browser or device and use the zoom controls below to examine details."}
+                  </p>
+                </div>
+              </div>
+              {showFallbackZoom && (
+                <div className="absolute bottom-4 right-4 flex items-center gap-1 rounded-md border border-gray-800 bg-black/70 px-2 py-1">
+                  <Button
+                    size="icon-sm"
+                    variant="outline"
+                    onClick={handleFallbackZoomOut}
+                    disabled={fallbackAtMaxZoom}
+                    aria-label="Zoom out"
+                    className="bg-transparent"
+                  >
+                    <ZoomOut className="h-4 w-4" />
+                  </Button>
+                  <span className="min-w-[3.5rem] px-2 text-center text-xs font-medium text-gray-200">×{fallbackZoomDisplay}</span>
+                  <Button
+                    size="icon-sm"
+                    variant="outline"
+                    onClick={handleFallbackZoomIn}
+                    disabled={fallbackAtMinZoom}
+                    aria-label="Zoom in"
+                    className="bg-transparent"
+                  >
+                    <ZoomIn className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="icon-sm"
+                    variant="outline"
+                    onClick={handleFallbackZoomReset}
+                    disabled={fallbackAtDefaultZoom}
+                    aria-label="Reset zoom"
+                    className="bg-transparent"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </div>
