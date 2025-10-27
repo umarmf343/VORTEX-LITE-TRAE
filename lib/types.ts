@@ -28,6 +28,7 @@ export interface Property {
   tags?: string[]
   sceneTransition?: "fade" | "slide"
   supportedViewModes?: SceneViewMode[]
+  guidedTours?: GuidedTour[]
 }
 
 export interface Scene {
@@ -92,6 +93,24 @@ export interface TourPoint {
   yaw: number
   pitch: number
   note?: string
+  durationSeconds?: number
+  highlight?: string
+  mediaUrl?: string
+}
+
+export interface GuidedTour {
+  id: string
+  name: string
+  description: string
+  stops: TourPoint[]
+  coverImage?: string
+  estimatedDurationMinutes?: number
+  callouts?: string[]
+  highlightMetrics?: {
+    totalStops?: number
+    totalDistanceFeet?: number
+    featuredScenes?: string[]
+  }
 }
 
 export interface BrandingConfig {

@@ -18,6 +18,14 @@ import { FloorPlanViewer } from "./floor-plan-viewer"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { formatCurrency } from "@/lib/utils"
 import {
   AlertCircle,
@@ -49,6 +57,8 @@ const sharePlatforms: SharePlatform[] = ["facebook", "twitter", "linkedin", "ema
 const FALLBACK_MIN_ZOOM = 1
 const FALLBACK_MAX_ZOOM = 3
 const FALLBACK_ZOOM_STEP = 0.25
+const DEFAULT_TOUR_STEP_SECONDS = 8
+const CUSTOM_TOUR_ID = "custom-walkthrough"
 
 const clampFallbackOffset = (
   zoom: number,
@@ -101,7 +111,8 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
   const [isFavorite, setIsFavorite] = useState(property.isFavorite ?? false)
   const [showShareMenu, setShowShareMenu] = useState(false)
   const [showFloorPlan, setShowFloorPlan] = useState(false)
-  const [tourPoints, setTourPoints] = useState<TourPoint[]>([])
+  const [selectedTourId, setSelectedTourId] = useState<string>(() => property.guidedTours?.[0]?.id ?? CUSTOM_TOUR_ID)
+  const [customTourPoints, setCustomTourPoints] = useState<TourPoint[]>([])
   const [isTourPlaying, setIsTourPlaying] = useState(false)
   const [activeTourIndex, setActiveTourIndex] = useState(0)
   const [pendingOrientation, setPendingOrientation] = useState<{
@@ -147,7 +158,13 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
   const [isWebGLSupported, setIsWebGLSupported] = useState<boolean | null>(null)
   const sceneEngagement = useRef<Record<string, number>>({})
   const tourTimeoutRef = useRef<number | null>(null)
-  const TOUR_STEP_DURATION = 8000
+  const stopTourTimer = useCallback(() => {
+    if (tourTimeoutRef.current) {
+      window.clearTimeout(tourTimeoutRef.current)
+      tourTimeoutRef.current = null
+    }
+  }, [])
+  const guidedTours = property.guidedTours ?? []
 
   useEffect(() => {
     setShowFloorPlan(false)
@@ -156,16 +173,14 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
     setIsFavorite(property.isFavorite ?? false)
     setShowShareMenu(false)
     sceneEngagement.current = {}
-    setTourPoints([])
+    setCustomTourPoints([])
     setIsTourPlaying(false)
     setActiveTourIndex(0)
     setPendingOrientation(null)
     setActiveHotspot(null)
-    if (tourTimeoutRef.current) {
-      window.clearTimeout(tourTimeoutRef.current)
-      tourTimeoutRef.current = null
-    }
-  }, [property.id, property.isFavorite])
+    setSelectedTourId(property.guidedTours?.[0]?.id ?? CUSTOM_TOUR_ID)
+    stopTourTimer()
+  }, [property.id, property.isFavorite, stopTourTimer])
 
   useEffect(() => {
     setMeasurementsByScene(deriveMeasurementDefaults(property.scenes))
@@ -188,13 +203,10 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
   useEffect(() => {
     if (!is3DEnabled) {
       setMeasurementMode(false)
-      if (tourTimeoutRef.current) {
-        window.clearTimeout(tourTimeoutRef.current)
-        tourTimeoutRef.current = null
-      }
+      stopTourTimer()
       setIsTourPlaying(false)
     }
-  }, [is3DEnabled])
+  }, [is3DEnabled, stopTourTimer])
   useEffect(() => {
     fallbackOffsetRef.current = fallbackOffset
   }, [fallbackOffset])
@@ -238,6 +250,29 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
       currentScene.hotspots.filter((hotspot) => ["video", "audio", "image"].includes(hotspot.type)),
     [currentScene.hotspots],
   )
+  const selectedGuidedTour = useMemo(
+    () => guidedTours.find((tour) => tour.id === selectedTourId),
+    [guidedTours, selectedTourId],
+  )
+  const isCustomTourSelected = selectedTourId === CUSTOM_TOUR_ID
+  const tourPoints = useMemo(
+    () => (isCustomTourSelected ? customTourPoints : selectedGuidedTour?.stops ?? []),
+    [customTourPoints, isCustomTourSelected, selectedGuidedTour],
+  )
+  const computedTourDuration = useMemo(() => {
+    if (!tourPoints.length) return null
+    if (selectedGuidedTour?.estimatedDurationMinutes) {
+      return `${selectedGuidedTour.estimatedDurationMinutes} min`
+    }
+    const totalSeconds = tourPoints.reduce(
+      (total, point) => total + (point.durationSeconds ?? DEFAULT_TOUR_STEP_SECONDS),
+      0,
+    )
+    if (totalSeconds < 60) {
+      return `${Math.round(totalSeconds)} sec`
+    }
+    return `${(totalSeconds / 60).toFixed(1)} min`
+  }, [selectedGuidedTour, tourPoints])
   const hasNextScene = currentSceneIndex < property.scenes.length - 1
   const hasPreviousScene = currentSceneIndex > 0
   const walkthroughMeta = useMemo(
@@ -524,18 +559,30 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
   }, [currentScene.id])
 
   const handleTourPointCreate = (point: TourPoint) => {
-    setTourPoints((prev) => {
-      const label = point.note && point.note.trim().length > 0 ? point.note.trim() : `Stop ${prev.length + 1}`
-      return [...prev, { ...point, note: label }]
+    setCustomTourPoints((prev) => {
+      const base = isCustomTourSelected
+        ? prev
+        : (selectedGuidedTour?.stops ?? []).map((stop, idx) => ({
+            ...stop,
+            id: `${stop.id}-base-${idx}`,
+          }))
+      const nextLabel =
+        point.note && point.note.trim().length > 0 ? point.note.trim() : `Stop ${base.length + 1}`
+      return [...base, { ...point, note: nextLabel }]
     })
+    if (!isCustomTourSelected) {
+      setSelectedTourId(CUSTOM_TOUR_ID)
+    }
   }
 
   const handleTourPointRemove = (id: string) => {
-    setTourPoints((prev) => prev.filter((point) => point.id !== id))
+    if (!isCustomTourSelected) return
+    setCustomTourPoints((prev) => prev.filter((point) => point.id !== id))
   }
 
   const moveTourPoint = (index: number, direction: -1 | 1) => {
-    setTourPoints((prev) => {
+    if (!isCustomTourSelected) return
+    setCustomTourPoints((prev) => {
       const target = index + direction
       if (target < 0 || target >= prev.length) return prev
       const clone = [...prev]
@@ -566,10 +613,7 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
   const stopGuidedTour = () => {
     setIsTourPlaying(false)
     setPendingOrientation(null)
-    if (tourTimeoutRef.current) {
-      window.clearTimeout(tourTimeoutRef.current)
-      tourTimeoutRef.current = null
-    }
+    stopTourTimer()
   }
 
   const handleHotspotClick = (hotspot: Hotspot) => {
@@ -595,16 +639,14 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
 
   useEffect(() => {
     if (!isTourPlaying) {
-      if (tourTimeoutRef.current) {
-        window.clearTimeout(tourTimeoutRef.current)
-        tourTimeoutRef.current = null
-      }
+      stopTourTimer()
       return
     }
 
     const currentPoint = tourPoints[activeTourIndex]
     if (!currentPoint) {
       setIsTourPlaying(false)
+      stopTourTimer()
       return
     }
 
@@ -621,26 +663,37 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
       key: Date.now(),
     })
 
+    const estimatedStepSeconds = (() => {
+      if (currentPoint.durationSeconds && currentPoint.durationSeconds > 0) {
+        return currentPoint.durationSeconds
+      }
+      if (!isCustomTourSelected && selectedGuidedTour?.estimatedDurationMinutes) {
+        const stops = selectedGuidedTour.stops
+        if (stops.length > 0) {
+          const average = (selectedGuidedTour.estimatedDurationMinutes * 60) / stops.length
+          return Math.max(4, Math.min(15, average))
+        }
+      }
+      return DEFAULT_TOUR_STEP_SECONDS
+    })()
+
     tourTimeoutRef.current = window.setTimeout(() => {
       if (activeTourIndex >= tourPoints.length - 1) {
         setIsTourPlaying(false)
       } else {
         setActiveTourIndex((prev) => prev + 1)
       }
-    }, TOUR_STEP_DURATION)
+    }, estimatedStepSeconds * 1000)
 
-    return () => {
-      if (tourTimeoutRef.current) {
-        window.clearTimeout(tourTimeoutRef.current)
-        tourTimeoutRef.current = null
-      }
-    }
+    return () => stopTourTimer()
   }, [
-    TOUR_STEP_DURATION,
     activeTourIndex,
     currentSceneIndex,
+    isCustomTourSelected,
     isTourPlaying,
     property.scenes,
+    selectedGuidedTour,
+    stopTourTimer,
     tourPoints,
   ])
 
@@ -651,21 +704,23 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
   }, [pendingOrientation])
 
   useEffect(() => {
+    stopTourTimer()
+    setIsTourPlaying(false)
+    setActiveTourIndex(0)
+    setPendingOrientation(null)
+  }, [selectedTourId, stopTourTimer])
+
+  useEffect(() => {
     if (activeTourIndex >= tourPoints.length && tourPoints.length > 0) {
       setActiveTourIndex(tourPoints.length - 1)
     }
     if (tourPoints.length === 0) {
       setIsTourPlaying(false)
+      stopTourTimer()
     }
-  }, [activeTourIndex, tourPoints.length])
+  }, [activeTourIndex, stopTourTimer, tourPoints.length])
 
-  useEffect(() => {
-    return () => {
-      if (tourTimeoutRef.current) {
-        window.clearTimeout(tourTimeoutRef.current)
-      }
-    }
-  }, [])
+  useEffect(() => () => stopTourTimer(), [stopTourTimer])
 
   const handleSceneEngagement = (sceneId: string, dwellTime: number) => {
     sceneEngagement.current[sceneId] = (sceneEngagement.current[sceneId] || 0) + dwellTime
@@ -1207,21 +1262,83 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
 
           {/* Guided Tour */}
           <Card className="p-4 bg-gray-900 border-gray-800">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <h3 className="font-semibold text-white">Guided Tour</h3>
-                <p className="text-xs text-gray-400">Create a custom walkthrough from saved viewpoints.</p>
+            <div className="mb-3 flex flex-col gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="space-y-1">
+                  <h3 className="font-semibold text-white">Guided Tours</h3>
+                  <p className="text-xs text-gray-400">
+                    {isCustomTourSelected
+                      ? "Capture viewpoints in the viewer to script a bespoke walkthrough."
+                      : "Play curated storylines crafted for this listing’s hero moments."}
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Select value={selectedTourId} onValueChange={setSelectedTourId}>
+                    <SelectTrigger size="sm" className="min-w-[200px] justify-between text-left">
+                      <SelectValue placeholder="Choose walkthrough" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {guidedTours.map((tour) => (
+                        <SelectItem key={tour.id} value={tour.id}>
+                          {tour.name}
+                        </SelectItem>
+                      ))}
+                      {guidedTours.length > 0 && <SelectSeparator />}
+                      <SelectItem value={CUSTOM_TOUR_ID}>Custom Walkthrough</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    size="sm"
+                    className={`gap-2 ${isTourPlaying ? "border-red-500 text-red-200 bg-red-500/10" : ""}`}
+                    onClick={() => (isTourPlaying ? stopGuidedTour() : startTourAt(0))}
+                    disabled={tourPoints.length === 0}
+                    variant="outline"
+                  >
+                    {isTourPlaying ? <Square className="w-4 h-4" /> : <PlayCircle className="w-4 h-4" />}
+                    {isTourPlaying ? "Stop" : "Play tour"}
+                  </Button>
+                </div>
               </div>
-              <Button
-                size="sm"
-                className={`gap-2 ${isTourPlaying ? "border-red-500 text-red-200 bg-red-500/10" : ""}`}
-                onClick={() => (isTourPlaying ? stopGuidedTour() : startTourAt(0))}
-                disabled={tourPoints.length === 0}
-                variant="outline"
-              >
-                {isTourPlaying ? <Square className="w-4 h-4" /> : <PlayCircle className="w-4 h-4" />}
-                {isTourPlaying ? "Stop" : "Play All"}
-              </Button>
+              <div className="flex flex-wrap items-center gap-2 text-[11px] text-gray-400">
+                {tourPoints.length > 0 ? (
+                  <>
+                    <span className="rounded-full border border-gray-700 px-2 py-1 text-gray-300">
+                      {tourPoints.length} {tourPoints.length === 1 ? "stop" : "stops"}
+                    </span>
+                    {computedTourDuration ? (
+                      <span className="rounded-full border border-gray-700 px-2 py-1 text-gray-300">
+                        {computedTourDuration} runtime
+                      </span>
+                    ) : null}
+                    {selectedGuidedTour?.highlightMetrics?.totalDistanceFeet ? (
+                      <span className="rounded-full border border-gray-700 px-2 py-1 text-gray-300">
+                        {selectedGuidedTour.highlightMetrics.totalDistanceFeet} ft narrative path
+                      </span>
+                    ) : null}
+                    {selectedGuidedTour?.highlightMetrics?.featuredScenes?.length ? (
+                      <span className="rounded-full border border-gray-700 px-2 py-1 text-gray-300">
+                        Focus: {selectedGuidedTour.highlightMetrics.featuredScenes.join(", ")}
+                      </span>
+                    ) : null}
+                  </>
+                ) : (
+                  <span>
+                    Save a viewpoint inside the immersive viewer to begin building your personalised walkthrough script.
+                  </span>
+                )}
+                {!isCustomTourSelected && (
+                  <span className="rounded-full border border-emerald-500/60 bg-emerald-500/10 px-2 py-1 text-emerald-200">
+                    Marketing team curated demo
+                  </span>
+                )}
+              </div>
+              {selectedGuidedTour?.callouts && selectedGuidedTour.callouts.length > 0 ? (
+                <ul className="ml-4 list-disc space-y-1 text-[11px] text-gray-400">
+                  {selectedGuidedTour.callouts.map((callout) => (
+                    <li key={callout}>{callout}</li>
+                  ))}
+                </ul>
+              ) : null}
             </div>
             {tourPoints.length === 0 ? (
               <p className="text-sm text-gray-400">
@@ -1232,6 +1349,7 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
               <div className="space-y-3">
                 {tourPoints.map((point, idx) => {
                   const isActive = isTourPlaying && idx === activeTourIndex
+                  const editingDisabled = !isCustomTourSelected
                   return (
                     <div
                       key={point.id}
@@ -1249,13 +1367,21 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
                           <p className="text-[11px] text-gray-500">
                             {Math.round(point.yaw)}° yaw • {Math.round(point.pitch)}° pitch
                           </p>
+                          {point.highlight ? (
+                            <p className="mt-1 text-[11px] text-emerald-200/90">{point.highlight}</p>
+                          ) : null}
+                          {point.durationSeconds ? (
+                            <p className="text-[11px] text-gray-500">
+                              Spotlight duration: {point.durationSeconds}s
+                            </p>
+                          ) : null}
                         </div>
                         <div className="flex gap-1">
                           <Button
                             size="icon"
                             variant="ghost"
                             onClick={() => moveTourPoint(idx, -1)}
-                            disabled={idx === 0}
+                            disabled={editingDisabled || idx === 0}
                             className="h-8 w-8"
                           >
                             <ArrowUp className="w-4 h-4" />
@@ -1264,7 +1390,7 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
                             size="icon"
                             variant="ghost"
                             onClick={() => moveTourPoint(idx, 1)}
-                            disabled={idx === tourPoints.length - 1}
+                            disabled={editingDisabled || idx === tourPoints.length - 1}
                             className="h-8 w-8"
                           >
                             <ArrowDown className="w-4 h-4" />
@@ -1273,6 +1399,7 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
                             size="icon"
                             variant="ghost"
                             onClick={() => handleTourPointRemove(point.id)}
+                            disabled={editingDisabled}
                             className="h-8 w-8"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -1293,6 +1420,12 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
                 })}
               </div>
             )}
+            {!isCustomTourSelected && tourPoints.length > 0 ? (
+              <p className="mt-3 text-[11px] text-gray-500">
+                Want to tweak this flow? Tap “Save Tour Point” in the viewer to duplicate these stops into your custom
+                walkthrough.
+              </p>
+            ) : null}
           </Card>
 
           {/* Property Details */}
