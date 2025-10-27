@@ -11,10 +11,13 @@ import type {
   Room,
   Scene,
   SceneEngagementPayload,
+  SphrHotspot,
+  SphrSpaceNode,
   TourPoint,
 } from "@/lib/types"
 import { SceneViewer } from "./scene-viewer"
 import { FloorPlanViewer } from "./floor-plan-viewer"
+import { SphrViewer } from "./sphr-viewer"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
@@ -81,6 +84,7 @@ interface TourPlayerProps {
   floorPlan?: FloorPlan | null
   onLeadCapture?: (lead: LeadCapturePayload) => void
   onEngagementTrack?: (engagement: SceneEngagementPayload) => void
+  experienceMode?: "vortex" | "sphr"
 }
 
 const detectWebGL2Support = () => {
@@ -103,7 +107,13 @@ const detectWebGL2Support = () => {
   }
 }
 
-export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTrack }: TourPlayerProps) {
+export function TourPlayer({
+  property,
+  floorPlan,
+  onLeadCapture,
+  onEngagementTrack,
+  experienceMode = "vortex",
+}: TourPlayerProps) {
   const [currentSceneIndex, setCurrentSceneIndex] = useState(0)
   const [showLeadForm, setShowLeadForm] = useState(false)
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", message: "" })
@@ -156,8 +166,11 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
   })
   const [is3DEnabled, setIs3DEnabled] = useState(false)
   const [isWebGLSupported, setIsWebGLSupported] = useState<boolean | null>(null)
+  const showSphrViewer = experienceMode === "sphr" && Boolean(property.sphrSpace)
   const sceneEngagement = useRef<Record<string, number>>({})
   const tourTimeoutRef = useRef<number | null>(null)
+  const sphrActiveNodeRef = useRef<string | null>(null)
+  const sphrNodeStartRef = useRef<number>(Date.now())
   const stopTourTimer = useCallback(() => {
     if (tourTimeoutRef.current) {
       window.clearTimeout(tourTimeoutRef.current)
@@ -173,6 +186,8 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
     setIsFavorite(property.isFavorite ?? false)
     setShowShareMenu(false)
     sceneEngagement.current = {}
+    sphrActiveNodeRef.current = null
+    sphrNodeStartRef.current = Date.now()
     setCustomTourPoints([])
     setIsTourPlaying(false)
     setActiveTourIndex(0)
@@ -181,6 +196,14 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
     setSelectedTourId(property.guidedTours?.[0]?.id ?? CUSTOM_TOUR_ID)
     stopTourTimer()
   }, [property.id, property.isFavorite, stopTourTimer])
+
+  useEffect(() => () => flushSphrDwell(), [flushSphrDwell])
+
+  useEffect(() => {
+    if (!showSphrViewer) {
+      flushSphrDwell()
+    }
+  }, [flushSphrDwell, showSphrViewer])
 
   useEffect(() => {
     setMeasurementsByScene(deriveMeasurementDefaults(property.scenes))
@@ -201,17 +224,18 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
   }, [])
 
   useEffect(() => {
-    if (!is3DEnabled) {
+    if (!isTraditional3DViewerActive) {
       setMeasurementMode(false)
       stopTourTimer()
       setIsTourPlaying(false)
     }
-  }, [is3DEnabled, stopTourTimer])
+  }, [isTraditional3DViewerActive, stopTourTimer])
   useEffect(() => {
     fallbackOffsetRef.current = fallbackOffset
   }, [fallbackOffset])
 
   const currentScene = property.scenes[currentSceneIndex]
+  const isTraditional3DViewerActive = !showSphrViewer && is3DEnabled
 
   useEffect(() => {
     setFallbackZoom(1)
@@ -219,7 +243,7 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
     setIsFallbackDragging(false)
     fallbackPointerIdRef.current = null
     fallbackBoundsRef.current = null
-  }, [is3DEnabled, currentScene.id])
+  }, [isTraditional3DViewerActive, currentScene.id])
 
   useEffect(() => {
     const container = fallbackContainerRef.current
@@ -303,7 +327,7 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
     [currentMeasurements],
   )
 
-  const showFallbackZoom = !is3DEnabled && Boolean(currentScene.imageUrl || currentScene.thumbnail)
+  const showFallbackZoom = !showSphrViewer && !is3DEnabled && Boolean(currentScene.imageUrl || currentScene.thumbnail)
   const fallbackZoomDisplay = useMemo(() => fallbackZoom.toFixed(1), [fallbackZoom])
   const fallbackAtMinZoom = fallbackZoom <= FALLBACK_MIN_ZOOM + 0.001
   const fallbackAtMaxZoom = fallbackZoom >= FALLBACK_MAX_ZOOM - 0.001
@@ -722,14 +746,57 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
 
   useEffect(() => () => stopTourTimer(), [stopTourTimer])
 
-  const handleSceneEngagement = (sceneId: string, dwellTime: number) => {
-    sceneEngagement.current[sceneId] = (sceneEngagement.current[sceneId] || 0) + dwellTime
-    onEngagementTrack?.({
-      sceneId,
-      dwellTime,
-      totalEngagement: sceneEngagement.current,
-    })
-  }
+  const handleSceneEngagement = useCallback(
+    (sceneId: string, dwellTime: number) => {
+      sceneEngagement.current[sceneId] = (sceneEngagement.current[sceneId] || 0) + dwellTime
+      onEngagementTrack?.({
+        sceneId,
+        dwellTime,
+        totalEngagement: sceneEngagement.current,
+      })
+    },
+    [onEngagementTrack],
+  )
+
+  const flushSphrDwell = useCallback(() => {
+    if (!sphrActiveNodeRef.current) {
+      return
+    }
+    const dwell = (Date.now() - sphrNodeStartRef.current) / 1000
+    if (dwell > 0.1) {
+      handleSceneEngagement(sphrActiveNodeRef.current, dwell)
+    }
+    sphrActiveNodeRef.current = null
+    sphrNodeStartRef.current = Date.now()
+  }, [handleSceneEngagement])
+
+  const handleSphrNodeChange = useCallback(
+    (node: SphrSpaceNode) => {
+      const now = Date.now()
+      if (sphrActiveNodeRef.current) {
+        const dwell = (now - sphrNodeStartRef.current) / 1000
+        if (dwell > 0.1) {
+          handleSceneEngagement(sphrActiveNodeRef.current, dwell)
+        }
+      }
+      sphrActiveNodeRef.current = node.id
+      sphrNodeStartRef.current = now
+    },
+    [handleSceneEngagement],
+  )
+
+  const handleSphrHotspotActivate = useCallback(
+    (hotspot: SphrHotspot) => {
+      const key = `hotspot:${hotspot.id}`
+      sceneEngagement.current[key] = (sceneEngagement.current[key] || 0) + 1
+      onEngagementTrack?.({
+        sceneId: sphrActiveNodeRef.current ?? hotspot.id,
+        dwellTime: 0,
+        totalEngagement: sceneEngagement.current,
+      })
+    },
+    [onEngagementTrack],
+  )
 
   const handleLeadSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -791,7 +858,27 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
           className="flex-1 lg:min-h-[480px] [--viewer-min-h:70vh] sm:[--viewer-min-h:75vh] md:[--viewer-min-h:80vh]"
           style={{ minHeight: "max(360px, var(--viewer-min-h, 70vh))" }}
         >
-          {is3DEnabled ? (
+          {showSphrViewer ? (
+            isWebGLSupported === false ? (
+              <div className="relative h-full min-h-[55vh] sm:min-h-[65vh] md:min-h-[70vh] overflow-hidden rounded-xl border border-gray-800 bg-gray-950/60">
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-8 text-center">
+                  <div className="max-w-md rounded-lg border border-emerald-500/40 bg-black/70 p-6 text-slate-200 shadow-lg">
+                    <h2 className="text-lg font-semibold text-white">WebGL support required</h2>
+                    <p className="mt-2 text-sm text-slate-300">
+                      The SPHR immersive viewer mirrors the Three.js experience from the source project and needs WebGL 2 to
+                      render interactive panoramas. Try a compatible browser or fall back to the classic walkthrough mode.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <SphrViewer
+                space={property.sphrSpace!}
+                onNodeChange={handleSphrNodeChange}
+                onHotspotActivate={handleSphrHotspotActivate}
+              />
+            )
+          ) : isTraditional3DViewerActive ? (
             <SceneViewer
               scene={currentScene}
               onHotspotClick={handleHotspotClick}
@@ -878,7 +965,8 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
               <div className="space-y-2">
                 <div className="text-sm font-semibold text-white">Immersive Viewer</div>
                 <p className="text-xs text-gray-400">
-                  Toggle the interactive 3D experience on devices that support WebGL 2 rendering.
+                  Toggle the interactive 3D experience on devices that support WebGL 2 rendering. When the SPHR mode is active,
+                  the classic toggle is locked to keep the immersive viewer in sync.
                 </p>
                 {isWebGLSupported === null && (
                   <div className="text-xs text-gray-300">Detecting device compatibility…</div>
@@ -889,11 +977,17 @@ export function TourPlayer({ property, floorPlan, onLeadCapture, onEngagementTra
                     WebGL 2 isn&apos;t available on this device.
                   </div>
                 )}
+                {showSphrViewer && (
+                  <div className="flex items-center gap-2 text-xs text-emerald-300">
+                    <Navigation className="h-4 w-4" />
+                    SPHR immersive mode is active for this property.
+                  </div>
+                )}
               </div>
               <Switch
-                checked={is3DEnabled}
+                checked={isTraditional3DViewerActive}
                 onCheckedChange={setIs3DEnabled}
-                disabled={isWebGLSupported !== true}
+                disabled={showSphrViewer || isWebGLSupported !== true}
                 aria-label="Toggle 3D viewer"
               />
             </div>

@@ -183,6 +183,125 @@ export const mockProperties: Property[] = [
         ],
       },
     ],
+    sphrSpace: {
+      initialNodeId: "penthouse-lobby",
+      defaultFov: 70,
+      description:
+        "Port of the SPHR experience with Three.js powered navigation, allowing smooth jumps between immersive panoramas and rich info callouts.",
+      nodes: [
+        {
+          id: "penthouse-lobby",
+          name: "Skyline Lobby",
+          panoramaUrl: "https://static.mused.org/spaceshare/IMG_20231101_074927_00_479.jpg",
+          initialYaw: 40,
+          initialPitch: -5,
+          hotspots: [
+            {
+              id: "lobby-to-living",
+              title: "Enter the Great Room",
+              type: "navigation",
+              yaw: 18,
+              pitch: -8,
+              targetNodeId: "penthouse-living",
+            },
+            {
+              id: "lobby-to-suite",
+              title: "Owner's Suite",
+              type: "navigation",
+              yaw: -120,
+              pitch: -6,
+              targetNodeId: "penthouse-suite",
+            },
+            {
+              id: "lobby-lighting",
+              title: "Layered Lighting",
+              type: "info",
+              yaw: -48,
+              pitch: -12,
+              description:
+                "Programmable cove lighting and art spots wash the entry volume—ported directly from the SPHR tour lighting presets.",
+            },
+          ],
+        },
+        {
+          id: "penthouse-living",
+          name: "Grand Living Room",
+          panoramaUrl: "https://static.mused.org/spaceshare/IMG_20231101_075039_00_482.jpg",
+          initialYaw: -110,
+          initialPitch: -4,
+          hotspots: [
+            {
+              id: "living-to-lobby",
+              title: "Back to Lobby",
+              type: "navigation",
+              yaw: 160,
+              pitch: -4,
+              targetNodeId: "penthouse-lobby",
+            },
+            {
+              id: "living-to-suite",
+              title: "Primary Suite",
+              type: "navigation",
+              yaw: -30,
+              pitch: -6,
+              targetNodeId: "penthouse-suite",
+            },
+            {
+              id: "living-spotlight",
+              title: "Skyline Spotlight",
+              type: "info",
+              yaw: 15,
+              pitch: -2,
+              description:
+                "Floor-to-ceiling glass wraps 270° around this room. Hotspot metrics from SPHR highlight 82% engagement here.",
+            },
+            {
+              id: "living-media",
+              title: "Designer Walkthrough",
+              type: "media",
+              yaw: -90,
+              pitch: -3,
+              mediaUrl: "https://cdn.mused.org/media/penthouse-design-story.mp4",
+              description: "Play the designer's SPHR walkthrough with staging commentary.",
+            },
+          ],
+        },
+        {
+          id: "penthouse-suite",
+          name: "Owner's Suite",
+          panoramaUrl: "https://static.mused.org/spaceshare/IMG_20231101_075124_00_485.jpg",
+          initialYaw: 95,
+          initialPitch: -6,
+          hotspots: [
+            {
+              id: "suite-to-living",
+              title: "Return to Great Room",
+              type: "navigation",
+              yaw: 40,
+              pitch: -10,
+              targetNodeId: "penthouse-living",
+            },
+            {
+              id: "suite-terrace",
+              title: "Step to Terrace",
+              type: "info",
+              yaw: -130,
+              pitch: -5,
+              description:
+                "12' sliding glass walls stack to reveal the terrace. Imported SPHR depth maps power the parallax hint on hover.",
+            },
+            {
+              id: "suite-to-lobby",
+              title: "Entry Gallery",
+              type: "navigation",
+              yaw: 170,
+              pitch: -3,
+              targetNodeId: "penthouse-lobby",
+            },
+          ],
+        },
+      ],
+    },
     scenes: [
       {
         id: "scene-001",
