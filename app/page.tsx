@@ -109,6 +109,11 @@ export default function Page() {
     removeSceneTypeConfig,
     getFloorPlan,
     updateBranding,
+    updateProperty,
+    getWalkthroughsForProperty,
+    createWalkthrough,
+    updateWalkthrough,
+    deleteWalkthrough,
   } = useData()
   const [viewMode, setViewMode] = useState<ViewMode>("home")
   const [selectedProperty, setSelectedProperty] = useState<Property | undefined>(properties[0])
@@ -180,6 +185,7 @@ export default function Page() {
   const tourProducts = getProductsForProperty(selectedProperty.id)
   const propertyModels = getModelsForProperty(selectedAnalyticsProperty.id)
   const propertySceneTypes = getSceneTypesForProperty(selectedAnalyticsProperty.id)
+  const tourWalkthroughs = getWalkthroughsForProperty(selectedProperty.id)
   const selectedBranding: CSSCustomization =
     brandingSettings[selectedAnalyticsProperty.id] ||
     {
@@ -337,6 +343,15 @@ export default function Page() {
           onLeadCapture={handleLeadCapture}
           floorPlan={selectedFloorPlan}
           products={tourProducts}
+          walkthroughs={tourWalkthroughs}
+          onWalkthroughCreate={createWalkthrough}
+          onWalkthroughUpdate={updateWalkthrough}
+          onWalkthroughDelete={deleteWalkthrough}
+          onFeaturedWalkthroughChange={(walkthroughId) =>
+            updateProperty(selectedProperty.id, {
+              featuredWalkthroughId: walkthroughId ?? undefined,
+            })
+          }
         />
       </div>
     )

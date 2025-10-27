@@ -8,6 +8,7 @@ import type {
   LeadCapturePayload,
   Measurement,
   Property,
+  PropertyWalkthrough,
   Room,
   Scene,
   SceneEngagementPayload,
@@ -19,6 +20,13 @@ import { FloorPlanViewer } from "./floor-plan-viewer"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { formatCurrency } from "@/lib/utils"
 import {
   AlertCircle,
@@ -30,6 +38,7 @@ import {
   Heart,
   ShoppingCart,
   PlayCircle,
+  Save,
   Square,
   ArrowUp,
   ArrowDown,
@@ -76,6 +85,19 @@ interface TourPlayerProps {
   onLeadCapture?: (lead: LeadCapturePayload) => void
   onEngagementTrack?: (engagement: SceneEngagementPayload) => void
   products?: WooCommerceProduct[]
+  walkthroughs?: PropertyWalkthrough[]
+  onWalkthroughCreate?: (walkthrough: {
+    propertyId: string
+    name: string
+    description?: string
+    points: TourPoint[]
+  }) => PropertyWalkthrough | void
+  onWalkthroughUpdate?: (
+    walkthroughId: string,
+    updates: Partial<Omit<PropertyWalkthrough, "id" | "propertyId" | "createdAt">>,
+  ) => void
+  onWalkthroughDelete?: (walkthroughId: string) => void
+  onFeaturedWalkthroughChange?: (walkthroughId: string | null) => void
 }
 
 const detectWebGL2Support = () => {
@@ -104,6 +126,11 @@ export function TourPlayer({
   onLeadCapture,
   onEngagementTrack,
   products = [],
+  walkthroughs,
+  onWalkthroughCreate,
+  onWalkthroughUpdate,
+  onWalkthroughDelete,
+  onFeaturedWalkthroughChange,
 }: TourPlayerProps) {
   const [currentSceneIndex, setCurrentSceneIndex] = useState(0)
   const [showLeadForm, setShowLeadForm] = useState(false)
@@ -114,6 +141,10 @@ export function TourPlayer({
   const [showFloorPlan, setShowFloorPlan] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<WooCommerceProduct | null>(null)
   const [tourPoints, setTourPoints] = useState<TourPoint[]>([])
+  const [activeWalkthroughId, setActiveWalkthroughId] = useState<string | null>(
+    property.featuredWalkthroughId ?? null,
+  )
+  const [hasWalkthroughChanges, setHasWalkthroughChanges] = useState(false)
   const [isTourPlaying, setIsTourPlaying] = useState(false)
   const [activeTourIndex, setActiveTourIndex] = useState(0)
   const [pendingOrientation, setPendingOrientation] = useState<{
@@ -185,6 +216,8 @@ export function TourPlayer({
     setSelectedProduct(null)
     sceneEngagement.current = {}
     setTourPoints([])
+    setActiveWalkthroughId(property.featuredWalkthroughId ?? null)
+    setHasWalkthroughChanges(false)
     setIsTourPlaying(false)
     setActiveTourIndex(0)
     setPendingOrientation(null)
@@ -193,7 +226,7 @@ export function TourPlayer({
       window.clearTimeout(tourTimeoutRef.current)
       tourTimeoutRef.current = null
     }
-  }, [property.id, property.isFavorite])
+  }, [property.id, property.isFavorite, property.featuredWalkthroughId])
 
   useEffect(() => {
     setMeasurementsByScene(deriveMeasurementDefaults(property.scenes))
@@ -206,6 +239,82 @@ export function TourPlayer({
     })
     setMeasurementMode(false)
   }, [property.id, property.scenes, deriveMeasurementDefaults, deriveLayerDefaults])
+
+  const availableWalkthroughs = useMemo(() => walkthroughs ?? [], [walkthroughs])
+
+  useEffect(() => {
+    if (availableWalkthroughs.length === 0) {
+      if (activeWalkthroughId !== null) {
+        setActiveWalkthroughId(null)
+      }
+      if (!hasWalkthroughChanges) {
+        setTourPoints([])
+      }
+      if (property.featuredWalkthroughId) {
+        onFeaturedWalkthroughChange?.(null)
+      }
+      return
+    }
+
+    const activeExists = activeWalkthroughId
+      ? availableWalkthroughs.some((walkthrough) => walkthrough.id === activeWalkthroughId)
+      : false
+    const preferredId = activeExists
+      ? activeWalkthroughId
+      : property.featuredWalkthroughId && availableWalkthroughs.some((walkthrough) => walkthrough.id === property.featuredWalkthroughId)
+        ? property.featuredWalkthroughId
+        : availableWalkthroughs[0]?.id ?? null
+
+    if (preferredId !== activeWalkthroughId) {
+      setActiveWalkthroughId(preferredId)
+      if (preferredId) {
+        const target = availableWalkthroughs.find((walkthrough) => walkthrough.id === preferredId)
+        if (target) {
+          setTourPoints(target.points.map((point) => ({ ...point })))
+          setHasWalkthroughChanges(false)
+          if (preferredId !== property.featuredWalkthroughId) {
+            onFeaturedWalkthroughChange?.(preferredId)
+          }
+        }
+      } else if (!hasWalkthroughChanges) {
+        setTourPoints([])
+      }
+      return
+    }
+
+    if (!hasWalkthroughChanges && preferredId) {
+      const target = availableWalkthroughs.find((walkthrough) => walkthrough.id === preferredId)
+      if (target) {
+        setTourPoints(target.points.map((point) => ({ ...point })))
+      }
+    }
+  }, [
+    activeWalkthroughId,
+    availableWalkthroughs,
+    hasWalkthroughChanges,
+    onFeaturedWalkthroughChange,
+    property.featuredWalkthroughId,
+  ])
+
+  const selectedWalkthrough = useMemo(() => {
+    if (!activeWalkthroughId) return null
+    return availableWalkthroughs.find((walkthrough) => walkthrough.id === activeWalkthroughId) ?? null
+  }, [activeWalkthroughId, availableWalkthroughs])
+
+  const activeWalkthroughValue = activeWalkthroughId ?? undefined
+
+  const walkthroughLastUpdated = useMemo(() => {
+    if (!selectedWalkthrough?.updatedAt) return null
+    const updated =
+      selectedWalkthrough.updatedAt instanceof Date
+        ? selectedWalkthrough.updatedAt
+        : new Date(selectedWalkthrough.updatedAt)
+    return updated.toLocaleString()
+  }, [selectedWalkthrough])
+
+  const canPersistWalkthrough = Boolean(onWalkthroughUpdate)
+  const canCreateWalkthrough = Boolean(onWalkthroughCreate)
+  const canDeleteWalkthrough = Boolean(onWalkthroughDelete)
 
   useEffect(() => {
     const supported = detectWebGL2Support()
@@ -567,10 +676,12 @@ export function TourPlayer({
       const label = point.note && point.note.trim().length > 0 ? point.note.trim() : `Stop ${prev.length + 1}`
       return [...prev, { ...point, note: label }]
     })
+    setHasWalkthroughChanges(true)
   }
 
   const handleTourPointRemove = (id: string) => {
     setTourPoints((prev) => prev.filter((point) => point.id !== id))
+    setHasWalkthroughChanges(true)
   }
 
   const moveTourPoint = (index: number, direction: -1 | 1) => {
@@ -582,6 +693,7 @@ export function TourPlayer({
       clone.splice(target, 0, removed)
       return clone
     })
+    setHasWalkthroughChanges(true)
   }
 
   const handleWalkthroughStep = useCallback(
@@ -610,6 +722,116 @@ export function TourPlayer({
       tourTimeoutRef.current = null
     }
   }
+
+  const handleWalkthroughSelectChange = useCallback(
+    (walkthroughId: string) => {
+      setActiveWalkthroughId(walkthroughId)
+      const target = availableWalkthroughs.find((walkthrough) => walkthrough.id === walkthroughId)
+      if (target) {
+        setTourPoints(target.points.map((point) => ({ ...point })))
+      } else {
+        setTourPoints([])
+      }
+      setHasWalkthroughChanges(false)
+      setIsTourPlaying(false)
+      setActiveTourIndex(0)
+      setPendingOrientation(null)
+      onFeaturedWalkthroughChange?.(walkthroughId)
+    },
+    [availableWalkthroughs, onFeaturedWalkthroughChange],
+  )
+
+  const handleWalkthroughSave = useCallback(() => {
+    if (!canPersistWalkthrough || !activeWalkthroughId || !onWalkthroughUpdate) return
+    onWalkthroughUpdate(activeWalkthroughId, {
+      points: tourPoints.map((point) => ({ ...point })),
+      updatedAt: new Date(),
+    })
+    setHasWalkthroughChanges(false)
+  }, [activeWalkthroughId, canPersistWalkthrough, onWalkthroughUpdate, tourPoints])
+
+  const handleWalkthroughReset = useCallback(() => {
+    if (!selectedWalkthrough) {
+      setTourPoints([])
+      setHasWalkthroughChanges(false)
+      return
+    }
+    setTourPoints(selectedWalkthrough.points.map((point) => ({ ...point })))
+    setHasWalkthroughChanges(false)
+  }, [selectedWalkthrough])
+
+  const handleWalkthroughCreate = useCallback(() => {
+    if (!onWalkthroughCreate || !canCreateWalkthrough) return
+    const defaultName = `${property.name} Walkthrough`
+    const name = window.prompt("Name this walkthrough", defaultName)
+    if (!name) return
+    const trimmed = name.trim()
+    if (!trimmed) return
+    const base = Date.now()
+    const sourcePoints =
+      tourPoints.length > 0
+        ? tourPoints.map((point, index) => ({ ...point, id: point.id || `tour-point-${base + index}` }))
+        : property.scenes.map((scene, index) => ({
+            id: `tour-point-${base + index}`,
+            sceneId: scene.id,
+            sceneName: scene.name,
+            yaw: 0,
+            pitch: 0,
+            note: `${scene.name} Overview`,
+          }))
+    const created = onWalkthroughCreate({
+      propertyId: property.id,
+      name: trimmed,
+      description: `Custom walkthrough created on ${new Date().toLocaleDateString()}`,
+      points: sourcePoints,
+    })
+    if (created) {
+      setActiveWalkthroughId(created.id)
+      setTourPoints(created.points.map((point) => ({ ...point })))
+      setHasWalkthroughChanges(false)
+      setIsTourPlaying(false)
+      setActiveTourIndex(0)
+      onFeaturedWalkthroughChange?.(created.id)
+    }
+  }, [
+    canCreateWalkthrough,
+    onWalkthroughCreate,
+    property.id,
+    property.name,
+    property.scenes,
+    tourPoints,
+    onFeaturedWalkthroughChange,
+  ])
+
+  const handleWalkthroughRename = useCallback(() => {
+    if (!selectedWalkthrough || !onWalkthroughUpdate) return
+    const name = window.prompt("Rename walkthrough", selectedWalkthrough.name)
+    if (!name) return
+    const trimmed = name.trim()
+    if (!trimmed || trimmed === selectedWalkthrough.name) return
+    onWalkthroughUpdate(selectedWalkthrough.id, { name: trimmed })
+  }, [onWalkthroughUpdate, selectedWalkthrough])
+
+  const handleWalkthroughDelete = useCallback(() => {
+    if (!selectedWalkthrough || !onWalkthroughDelete || !canDeleteWalkthrough) return
+    const confirmed = window.confirm(
+      `Delete walkthrough "${selectedWalkthrough.name}"? This action cannot be undone.`,
+    )
+    if (!confirmed) return
+    onWalkthroughDelete(selectedWalkthrough.id)
+    setActiveWalkthroughId((prev) => (prev === selectedWalkthrough.id ? null : prev))
+    setTourPoints([])
+    setHasWalkthroughChanges(false)
+    setIsTourPlaying(false)
+    setActiveTourIndex(0)
+    setPendingOrientation(null)
+    onFeaturedWalkthroughChange?.(null)
+  }, [
+    canDeleteWalkthrough,
+    onFeaturedWalkthroughChange,
+    onWalkthroughDelete,
+    selectedWalkthrough,
+  ])
 
   const handleHotspotClick = (hotspot: Hotspot) => {
     activateHotspot(hotspot)
@@ -1278,92 +1500,187 @@ export function TourPlayer({
 
           {/* Guided Tour */}
           <Card className="p-4 bg-gray-900 border-gray-800">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <h3 className="font-semibold text-white">Guided Tour</h3>
-                <p className="text-xs text-gray-400">Create a custom walkthrough from saved viewpoints.</p>
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <h3 className="font-semibold text-white">Guided Tour</h3>
+                  <p className="text-xs text-gray-400">Create a custom walkthrough from saved viewpoints.</p>
+                  {selectedWalkthrough?.description ? (
+                    <p className="mt-2 text-xs text-gray-400">{selectedWalkthrough.description}</p>
+                  ) : null}
+                  <p className="mt-1 text-[11px] text-gray-500">
+                    {tourPoints.length} stop{tourPoints.length === 1 ? "" : "s"}
+                    {walkthroughLastUpdated ? ` • Last updated ${walkthroughLastUpdated}` : ""}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    className={`gap-2 ${isTourPlaying ? "border-red-500 text-red-200 bg-red-500/10" : ""}`}
+                    onClick={() => (isTourPlaying ? stopGuidedTour() : startTourAt(0))}
+                    disabled={tourPoints.length === 0}
+                    variant="outline"
+                  >
+                    {isTourPlaying ? <Square className="w-4 h-4" /> : <PlayCircle className="w-4 h-4" />}
+                    {isTourPlaying ? "Stop" : "Play All"}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={hasWalkthroughChanges ? "default" : "outline"}
+                    className="gap-2"
+                    onClick={handleWalkthroughSave}
+                    disabled={!canPersistWalkthrough || !activeWalkthroughId || !hasWalkthroughChanges}
+                  >
+                    <Save className="w-4 h-4" />
+                    Save Path
+                  </Button>
+                </div>
               </div>
-              <Button
-                size="sm"
-                className={`gap-2 ${isTourPlaying ? "border-red-500 text-red-200 bg-red-500/10" : ""}`}
-                onClick={() => (isTourPlaying ? stopGuidedTour() : startTourAt(0))}
-                disabled={tourPoints.length === 0}
-                variant="outline"
-              >
-                {isTourPlaying ? <Square className="w-4 h-4" /> : <PlayCircle className="w-4 h-4" />}
-                {isTourPlaying ? "Stop" : "Play All"}
-              </Button>
-            </div>
-            {tourPoints.length === 0 ? (
-              <p className="text-sm text-gray-400">
-                Save a viewpoint from the viewer to add your first tour stop. You can capture multiple angles and reorder them
-                here.
-              </p>
-            ) : (
               <div className="space-y-3">
-                {tourPoints.map((point, idx) => {
-                  const isActive = isTourPlaying && idx === activeTourIndex
-                  return (
-                    <div
-                      key={point.id}
-                      className={`rounded-lg border p-3 bg-gray-800/60 ${
-                        isActive ? "border-blue-500 shadow-lg shadow-blue-500/20" : "border-transparent"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-medium text-white flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-blue-400" />
-                            {point.note || `Stop ${idx + 1}`}
-                          </p>
-                          <p className="text-xs text-gray-400">{point.sceneName}</p>
-                          <p className="text-[11px] text-gray-500">
-                            {Math.round(point.yaw)}° yaw • {Math.round(point.pitch)}° pitch
-                          </p>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => moveTourPoint(idx, -1)}
-                            disabled={idx === 0}
-                            className="h-8 w-8"
-                          >
-                            <ArrowUp className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => moveTourPoint(idx, 1)}
-                            disabled={idx === tourPoints.length - 1}
-                            className="h-8 w-8"
-                          >
-                            <ArrowDown className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => handleTourPointRemove(point.id)}
-                            className="h-8 w-8"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      <Button
+                {availableWalkthroughs.length > 0 ? (
+                  <div className="space-y-2">
+                    <label className="text-[11px] uppercase tracking-wide text-gray-500">Active Walkthrough</label>
+                    <Select value={activeWalkthroughValue} onValueChange={handleWalkthroughSelectChange}>
+                      <SelectTrigger
                         size="sm"
-                        variant="outline"
-                        className="mt-3 w-full gap-2"
-                        onClick={() => startTourAt(idx)}
+                        className="w-full justify-between border-gray-700 bg-gray-900 text-gray-200"
                       >
-                        <PlayCircle className="w-4 h-4" />
-                        {isActive ? "Playing" : "Start from here"}
-                      </Button>
-                    </div>
-                  )
-                })}
+                        <SelectValue placeholder="Choose a walkthrough" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-900 border border-gray-700">
+                        {availableWalkthroughs.map((walkthrough) => (
+                          <SelectItem key={walkthrough.id} value={walkthrough.id}>
+                            <span className="flex flex-col text-left">
+                              <span className="text-sm text-white">{walkthrough.name}</span>
+                              <span className="text-[11px] text-gray-400">
+                                {walkthrough.points.length} stop{walkthrough.points.length === 1 ? "" : "s"}
+                              </span>
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <div className="rounded border border-dashed border-gray-700 bg-gray-900/60 p-3 text-sm text-gray-400">
+                    No saved walkthroughs yet. Capture viewpoints and create your first guided path.
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleWalkthroughCreate}
+                    disabled={!canCreateWalkthrough}
+                  >
+                    New Walkthrough
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleWalkthroughRename}
+                    disabled={!selectedWalkthrough || !canPersistWalkthrough}
+                  >
+                    Rename
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleWalkthroughReset}
+                    disabled={!selectedWalkthrough || !hasWalkthroughChanges}
+                  >
+                    Revert Changes
+                  </Button>
+                  {selectedWalkthrough ? (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-red-300 hover:text-red-200"
+                      onClick={handleWalkthroughDelete}
+                      disabled={!canDeleteWalkthrough}
+                    >
+                      Delete
+                    </Button>
+                  ) : null}
+                </div>
+                {hasWalkthroughChanges ? (
+                  <div className="flex items-center gap-2 text-xs text-amber-300">
+                    <AlertCircle className="w-4 h-4" />
+                    Unsaved walkthrough edits
+                  </div>
+                ) : null}
               </div>
-            )}
+              {tourPoints.length === 0 ? (
+                <p className="text-sm text-gray-400">
+                  Save a viewpoint from the viewer to add your first tour stop. You can capture multiple angles and reorder them
+                  here.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {tourPoints.map((point, idx) => {
+                    const isActive = isTourPlaying && idx === activeTourIndex
+                    return (
+                      <div
+                        key={point.id}
+                        className={`rounded-lg border p-3 bg-gray-800/60 ${
+                          isActive ? "border-blue-500 shadow-lg shadow-blue-500/20" : "border-transparent"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-medium text-white flex items-center gap-2">
+                              <MapPin className="w-4 h-4 text-blue-400" />
+                              {point.note || `Stop ${idx + 1}`}
+                            </p>
+                            <p className="text-xs text-gray-400">{point.sceneName}</p>
+                            <p className="text-[11px] text-gray-500">
+                              {Math.round(point.yaw)}° yaw • {Math.round(point.pitch)}° pitch
+                            </p>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => moveTourPoint(idx, -1)}
+                              disabled={idx === 0}
+                              className="h-8 w-8"
+                            >
+                              <ArrowUp className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => moveTourPoint(idx, 1)}
+                              disabled={idx === tourPoints.length - 1}
+                              className="h-8 w-8"
+                            >
+                              <ArrowDown className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => handleTourPointRemove(point.id)}
+                              className="h-8 w-8"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="mt-3 w-full gap-2"
+                          onClick={() => startTourAt(idx)}
+                        >
+                          <PlayCircle className="w-4 h-4" />
+                          {isActive ? "Playing" : "Start from here"}
+                        </Button>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
           </Card>
 
           {/* Property Details */}

@@ -12,6 +12,7 @@ import type {
   SceneTypeConfig,
   TechnicianProfile,
   CSSCustomization,
+  PropertyWalkthrough,
 } from "./types"
 
 export const mockProperties: Property[] = [
@@ -49,6 +50,7 @@ export const mockProperties: Property[] = [
       whiteLabelMode: false,
     },
     supportedViewModes: ["walkthrough", "360", "first-person", "orbit", "dollhouse", "floor-plan"],
+    featuredWalkthroughId: "walkthrough-001",
     scenes: [
       {
         id: "scene-001",
@@ -337,6 +339,7 @@ export const mockProperties: Property[] = [
       contactPhone: "+1 (555) 123-4567",
       whiteLabelMode: false,
     },
+    featuredWalkthroughId: "walkthrough-002",
     scenes: [
       {
         id: "scene-004",
@@ -412,6 +415,85 @@ export const mockProperties: Property[] = [
         "scene-006": 68,
       },
     },
+  },
+]
+
+export const mockWalkthroughs: PropertyWalkthrough[] = [
+  {
+    id: "walkthrough-001",
+    propertyId: "prop-001",
+    name: "Skyline Showcase",
+    description: "Guided highlights across the penthouse with curated viewpoints for each signature space.",
+    points: [
+      {
+        id: "tour-point-001",
+        sceneId: "scene-001",
+        sceneName: "Living Room",
+        yaw: 32,
+        pitch: -5,
+        note: "Skyline Arrival",
+      },
+      {
+        id: "tour-point-002",
+        sceneId: "scene-001",
+        sceneName: "Living Room",
+        yaw: -48,
+        pitch: -2,
+        note: "Lounge Seating",
+      },
+      {
+        id: "tour-point-003",
+        sceneId: "scene-003",
+        sceneName: "Kitchen",
+        yaw: 75,
+        pitch: -12,
+        note: "Entertainer's Kitchen",
+      },
+      {
+        id: "tour-point-004",
+        sceneId: "scene-002",
+        sceneName: "Master Bedroom",
+        yaw: 18,
+        pitch: -6,
+        note: "Primary Suite Retreat",
+      },
+    ],
+    createdAt: new Date("2024-10-15T15:00:00Z"),
+    updatedAt: new Date("2024-10-20T12:30:00Z"),
+  },
+  {
+    id: "walkthrough-002",
+    propertyId: "prop-002",
+    name: "Family Lifestyle Flow",
+    description: "A smooth walkthrough from the welcoming foyer to the resort-style backyard amenities.",
+    points: [
+      {
+        id: "tour-point-005",
+        sceneId: "scene-004",
+        sceneName: "Foyer",
+        yaw: 10,
+        pitch: -4,
+        note: "Warm Welcome",
+      },
+      {
+        id: "tour-point-006",
+        sceneId: "scene-005",
+        sceneName: "Living Area",
+        yaw: -35,
+        pitch: -8,
+        note: "Open-Concept Living",
+      },
+      {
+        id: "tour-point-007",
+        sceneId: "scene-006",
+        sceneName: "Backyard",
+        yaw: 60,
+        pitch: -12,
+        note: "Resort Backyard",
+      },
+    ],
+    createdAt: new Date("2024-09-22T10:00:00Z"),
+    updatedAt: new Date("2024-10-18T09:45:00Z"),
   },
 ]
 

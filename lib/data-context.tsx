@@ -17,6 +17,8 @@ import type {
   TechnicianProfile,
   CSSCustomization,
   PropertyStatsSummary,
+  PropertyWalkthrough,
+  TourPoint,
 } from "./types"
 import {
   mockProperties,
@@ -32,6 +34,7 @@ import {
   mockSceneTypeConfigs,
   mockTechnicians,
   mockBrandingSettings,
+  mockWalkthroughs,
 } from "./mock-data"
 
 interface DataContextType {
@@ -48,6 +51,7 @@ interface DataContextType {
   sceneTypeConfigs: SceneTypeConfig[]
   technicians: TechnicianProfile[]
   brandingSettings: Record<string, CSSCustomization>
+  walkthroughs: PropertyWalkthrough[]
   addProperty: (property: Property) => void
   updateProperty: (id: string, property: Partial<Property>) => void
   deleteProperty: (id: string) => void
@@ -74,6 +78,18 @@ interface DataContextType {
   getProductsForProperty: (propertyId: string) => WooCommerceProduct[]
   getModelsForProperty: (propertyId: string) => Model3DAsset[]
   getSceneTypesForProperty: (propertyId: string) => SceneTypeConfig[]
+  getWalkthroughsForProperty: (propertyId: string) => PropertyWalkthrough[]
+  createWalkthrough: (walkthrough: {
+    propertyId: string
+    name: string
+    description?: string
+    points: TourPoint[]
+  }) => PropertyWalkthrough
+  updateWalkthrough: (
+    walkthroughId: string,
+    updates: Partial<Omit<PropertyWalkthrough, "id" | "propertyId" | "createdAt">>,
+  ) => void
+  deleteWalkthrough: (walkthroughId: string) => void
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined)
@@ -95,6 +111,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [brandingSettings, setBrandingSettings] = useState<Record<string, CSSCustomization>>(
     mockBrandingSettings,
   )
+  const [walkthroughs, setWalkthroughs] = useState<PropertyWalkthrough[]>(mockWalkthroughs)
 
   const addProperty = useCallback((property: Property) => {
     setProperties((prev) => [...prev, property])
@@ -254,6 +271,71 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     [sceneTypeConfigs],
   )
 
+  const getWalkthroughsForProperty = useCallback(
+    (propertyId: string) => walkthroughs.filter((walkthrough) => walkthrough.propertyId === propertyId),
+    [walkthroughs],
+  )
+
+  const createWalkthrough = useCallback(
+    ({ propertyId, name, description, points }: {
+      propertyId: string
+      name: string
+      description?: string
+      points: TourPoint[]
+    }) => {
+      const base = Date.now()
+      const now = new Date()
+      const normalizedPoints = points.map((point, index) => ({
+        ...point,
+        id: point.id || `tour-point-${base + index}`,
+      }))
+      const walkthrough: PropertyWalkthrough = {
+        id: `walkthrough-${base}`,
+        propertyId,
+        name,
+        description,
+        points: normalizedPoints,
+        createdAt: now,
+        updatedAt: now,
+      }
+      setWalkthroughs((prev) => [...prev, walkthrough])
+      return walkthrough
+    },
+    [],
+  )
+
+  const updateWalkthrough = useCallback(
+    (
+      walkthroughId: string,
+      updates: Partial<Omit<PropertyWalkthrough, "id" | "propertyId" | "createdAt">>,
+    ) => {
+      setWalkthroughs((prev) =>
+        prev.map((walkthrough) => {
+          if (walkthrough.id !== walkthroughId) return walkthrough
+          const base = Date.now()
+          const points = updates.points
+            ? updates.points.map((point, index) => ({
+                ...point,
+                id: point.id || `tour-point-${base + index}`,
+              }))
+            : walkthrough.points
+
+          return {
+            ...walkthrough,
+            ...updates,
+            points,
+            updatedAt: updates.updatedAt ?? new Date(),
+          }
+        }),
+      )
+    },
+    [],
+  )
+
+  const deleteWalkthrough = useCallback((walkthroughId: string) => {
+    setWalkthroughs((prev) => prev.filter((walkthrough) => walkthrough.id !== walkthroughId))
+  }, [])
+
   return (
     <DataContext.Provider
       value={{
@@ -270,6 +352,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         sceneTypeConfigs,
         technicians,
         brandingSettings,
+        walkthroughs,
         addProperty,
         updateProperty,
         deleteProperty,
@@ -296,6 +379,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         getProductsForProperty,
         getModelsForProperty,
         getSceneTypesForProperty,
+        getWalkthroughsForProperty,
+        createWalkthrough,
+        updateWalkthrough,
+        deleteWalkthrough,
       }}
     >
       {children}
