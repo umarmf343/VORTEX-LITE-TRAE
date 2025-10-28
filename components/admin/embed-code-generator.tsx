@@ -13,14 +13,8 @@ interface EmbedCodeGeneratorProps {
 export function EmbedCodeGenerator({ propertyId, propertyName }: EmbedCodeGeneratorProps) {
   const [copied, setCopied] = useState(false)
 
-  const embedCode = `<iframe
-  src="${typeof window !== "undefined" ? window.location.origin : "https://example.com"}?property=${propertyId}"
-  width="100%"
-  height="600"
-  frameborder="0"
-  allowfullscreen
-  style="border: none; border-radius: 8px;"
-></iframe>`
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://example.com"
+  const embedCode = `<iframe src="${origin}/embed/${propertyId}" width="100%" height="600" style="border: none; border-radius: 8px;" allowfullscreen loading="lazy"></iframe>`
 
   const handleCopy = async () => {
     try {

@@ -8,7 +8,7 @@ import { Mail, Phone, MessageSquare, CheckCircle, Clock, XCircle } from "@/lib/i
 
 interface LeadsDashboardProps {
   leads: Lead[]
-  onUpdateLead?: (leadId: string, updates: Partial<Lead>) => void
+  onUpdateLead?: (leadId: string, updates: Partial<Lead>) => Promise<void> | void
 }
 
 export function LeadsDashboard({ leads, onUpdateLead }: LeadsDashboardProps) {
@@ -85,7 +85,7 @@ export function LeadsDashboard({ leads, onUpdateLead }: LeadsDashboardProps) {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => onUpdateLead?.(lead.id, { status: "qualified" })}
+                      onClick={() => void onUpdateLead?.(lead.id, { status: "qualified" })}
                     >
                       Qualify
                     </Button>
@@ -94,7 +94,7 @@ export function LeadsDashboard({ leads, onUpdateLead }: LeadsDashboardProps) {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => onUpdateLead?.(lead.id, { status: "contacted" })}
+                      onClick={() => void onUpdateLead?.(lead.id, { status: "contacted" })}
                     >
                       Contact
                     </Button>

@@ -9,7 +9,7 @@ import { Star, Calendar, CheckCircle } from "@/lib/icons"
 interface TechnicianManagementProps {
   technicians: TechnicianProfile[]
   services: CaptureService[]
-  onAssignTechnician?: (serviceId: string, technicianId: string) => void
+  onAssignTechnician?: (serviceId: string, technicianId: string) => Promise<void> | void
 }
 
 export function TechnicianManagement({ technicians, services, onAssignTechnician }: TechnicianManagementProps) {
@@ -76,7 +76,7 @@ export function TechnicianManagement({ technicians, services, onAssignTechnician
                   {selectedTech && (
                     <Button
                       size="sm"
-                      onClick={() => onAssignTechnician?.(service.id, selectedTech)}
+                      onClick={() => void onAssignTechnician?.(service.id, selectedTech)}
                       className="mt-2 w-full"
                     >
                       Assign

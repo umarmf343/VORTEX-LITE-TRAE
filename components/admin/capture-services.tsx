@@ -11,8 +11,8 @@ import { Calendar, MapPin, User, Phone, Mail } from "@/lib/icons"
 interface CaptureServicesProps {
   services: CaptureService[]
   properties?: Property[]
-  onUpdateService?: (id: string, updates: Partial<CaptureService>) => void
-  onCreateService?: (service: CaptureService) => void
+  onUpdateService?: (id: string, updates: Partial<CaptureService>) => Promise<void> | void
+  onCreateService?: (service: CaptureService) => Promise<void> | void
 }
 
 type CaptureServiceFormData = {
@@ -62,7 +62,7 @@ export function CaptureServices({ services, properties = [], onUpdateService, on
       notes: formData.notes,
       createdAt: new Date(),
     }
-    onCreateService?.(newService)
+    void onCreateService?.(newService)
     setFormData({
       propertyId: properties[0]?.id || "",
       clientName: "",
@@ -225,7 +225,7 @@ export function CaptureServices({ services, properties = [], onUpdateService, on
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => onUpdateService?.(service.id, { status: "scheduled" })}
+                  onClick={() => void onUpdateService?.(service.id, { status: "scheduled" })}
                   disabled={service.status !== "pending"}
                 >
                   Schedule
@@ -233,7 +233,7 @@ export function CaptureServices({ services, properties = [], onUpdateService, on
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => onUpdateService?.(service.id, { status: "completed" })}
+                  onClick={() => void onUpdateService?.(service.id, { status: "completed" })}
                   disabled={service.status === "completed"}
                 >
                   Complete

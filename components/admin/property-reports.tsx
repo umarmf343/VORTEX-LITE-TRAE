@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Download, FileJson, FileText } from "@/lib/icons"
 import { useState } from "react"
+import { jsPDF } from "jspdf"
 
 interface PropertyReportsProps {
   property: Property
@@ -120,7 +121,59 @@ export function PropertyReports({ property }: PropertyReportsProps) {
       return
     }
 
-    alert("PDF export is not available in this demo build. Please choose JSON or CSV instead.")
+    const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "letter" })
+    const marginLeft = 48
+    const startY = 64
+    pdf.setFontSize(18)
+    pdf.text(`${property.name} — Immersive Tour Report`, marginLeft, startY)
+    pdf.setFontSize(12)
+    pdf.setTextColor(100)
+    pdf.text(`Generated ${new Date().toLocaleString()}`, marginLeft, startY + 18)
+
+    pdf.setTextColor(20)
+    const summaryLines = [
+      `Total visits: ${report.totalVisits.toLocaleString()}`,
+      `Unique visitors: ${report.uniqueVisitors.toLocaleString()}`,
+      `Average duration: ${report.avgDuration.toFixed(1)} min`,
+      `Conversion rate: ${report.conversionRate.toFixed(1)}%`,
+      `Leads generated: ${report.leadsGenerated.toLocaleString()}`,
+    ]
+
+    let currentY = startY + 48
+    pdf.setFontSize(14)
+    pdf.text("Summary", marginLeft, currentY)
+    pdf.setFontSize(12)
+    currentY += 16
+    summaryLines.forEach((line) => {
+      pdf.text(`• ${line}`, marginLeft, currentY)
+      currentY += 16
+    })
+
+    currentY += 8
+    pdf.setFontSize(14)
+    pdf.text("Device breakdown", marginLeft, currentY)
+    pdf.setFontSize(12)
+    currentY += 16
+    Object.entries(report.deviceBreakdown).forEach(([device, count]) => {
+      pdf.text(`• ${device}: ${count.toLocaleString()}`, marginLeft, currentY)
+      currentY += 16
+    })
+
+    pdf.addPage()
+    pdf.setFontSize(16)
+    pdf.text("Scene engagement", marginLeft, startY)
+    pdf.setFontSize(12)
+    currentY = startY + 24
+    Object.values(report.sceneEngagement).slice(0, 8).forEach((scene) => {
+      pdf.text(
+        `${scene.sceneName} — ${scene.views.toLocaleString()} views, average dwell ${scene.avgDwellTime?.toFixed(1) ?? 0} sec`,
+        marginLeft,
+        currentY,
+      )
+      currentY += 16
+    })
+
+    pdf.save(`${property.name}-report-${new Date().toISOString().split("T")[0]}.pdf`)
   }
 
   const report = generateReport()
