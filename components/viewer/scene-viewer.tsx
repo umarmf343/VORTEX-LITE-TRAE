@@ -951,10 +951,18 @@ export function SceneViewer({
 
     renderer.setPixelRatio(window.devicePixelRatio || 1)
     renderer.setSize(container.clientWidth, container.clientHeight)
+    renderer.domElement.classList.add("webgl-canvas")
+    renderer.domElement.style.position = "absolute"
+    renderer.domElement.style.left = "0"
+    renderer.domElement.style.top = "0"
     renderer.domElement.style.width = "100%"
     renderer.domElement.style.height = "100%"
+    renderer.domElement.style.maxWidth = "100%"
+    renderer.domElement.style.maxHeight = "100%"
     renderer.domElement.style.display = "block"
     renderer.domElement.style.touchAction = "none"
+    renderer.domElement.style.transitionProperty = "left, top, width, height, filter"
+    renderer.domElement.style.transitionDuration = "0s, 0s, 0s, 0s, 0.4s"
     container.appendChild(renderer.domElement)
 
     const camera = new PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.01, 1100)
