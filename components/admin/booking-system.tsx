@@ -9,19 +9,25 @@ import { useState } from "react"
 interface BookingSystemProps {
   propertyId: string
   slots: BookingSlot[]
-  onBook?: (slotId: string, booking: { name: string; email: string; phone?: string }) => void
+  onBook?: (slotId: string, booking: { name: string; email: string; phone?: string }) => Promise<void> | void
 }
 
 export function BookingSystem({ propertyId, slots, onBook }: BookingSystemProps) {
   const [selectedSlot, setSelectedSlot] = useState<BookingSlot | null>(null)
   const [visitorInfo, setVisitorInfo] = useState({ name: "", email: "", phone: "" })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleBooking = () => {
-    if (selectedSlot && visitorInfo.name && visitorInfo.email) {
-      onBook?.(selectedSlot.id, visitorInfo)
+  const handleBooking = async () => {
+    if (!selectedSlot || !visitorInfo.name || !visitorInfo.email) {
+      return
+    }
+    try {
+      setIsSubmitting(true)
+      await onBook?.(selectedSlot.id, visitorInfo)
       setSelectedSlot(null)
       setVisitorInfo({ name: "", email: "", phone: "" })
-      alert("Booking confirmed! You will receive a confirmation email shortly.")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -93,8 +99,8 @@ export function BookingSystem({ propertyId, slots, onBook }: BookingSystemProps)
               className="w-full px-3 py-2 border border-gray-300 rounded-lg"
             />
             <div className="flex flex-col gap-2 sm:flex-row">
-              <Button onClick={handleBooking} className="flex-1">
-                Confirm Booking
+              <Button onClick={handleBooking} className="flex-1" disabled={isSubmitting}>
+                {isSubmitting ? "Scheduling…" : "Confirm Booking"}
               </Button>
               <Button variant="outline" onClick={() => setSelectedSlot(null)} className="flex-1">
                 Cancel

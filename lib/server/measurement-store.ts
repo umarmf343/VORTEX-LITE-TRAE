@@ -1,19 +1,52 @@
+import { randomUUID } from "crypto"
 import { promises as fs } from "fs"
 import path from "path"
-import { randomUUID } from "crypto"
 
 import type { Measurement, MeasurementExportRecord } from "@/lib/types"
 
-const EXPORT_DIRECTORY = path.join(process.cwd(), "data", "measurement-exports")
 const MAX_EXPORT_HISTORY = 20
 
-let directoryInitialized: Promise<void> | null = null
+const DATA_DIRECTORY = path.join(process.cwd(), "data")
+const EXPORT_FILE = path.join(DATA_DIRECTORY, "measurement-exports.json")
 
-const ensureDirectory = () => {
-  if (!directoryInitialized) {
-    directoryInitialized = fs.mkdir(EXPORT_DIRECTORY, { recursive: true })
+type MeasurementHistory = Record<string, MeasurementExportRecord[]>
+
+let historyPromise: Promise<MeasurementHistory> | null = null
+
+const ensureDirectory = async () => {
+  await fs.mkdir(DATA_DIRECTORY, { recursive: true })
+}
+
+const readHistory = async (): Promise<MeasurementHistory> => {
+  try {
+    const contents = await fs.readFile(EXPORT_FILE, "utf8")
+    const parsed = JSON.parse(contents) as MeasurementHistory
+    return parsed
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return {}
+    }
+    throw error
   }
-  return directoryInitialized
+}
+
+const writeHistory = async (history: MeasurementHistory) => {
+  await ensureDirectory()
+  await fs.writeFile(EXPORT_FILE, JSON.stringify(history, null, 2), "utf8")
+}
+
+const getHistory = async (): Promise<MeasurementHistory> => {
+  if (!historyPromise) {
+    historyPromise = readHistory()
+  }
+  return historyPromise
+}
+
+const updateHistory = async <Result>(updater: (history: MeasurementHistory) => Result) => {
+  const history = await getHistory()
+  const result = updater(history)
+  await writeHistory(history)
+  return result
 }
 
 const sanitizeSessionId = (sessionId: string) => {
@@ -23,9 +56,6 @@ const sanitizeSessionId = (sessionId: string) => {
   }
   return sanitized
 }
-
-const sessionFilePath = (sessionId: string) =>
-  path.join(EXPORT_DIRECTORY, `${sanitizeSessionId(sessionId)}.json`)
 
 const measurementTypes = new Set<Measurement["measurementType"]>([
   "distance",
@@ -121,35 +151,6 @@ const sanitizeMeasurement = (candidate: unknown): Measurement | null => {
   return measurement
 }
 
-const readSessionExports = async (sessionId: string): Promise<MeasurementExportRecord[]> => {
-  await ensureDirectory()
-  try {
-    const payload = await fs.readFile(sessionFilePath(sessionId), "utf-8")
-    const parsed = JSON.parse(payload) as MeasurementExportRecord[]
-    if (!Array.isArray(parsed)) {
-      return []
-    }
-    return parsed.map((record) => ({
-      ...record,
-      measurements: Array.isArray(record.measurements)
-        ? record.measurements
-            .map((measurement) => sanitizeMeasurement(measurement))
-            .filter((measurement): measurement is Measurement => measurement !== null)
-        : [],
-    }))
-  } catch (error: unknown) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
-      return []
-    }
-    throw error
-  }
-}
-
-const writeSessionExports = async (sessionId: string, records: MeasurementExportRecord[]) => {
-  await ensureDirectory()
-  await fs.writeFile(sessionFilePath(sessionId), JSON.stringify(records, null, 2), "utf-8")
-}
-
 export const saveMeasurementExport = async (
   params: Pick<MeasurementExportRecord, "sessionId" | "sceneId"> & {
     measurements: unknown[]
@@ -171,11 +172,12 @@ export const saveMeasurementExport = async (
     measurements: sanitizedMeasurements,
   }
 
-  const existing = await readSessionExports(record.sessionId)
-  const nextRecords = [record, ...existing].slice(0, MAX_EXPORT_HISTORY)
-  await writeSessionExports(record.sessionId, nextRecords)
-
-  return record
+  return updateHistory((history) => {
+    const existing = history[record.sessionId] ?? []
+    const nextRecords = [record, ...existing].slice(0, MAX_EXPORT_HISTORY)
+    history[record.sessionId] = nextRecords
+    return record
+  })
 }
 
 export const getMeasurementExports = async (params: {
@@ -183,9 +185,11 @@ export const getMeasurementExports = async (params: {
   sceneId?: string
 }): Promise<MeasurementExportRecord[]> => {
   const sessionId = sanitizeSessionId(params.sessionId)
-  const records = await readSessionExports(sessionId)
-  if (!params.sceneId) {
-    return records
-  }
-  return records.filter((record) => record.sceneId === params.sceneId)
+  const history = await getHistory()
+  const records = history[sessionId] ?? []
+  const result = !params.sceneId
+    ? records
+    : records.filter((record) => record.sceneId === params.sceneId)
+
+  return JSON.parse(JSON.stringify(result)) as MeasurementExportRecord[]
 }
