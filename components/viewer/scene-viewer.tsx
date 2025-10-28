@@ -592,7 +592,7 @@ export function SceneViewer({
     }
   }, [measurements])
   const hasMeasurements = measurementCounts.total > 0
-  const measurementPanelVisible = showMeasurementPanel || measuring
+  const measurementPanelVisible = showMeasurementPanel
   const canUndoDraftPoint =
     measurementType === "area"
       ? areaPoints.length > 0
