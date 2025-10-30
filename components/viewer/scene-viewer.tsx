@@ -400,6 +400,7 @@ export function SceneViewer({
   const [displayUnit, setDisplayUnit] = useState<Measurement["unit"]>("ft")
   const [pendingVolumeHeight, setPendingVolumeHeight] = useState(9)
   const [showMeasurementPanel, setShowMeasurementPanel] = useState(false)
+  const [measurementPanelCollapsed, setMeasurementPanelCollapsed] = useState(false)
   const [showViewModes, setShowViewModes] = useState(false)
   const [cameraFov, setCameraFov] = useState(DEFAULT_FOV)
   const [showWalkthroughGuides, setShowWalkthroughGuides] = useState(true)
@@ -428,6 +429,12 @@ export function SceneViewer({
   const [measurementHistory, setMeasurementHistory] = useState<MeasurementExportRecord[]>([])
   const [loadingHistory, setLoadingHistory] = useState(false)
   const [historyError, setHistoryError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!showMeasurementPanel) {
+      setMeasurementPanelCollapsed(false)
+    }
+  }, [showMeasurementPanel])
   const updateMeasuring = useCallback(
     (value: boolean) => {
       setMeasuringState(value)
@@ -2349,226 +2356,231 @@ export function SceneViewer({
                   size="sm"
                   variant="ghost"
                   className="text-xs text-gray-300 hover:text-white"
-                  onClick={() => setShowMeasurementPanel(false)}
+                  onClick={() => setMeasurementPanelCollapsed((prev) => !prev)}
                   disabled={measuring}
+                  aria-expanded={!measurementPanelCollapsed}
                 >
-                  Hide
+                  {measurementPanelCollapsed ? "Show" : "Hide"}
                 </Button>
               </div>
             </div>
-            <div className="px-4 pt-3 pb-2 text-[11px] text-gray-400">
-              <p>
-                {measurementType === "distance"
-                  ? "Click once to start and again to finish a distance measurement."
-                  : measurementType === "area"
-                    ? "Click to drop vertices, then double-click or close the loop to capture an area."
-                    : "Mark the footprint, then adjust height to estimate volume."}
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 px-4 pb-3">
-              <Button
-                size="sm"
-                className="gap-2"
-                onClick={handleSaveMeasurements}
-                disabled={savingExport || !hasMeasurements}
-              >
-                {savingExport ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Download className="h-4 w-4" />
-                )}
-                Save session
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-2"
-                onClick={() => exportMeasurements("json")}
-                disabled={!hasMeasurements}
-              >
-                <FileJson className="h-4 w-4" />
-                Export JSON
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-2"
-                onClick={() => exportMeasurements("csv")}
-                disabled={!hasMeasurements}
-              >
-                <FileText className="h-4 w-4" />
-                Export CSV
-              </Button>
-            </div>
-            {saveFeedback ? (
-              <div
-                className={`mx-4 mb-2 rounded-md border px-3 py-2 text-xs ${
-                  saveFeedback.status === "success"
-                    ? "border-green-500/40 bg-green-500/10 text-green-200"
-                    : "border-red-500/40 bg-red-500/10 text-red-200"
-                }`}
-              >
-                {saveFeedback.message}
-              </div>
-            ) : null}
-            <div className="flex items-center justify-between px-4 pb-2 text-xs text-gray-300">
-              <label className="flex items-center gap-2">
-                <span>Display units</span>
-                <select
-                  value={displayUnit}
-                  onChange={handleDisplayUnitChange}
-                  className="rounded-md border border-gray-700 bg-gray-900 px-2 py-1 text-xs text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                >
-                  <option value="ft">Feet</option>
-                  <option value="m">Meters</option>
-                  <option value="in">Inches</option>
-                </select>
-              </label>
-              <div className="text-[11px] text-gray-500">
-                {measurementCounts.distance} distance • {measurementCounts.area} area • {measurementCounts.volume} volume
-              </div>
-            </div>
-            <div className="max-h-48 overflow-y-auto px-4 pb-2">
-              {hasMeasurements ? (
-                <ul className="space-y-2">
-                  {measurements.map((measurement) => {
-                    const typeLabel =
-                      measurement.measurementType === "distance"
-                        ? "Distance"
-                        : measurement.measurementType === "area"
-                          ? "Area"
-                          : "Volume"
-                    const valueLabel = formatMeasurementDisplay(measurement)
-                    return (
-                      <li
-                        key={measurement.id}
-                        className="flex items-start justify-between gap-3 rounded-lg border border-gray-800 bg-gray-900/70 px-3 py-2"
-                      >
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium text-white">
-                            {measurement.label ?? typeLabel}
-                          </p>
-                          <p className="text-xs text-gray-400">
-                            {typeLabel} • {valueLabel}
-                          </p>
-                          {measurement.measurementType === "volume" && measurement.height ? (
-                            <p className="text-[11px] text-gray-500">Height {measurement.height.toFixed(1)} ft</p>
-                          ) : null}
-                          {measurement.points?.length ? (
-                            <p className="text-[11px] text-gray-500">{measurement.points.length} points</p>
-                          ) : null}
-                        </div>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-7 w-7 text-gray-400 hover:text-red-400"
-                          onClick={() => removeMeasurement(measurement.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </li>
-                    )
-                  })}
-                </ul>
-              ) : (
-                <p className="text-xs text-gray-500">
-                  No measurements yet. Enable measurement mode to start capturing dimensions.
+            {!measurementPanelCollapsed && (
+              <>
+              <div className="px-4 pt-3 pb-2 text-[11px] text-gray-400">
+                <p>
+                  {measurementType === "distance"
+                    ? "Click once to start and again to finish a distance measurement."
+                    : measurementType === "area"
+                      ? "Click to drop vertices, then double-click or close the loop to capture an area."
+                      : "Mark the footprint, then adjust height to estimate volume."}
                 </p>
-              )}
-            </div>
-            <div className="space-y-3 border-t border-gray-800 px-4 py-3">
-              {measurementType === "volume" ? (
-                <label className="flex items-center justify-between text-xs text-gray-300">
-                  <span>
-                    Volume height ({measurementUnitLabel(displayUnit, "distance")})
-                  </span>
-                  <input
-                    type="number"
-                    min={0.1}
-                    step={0.1}
-                    value={pendingVolumeHeightDisplay.toFixed(1)}
-                    onChange={handleVolumeHeightChange}
-                    className="w-20 rounded-md border border-gray-700 bg-gray-900 px-2 py-1 text-right text-xs text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                </label>
-              ) : null}
-              <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-gray-500">
-                <span>
-                  {measuring
-                    ? "Measurement mode active"
-                    : hasMeasurements
-                      ? "Review captured measurements"
-                      : "Measurement mode idle"}
-                </span>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="gap-1 text-xs text-gray-300 hover:text-white"
-                    onClick={undoLastDraftPoint}
-                    disabled={!canUndoDraftPoint}
-                  >
-                    <Undo2 className="h-3.5 w-3.5" />
-                    Undo step
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="gap-1 text-xs text-gray-300 hover:text-white"
-                    onClick={undoLastMeasurement}
-                    disabled={!canUndoMeasurement}
-                  >
-                    <Undo2 className="h-3.5 w-3.5" />
-                    Undo measurement
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-xs text-red-400 hover:text-red-300"
-                    onClick={clearMeasurements}
-                    disabled={!hasMeasurements}
-                  >
-                    Clear all
-                  </Button>
-                </div>
               </div>
-            </div>
-            <div className="space-y-2 border-t border-gray-800 px-4 py-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm font-semibold text-white">
-                  <History className="h-4 w-4 text-blue-400" />
-                  Session history
-                </div>
+              <div className="flex flex-wrap items-center gap-2 px-4 pb-3">
                 <Button
                   size="sm"
-                  variant="ghost"
-                  className="text-xs text-gray-300 hover:text-white"
-                  onClick={loadMeasurementHistory}
-                  disabled={loadingHistory}
+                  className="gap-2"
+                  onClick={handleSaveMeasurements}
+                  disabled={savingExport || !hasMeasurements}
                 >
-                  {loadingHistory ? <Loader2 className="h-4 w-4 animate-spin" /> : "Refresh"}
+                  {savingExport ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4" />
+                  )}
+                  Save session
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => exportMeasurements("json")}
+                  disabled={!hasMeasurements}
+                >
+                  <FileJson className="h-4 w-4" />
+                  Export JSON
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => exportMeasurements("csv")}
+                  disabled={!hasMeasurements}
+                >
+                  <FileText className="h-4 w-4" />
+                  Export CSV
                 </Button>
               </div>
-              {historyError ? (
-                <p className="text-xs text-red-400">{historyError}</p>
+              {saveFeedback ? (
+                <div
+                  className={`mx-4 mb-2 rounded-md border px-3 py-2 text-xs ${
+                    saveFeedback.status === "success"
+                      ? "border-green-500/40 bg-green-500/10 text-green-200"
+                      : "border-red-500/40 bg-red-500/10 text-red-200"
+                  }`}
+                >
+                  {saveFeedback.message}
+                </div>
               ) : null}
-              {measurementHistory.length > 0 ? (
-                <ul className="space-y-2 text-[11px] text-gray-300">
-                  {measurementHistory.map((record) => (
-                    <li key={record.id} className="rounded-lg border border-gray-800 bg-gray-900/70 p-3">
-                      <p className="text-xs font-semibold text-white">
-                        {new Date(record.savedAt).toLocaleString()} • {record.measurements.length} measurements
-                      </p>
-                      <p className="text-[10px] text-gray-500">Scene: {scene.name} ({record.sceneId})</p>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-xs text-gray-500">
-                  No saved measurements for this session yet. Use “Save session” to capture a snapshot.
-                </p>
-              )}
-            </div>
+              <div className="flex items-center justify-between px-4 pb-2 text-xs text-gray-300">
+                <label className="flex items-center gap-2">
+                  <span>Display units</span>
+                  <select
+                    value={displayUnit}
+                    onChange={handleDisplayUnitChange}
+                    className="rounded-md border border-gray-700 bg-gray-900 px-2 py-1 text-xs text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="ft">Feet</option>
+                    <option value="m">Meters</option>
+                    <option value="in">Inches</option>
+                  </select>
+                </label>
+                <div className="text-[11px] text-gray-500">
+                  {measurementCounts.distance} distance • {measurementCounts.area} area • {measurementCounts.volume} volume
+                </div>
+              </div>
+              <div className="max-h-48 overflow-y-auto px-4 pb-2">
+                {hasMeasurements ? (
+                  <ul className="space-y-2">
+                    {measurements.map((measurement) => {
+                      const typeLabel =
+                        measurement.measurementType === "distance"
+                          ? "Distance"
+                          : measurement.measurementType === "area"
+                            ? "Area"
+                            : "Volume"
+                      const valueLabel = formatMeasurementDisplay(measurement)
+                      return (
+                        <li
+                          key={measurement.id}
+                          className="flex items-start justify-between gap-3 rounded-lg border border-gray-800 bg-gray-900/70 px-3 py-2"
+                        >
+                          <div className="space-y-1">
+                            <p className="text-sm font-medium text-white">
+                              {measurement.label ?? typeLabel}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              {typeLabel} • {valueLabel}
+                            </p>
+                            {measurement.measurementType === "volume" && measurement.height ? (
+                              <p className="text-[11px] text-gray-500">Height {measurement.height.toFixed(1)} ft</p>
+                            ) : null}
+                            {measurement.points?.length ? (
+                              <p className="text-[11px] text-gray-500">{measurement.points.length} points</p>
+                            ) : null}
+                          </div>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7 text-gray-400 hover:text-red-400"
+                            onClick={() => removeMeasurement(measurement.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-gray-500">
+                    No measurements yet. Enable measurement mode to start capturing dimensions.
+                  </p>
+                )}
+              </div>
+              <div className="space-y-3 border-t border-gray-800 px-4 py-3">
+                {measurementType === "volume" ? (
+                  <label className="flex items-center justify-between text-xs text-gray-300">
+                    <span>
+                      Volume height ({measurementUnitLabel(displayUnit, "distance")})
+                    </span>
+                    <input
+                      type="number"
+                      min={0.1}
+                      step={0.1}
+                      value={pendingVolumeHeightDisplay.toFixed(1)}
+                      onChange={handleVolumeHeightChange}
+                      className="w-20 rounded-md border border-gray-700 bg-gray-900 px-2 py-1 text-right text-xs text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </label>
+                ) : null}
+                <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-gray-500">
+                  <span>
+                    {measuring
+                      ? "Measurement mode active"
+                      : hasMeasurements
+                        ? "Review captured measurements"
+                        : "Measurement mode idle"}
+                  </span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="gap-1 text-xs text-gray-300 hover:text-white"
+                      onClick={undoLastDraftPoint}
+                      disabled={!canUndoDraftPoint}
+                    >
+                      <Undo2 className="h-3.5 w-3.5" />
+                      Undo step
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="gap-1 text-xs text-gray-300 hover:text-white"
+                      onClick={undoLastMeasurement}
+                      disabled={!canUndoMeasurement}
+                    >
+                      <Undo2 className="h-3.5 w-3.5" />
+                      Undo measurement
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-xs text-red-400 hover:text-red-300"
+                      onClick={clearMeasurements}
+                      disabled={!hasMeasurements}
+                    >
+                      Clear all
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2 border-t border-gray-800 px-4 py-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-white">
+                    <History className="h-4 w-4 text-blue-400" />
+                    Session history
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-xs text-gray-300 hover:text-white"
+                    onClick={loadMeasurementHistory}
+                    disabled={loadingHistory}
+                  >
+                    {loadingHistory ? <Loader2 className="h-4 w-4 animate-spin" /> : "Refresh"}
+                  </Button>
+                </div>
+                {historyError ? (
+                  <p className="text-xs text-red-400">{historyError}</p>
+                ) : null}
+                {measurementHistory.length > 0 ? (
+                  <ul className="space-y-2 text-[11px] text-gray-300">
+                    {measurementHistory.map((record) => (
+                      <li key={record.id} className="rounded-lg border border-gray-800 bg-gray-900/70 p-3">
+                        <p className="text-xs font-semibold text-white">
+                          {new Date(record.savedAt).toLocaleString()} • {record.measurements.length} measurements
+                        </p>
+                        <p className="text-[10px] text-gray-500">Scene: {scene.name} ({record.sceneId})</p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-gray-500">
+                    No saved measurements for this session yet. Use “Save session” to capture a snapshot.
+                  </p>
+                )}
+              </div>
+              </>
+            )}
           </div>
         )}
 
