@@ -2,7 +2,14 @@ import { randomUUID } from "crypto"
 import { promises as fs } from "fs"
 import path from "path"
 
-import type { Measurement, MeasurementExportRecord } from "@/lib/types"
+import type {
+  Measurement,
+  MeasurementAccuracy,
+  MeasurementExportRecord,
+  MeasurementKind,
+  MeasurementPoint2D,
+  MeasurementPoint3D,
+} from "@/lib/types"
 
 const MAX_EXPORT_HISTORY = 20
 
@@ -57,9 +64,12 @@ const sanitizeSessionId = (sessionId: string) => {
   return sanitized
 }
 
-const measurementTypes = new Set<Measurement["measurementType"]>([
+const measurementTypes = new Set<MeasurementKind>([
   "distance",
+  "path",
   "area",
+  "height",
+  "room",
   "volume",
 ])
 
@@ -70,7 +80,7 @@ const toFiniteNumber = (value: unknown) => {
   return Number.isFinite(number) ? number : null
 }
 
-const sanitizePoints = (value: unknown): Measurement["points"] => {
+const sanitizePoints2d = (value: unknown): MeasurementPoint2D[] | undefined => {
   if (!Array.isArray(value)) return undefined
   const points = value
     .map((point) => {
@@ -80,9 +90,65 @@ const sanitizePoints = (value: unknown): Measurement["points"] => {
       if (x === null || y === null) return null
       return { x, y }
     })
-    .filter((point): point is { x: number; y: number } => point !== null)
+    .filter((point): point is MeasurementPoint2D => point !== null)
 
   return points.length > 0 ? points : undefined
+}
+
+const sanitizePoints3d = (value: unknown): MeasurementPoint3D[] | undefined => {
+  if (!Array.isArray(value)) return undefined
+  const points = value
+    .map((point) => {
+      if (!point || typeof point !== "object") return null
+      const x = toFiniteNumber((point as { x?: unknown }).x)
+      const y = toFiniteNumber((point as { y?: unknown }).y)
+      const z = toFiniteNumber((point as { z?: unknown }).z)
+      if (x === null || y === null || z === null) return null
+      const confidence = toFiniteNumber((point as { confidence?: unknown }).confidence)
+      const sourceValue = (point as { source?: unknown }).source
+      const source =
+        sourceValue === "lidar" || sourceValue === "photogrammetry" || sourceValue === "hybrid"
+          ? sourceValue
+          : undefined
+      return {
+        x,
+        y,
+        z,
+        confidence: confidence ?? undefined,
+        source,
+      }
+    })
+    .filter((point): point is MeasurementPoint3D => point !== null)
+
+  return points.length > 0 ? points : undefined
+}
+
+const sanitizeAccuracy = (value: unknown): MeasurementAccuracy | undefined => {
+  if (!value || typeof value !== "object") return undefined
+  const accuracy = value as Record<string, unknown>
+  const rmsErrorCm = toFiniteNumber(accuracy.rmsErrorCm)
+  const confidence = toFiniteNumber(accuracy.confidence)
+  const toleranceCm = accuracy.toleranceCm !== undefined ? toFiniteNumber(accuracy.toleranceCm) ?? undefined : undefined
+  const calibratedAt = typeof accuracy.calibratedAt === "string" ? accuracy.calibratedAt : undefined
+  const source = accuracy.source
+  const calibrated = typeof accuracy.calibrated === "boolean" ? accuracy.calibrated : false
+
+  if (
+    rmsErrorCm === null ||
+    confidence === null ||
+    !(source === "lidar" || source === "photogrammetry" || source === "hybrid")
+  ) {
+    return undefined
+  }
+
+  return {
+    rmsErrorCm,
+    confidence: Math.max(0, Math.min(confidence, 1)),
+    calibrated,
+    toleranceCm,
+    calibratedAt,
+    source,
+  }
 }
 
 const sanitizeMeasurement = (candidate: unknown): Measurement | null => {
@@ -141,15 +207,47 @@ const sanitizeMeasurement = (candidate: unknown): Measurement | null => {
     endY,
     distance,
     unit: resolvedUnit,
-    measurementType: type as Measurement["measurementType"],
+    measurementType: type as MeasurementKind,
     label,
-    points: sanitizePoints(objectCandidate.points),
+    points2d: sanitizePoints2d(objectCandidate.points ?? objectCandidate.points2d),
+    points3d: sanitizePoints3d(objectCandidate.points3d),
+    areaSquareMeters:
+      objectCandidate.areaSquareMeters !== undefined
+        ? toFiniteNumber(objectCandidate.areaSquareMeters) ?? undefined
+        : undefined,
     height,
+    accuracy: sanitizeAccuracy(objectCandidate.accuracy),
+    redacted: typeof objectCandidate.redacted === "boolean" ? objectCandidate.redacted : undefined,
+    annotation:
+      objectCandidate.annotation && typeof objectCandidate.annotation === "object"
+        ? {
+            title:
+              typeof (objectCandidate.annotation as { title?: unknown }).title === "string"
+                ? ((objectCandidate.annotation as { title?: string }).title ?? "").slice(0, 120)
+                : undefined,
+            note:
+              typeof (objectCandidate.annotation as { note?: unknown }).note === "string"
+                ? ((objectCandidate.annotation as { note?: string }).note ?? "").slice(0, 240)
+                : undefined,
+            tags: Array.isArray((objectCandidate.annotation as { tags?: unknown }).tags)
+              ? ((objectCandidate.annotation as { tags?: unknown[] }).tags ?? [])
+                  .map((value) => (typeof value === "string" ? value.slice(0, 48) : null))
+                  .filter((value): value is string => Boolean(value))
+                  .slice(0, 10)
+              : undefined,
+          }
+        : undefined,
     createdAt,
+    createdBy:
+      typeof objectCandidate.createdBy === "string" && objectCandidate.createdBy.length > 0
+        ? objectCandidate.createdBy
+        : undefined,
   }
 
   return measurement
 }
+
+export const normalizeMeasurementCandidate = sanitizeMeasurement
 
 export const saveMeasurementExport = async (
   params: Pick<MeasurementExportRecord, "sessionId" | "sceneId"> & {
