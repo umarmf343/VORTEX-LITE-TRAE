@@ -3,7 +3,12 @@ import { promises as fs } from "fs"
 import path from "path"
 
 import { getDataSnapshot, type StoredData } from "@/lib/server/data-store"
-import type { ViewerManifest, ViewerManifestHotspotType } from "@/lib/types"
+import type {
+  ImmersiveWalkthroughSpace,
+  ViewerManifest,
+  ViewerManifestHotspotType,
+  WalkthroughNode,
+} from "@/lib/types"
 
 const MANIFEST_VERSION = "v1.0.0"
 const CDN_ROOT = path.join(process.cwd(), "public", "cdn", "spaces")
@@ -186,6 +191,98 @@ const buildNavigation = (
   return { camera_nodes: cameraNodes, connections }
 }
 
+const createNodeFromNavigation = (
+  node: ViewerManifest["navigation"]["camera_nodes"][number],
+  connections: ViewerManifest["navigation"]["connections"],
+  eyeHeight: number,
+): WalkthroughNode => {
+  const connected = connections
+    .filter((connection) => connection.from === node.id)
+    .map((connection) => connection.to)
+  const nodeY = node.position[1] ?? eyeHeight
+  return {
+    id: node.id,
+    position: [node.position[0] ?? 0, nodeY - eyeHeight, node.position[2] ?? 0],
+    orientation: {
+      yaw: node.rotation?.[1] ?? 0,
+      pitch: node.rotation?.[0] ?? 0,
+      roll: node.rotation?.[2] ?? 0,
+    },
+    connectedTo: connected,
+    transitionDurationMs: 1400,
+    mediaAnchor: node.thumbnail,
+  }
+}
+
+const buildImmersiveSpace = (
+  property: StoredData["properties"][number],
+  navigation: ViewerManifest["navigation"],
+  defaultNode: string,
+): ImmersiveWalkthroughSpace | undefined => {
+  const base = property.immersiveWalkthrough
+  const eyeHeight = base?.eyeHeight ?? 1.7
+  const navigationNodes = navigation.camera_nodes.map((node) =>
+    createNodeFromNavigation(node, navigation.connections, eyeHeight),
+  )
+
+  const baseNodes = base?.nodes ?? []
+  const normalizedNodes: WalkthroughNode[] = baseNodes.length
+    ? baseNodes.map((node) => {
+        const fallback = navigationNodes.find((candidate) => candidate.id === node.id)
+        return {
+          ...fallback,
+          ...node,
+          position: node.position ?? fallback?.position ?? [0, 0, 0],
+          orientation: node.orientation ?? fallback?.orientation,
+          connectedTo: node.connectedTo ?? fallback?.connectedTo ?? [],
+        }
+      })
+    : navigationNodes
+
+  if (!normalizedNodes.length) {
+    return undefined
+  }
+
+  const ensureAsset = (url: string | undefined, fallback: string) => ensureAbsoluteUrl(url ?? fallback, property.id)
+
+  const immersiveSpace: ImmersiveWalkthroughSpace = {
+    spaceId: base?.spaceId ?? `${property.id}_immersive`,
+    defaultNodeId: base?.defaultNodeId ?? defaultNode,
+    nodes: normalizedNodes,
+    hotspots: base?.hotspots ?? [],
+    spatialMeshUrl: ensureAsset(
+      base?.spatialMeshUrl,
+      `https://cdn.virtualtour.ai/spaces/${property.id}/mesh/immersive.glb`,
+    ),
+    textureSetUrl: base?.textureSetUrl
+      ? ensureAsset(base.textureSetUrl, base.textureSetUrl)
+      : `https://cdn.virtualtour.ai/spaces/${property.id}/textures/`,
+    hdrEnvironmentUrl: base?.hdrEnvironmentUrl
+      ? ensureAsset(base.hdrEnvironmentUrl, base.hdrEnvironmentUrl)
+      : undefined,
+    navigationMeshUrl: base?.navigationMeshUrl
+      ? ensureAsset(base.navigationMeshUrl, base.navigationMeshUrl)
+      : undefined,
+    dracoDecoderPath: base?.dracoDecoderPath ?? "/draco/",
+    materialBoost: base?.materialBoost,
+    pointerSensitivity: base?.pointerSensitivity,
+    eyeHeight,
+    manualWalkEnabled: base?.manualWalkEnabled ?? false,
+    autoTour: base?.autoTour,
+    captureMetadata:
+      base?.captureMetadata ??
+      ({
+        resolution: "8K",
+        depthPrecision: "millimeter",
+        originAlignment: true,
+      } satisfies ImmersiveWalkthroughSpace["captureMetadata"]),
+    bounds: base?.bounds,
+    lighting: base?.lighting,
+  }
+
+  return immersiveSpace
+}
+
 const buildViews = (
   property: StoredData["properties"][number],
   navigation: ViewerManifest["navigation"],
@@ -194,11 +291,13 @@ const buildViews = (
   const defaultNode = navigation.camera_nodes[0]?.id ?? `${property.id}_origin`
   const dollhouse = property.dollhouseModel
   const floorPlan = state.floorPlans?.find((plan) => plan.id === property.floorPlanId)
+  const immersiveSpace = buildImmersiveSpace(property, navigation, defaultNode)
 
   return {
     walkthrough: {
       default_node: defaultNode,
-      pathfinding_enabled: navigation.connections.length > 0
+      pathfinding_enabled: navigation.connections.length > 0,
+      immersive_space: immersiveSpace
     },
     dollhouse: {
       model_url: ensureAbsoluteUrl(dollhouse?.meshUrl, property.id),

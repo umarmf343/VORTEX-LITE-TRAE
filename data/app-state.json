@@ -737,6 +737,77 @@
           }
         ]
       },
+      "immersiveWalkthrough": {
+        "spaceId": "prop-001-immersive",
+        "defaultNodeId": "node-foyer",
+        "spatialMeshUrl": "/cdn/spaces/3BR_flat_01/walkthrough/mesh.glb",
+        "textureSetUrl": "/cdn/spaces/3BR_flat_01/walkthrough/textures/",
+        "hdrEnvironmentUrl": "/cdn/spaces/3BR_flat_01/walkthrough/sky.hdr",
+        "navigationMeshUrl": "/cdn/spaces/3BR_flat_01/walkthrough/navmesh.glb",
+        "dracoDecoderPath": "/cdn/decoders/draco/",
+        "materialBoost": 0.15,
+        "manualWalkEnabled": true,
+        "nodes": [
+          {
+            "id": "node-foyer",
+            "position": [0, 0, 0],
+            "orientation": { "yaw": 0 },
+            "connectedTo": ["node-living"],
+            "label": "Elevator Foyer",
+            "mediaAnchor": "scene-001-foyer"
+          },
+          {
+            "id": "node-living",
+            "position": [4.5, 0, 1.2],
+            "orientation": { "yaw": 0.4 },
+            "connectedTo": ["node-foyer", "node-kitchen"],
+            "label": "Great Room",
+            "mediaAnchor": "scene-001"
+          },
+          {
+            "id": "node-kitchen",
+            "position": [8.2, 0, 1],
+            "orientation": { "yaw": -1.2 },
+            "connectedTo": ["node-living"],
+            "label": "Chef's Kitchen",
+            "mediaAnchor": "scene-003"
+          }
+        ],
+        "hotspots": [
+          {
+            "id": "hotspot-art",
+            "position": [0.8, 1.6, -1.2],
+            "title": "Gallery Lighting",
+            "description": "Arrival presets wash the art wall in programmable light.",
+            "type": "info"
+          },
+          {
+            "id": "hotspot-balcony",
+            "position": [5.6, 1.5, -2.3],
+            "title": "Balcony Doors",
+            "type": "navigation",
+            "targetNodeId": "node-kitchen",
+            "description": "Step out to the 40-foot wraparound balcony."
+          }
+        ],
+        "autoTour": {
+          "enabled": true,
+          "order": ["node-foyer", "node-living", "node-kitchen"],
+          "dwellMs": 5200
+        },
+        "captureMetadata": {
+          "resolution": "8K",
+          "depthPrecision": "millimeter",
+          "originAlignment": true
+        },
+        "lighting": {
+          "exposure": { "min": 0.9, "max": 1.15 },
+          "probePositions": [
+            [2.5, 2.3, 0.8],
+            [7.1, 2.1, 0.5]
+          ]
+        }
+      },
       "scenes": [
         {
           "id": "scene-001-foyer",
