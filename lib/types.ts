@@ -669,6 +669,127 @@ export interface IngestControlPlaneState {
   notes?: string
 }
 
+export interface VideoExportPresetAudio {
+  codec: string
+  channels: string
+  bitrate_kbps: number
+  sample_rate_hz: number
+}
+
+export interface VideoExportPreset {
+  id: string
+  label: string
+  resolution: string
+  aspect_ratio: string
+  frame_rate: number
+  bitrate_mbps: number
+  delivery_format: string
+  video_codec: string
+  audio: VideoExportPresetAudio
+  max_duration_minutes?: number
+  profile?: string
+  intended_use?: string[]
+  metadata?: Record<string, unknown>
+}
+
+export interface VideoPresetRegistration {
+  pipelineId: string
+  version: string
+  sourcePath: string
+  registeredAt: string
+  checksum: string
+  maintainer?: string
+  notes?: string
+  presets: VideoExportPreset[]
+}
+
+export type VideoProcessingJobStatus =
+  | "queued"
+  | "processing"
+  | "rendering"
+  | "encoding"
+  | "qa"
+  | "delivered"
+  | "completed"
+  | "failed"
+
+export interface VideoProcessingJobDeliverable {
+  preset_id: string
+  destination: string
+  retention_days?: number
+  notes?: string
+}
+
+export interface VideoProcessingJob
+  extends Record<string, unknown> {
+  jobId: string
+  pipelineId: string
+  version: string
+  spaceId: string
+  status: VideoProcessingJobStatus
+  queuedAt: string
+  priority?: string
+  requestedBy?: string
+  manifestPath: string
+  deliverables: VideoProcessingJobDeliverable[]
+  qaConfig?: Record<string, unknown>
+  sourceCapture?: Record<string, unknown>
+  webhook?: Record<string, unknown>
+}
+
+export interface VideoPlayerDeployment {
+  path: string
+  pipelineId: string
+  environment: string
+  deployedAt: string
+  version?: string
+  buildId?: string
+  commitRef?: string
+  viewerUrl?: string
+  features: string[]
+  assets: Record<string, string>
+  notes?: string
+  manifestPath: string
+}
+
+export type VideoQaCheckStatus = "pass" | "fail" | "warning" | "skipped"
+
+export interface VideoQaCheck {
+  id: string
+  description: string
+  status: VideoQaCheckStatus
+  metrics?: Record<string, unknown>
+  notes?: string
+}
+
+export type VideoQaSuiteStatus = "passed" | "failed" | "passed_with_warnings" | "skipped"
+
+export interface VideoQaSuiteResult {
+  spaceId: string
+  pipelineId: string
+  suite: string
+  runAt: string
+  environment: string
+  status: VideoQaSuiteStatus
+  summary: string
+  checks: VideoQaCheck[]
+  reportPath: string
+}
+
+export interface VideoPipelineState {
+  id: string
+  version: string
+  presets: VideoPresetRegistration
+  jobs: VideoProcessingJob[]
+  deployments: VideoPlayerDeployment[]
+  qaRuns: VideoQaSuiteResult[]
+}
+
+export interface VideoPipelineControlPlaneState {
+  updatedAt: string
+  pipelines: VideoPipelineState[]
+}
+
 export interface PropertyReport {
   propertyId: string
   generatedAt: Date

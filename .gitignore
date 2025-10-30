@@ -25,3 +25,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated control plane state
+data/ingest-control-plane.json
+data/viewer-manifest-control-plane.json

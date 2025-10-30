@@ -1,0 +1,21 @@
+{
+  "deployment": "video_preview_player",
+  "environment": "staging",
+  "pipeline": "video360",
+  "version": "2025.10.30-preview.1",
+  "deployed_at": "2025-10-30T11:20:00Z",
+  "commit_ref": "9f3e2c4",
+  "build_id": "vp-20251030-1120",
+  "viewer_url": "https://staging.virtualtour.ai/preview/video360/space_3BR_flat_01",
+  "features": [
+    "360_video_switcher",
+    "stabilization_gimbal_overlay",
+    "color_profile_toggles",
+    "ambisonic_audio_mixer"
+  ],
+  "assets": {
+    "poster": "/cdn/spaces/prop-001/video/poster.jpg",
+    "preview_manifest": "/pipelines/video360/v1/video_job_manifest.json"
+  },
+  "notes": "Deploy staging preview player for 3BR flat video walkthrough validation."
+}

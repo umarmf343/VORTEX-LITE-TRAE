@@ -1,0 +1,48 @@
+{
+  "space_id": "space_3BR_flat_01",
+  "pipeline": "video360",
+  "suite": "staging_smoke",
+  "run_at": "2025-10-30T11:40:00Z",
+  "environment": "staging",
+  "status": "passed_with_warnings",
+  "summary": "Automated QA suite for 360° video player covering playback, stabilization, and analytics events.",
+  "checks": [
+    {
+      "id": "qa-video-playback",
+      "description": "Validate HEVC and H.264 renditions load and buffer under 3 seconds.",
+      "status": "pass",
+      "metrics": {
+        "max_startup_time_ms": 2450,
+        "dropped_frames": 3
+      }
+    },
+    {
+      "id": "qa-ambisonic-audio",
+      "description": "Verify ambisonic track downmixes correctly for stereo output.",
+      "status": "pass",
+      "metrics": {
+        "phase_error_db": -38,
+        "loudness_lufs": -20.5
+      }
+    },
+    {
+      "id": "qa-stabilization",
+      "description": "Ensure spherical stabilization drift below preset tolerance.",
+      "status": "warning",
+      "metrics": {
+        "measured_drift_deg": 0.27,
+        "tolerance_deg": 0.2
+      },
+      "notes": "Slight drift detected near balcony pan; flagged for manual review."
+    },
+    {
+      "id": "qa-analytics-events",
+      "description": "Confirm analytics beacon fires on play, pause, and scrubbing events.",
+      "status": "pass",
+      "metrics": {
+        "events_captured": 12,
+        "delivery_latency_ms": 180
+      }
+    }
+  ]
+}

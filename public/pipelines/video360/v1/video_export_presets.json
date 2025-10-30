@@ -1,0 +1,90 @@
+{
+  "pipeline": "video360",
+  "version": "v1",
+  "generated_at": "2025-10-30T10:45:00Z",
+  "maintainer": "Immersive Media Platform",
+  "notes": "Authoritative presets for the immersive 360° video export service.",
+  "presets": [
+    {
+      "id": "vp-master-8k-prores",
+      "label": "Cinematic Master 8K (ProRes)",
+      "resolution": "7680x3840",
+      "aspect_ratio": "2:1",
+      "frame_rate": 60,
+      "bitrate_mbps": 800,
+      "delivery_format": "mov",
+      "video_codec": "Apple ProRes 422 HQ",
+      "audio": {
+        "codec": "Linear PCM",
+        "channels": "stereo",
+        "bitrate_kbps": 1536,
+        "sample_rate_hz": 48000
+      },
+      "max_duration_minutes": 6,
+      "profile": "master",
+      "intended_use": ["cinema", "broadcast"],
+      "metadata": {
+        "color_space": "Rec.2020",
+        "dynamic_range": "HDR10",
+        "stabilization": "spherical",
+        "stitching": "optical-flow"
+      }
+    },
+    {
+      "id": "vp-streaming-6k-hevc",
+      "label": "Premium Streaming 6K (HEVC)",
+      "resolution": "6144x3072",
+      "aspect_ratio": "2:1",
+      "frame_rate": 60,
+      "bitrate_mbps": 180,
+      "delivery_format": "mp4",
+      "video_codec": "HEVC Main 10",
+      "audio": {
+        "codec": "AAC-LC",
+        "channels": "stereo",
+        "bitrate_kbps": 320,
+        "sample_rate_hz": 48000
+      },
+      "max_duration_minutes": 15,
+      "profile": "streaming",
+      "intended_use": ["web", "vr-headset"],
+      "metadata": {
+        "color_space": "Rec.709",
+        "dynamic_range": "SDR",
+        "stabilization": "spherical",
+        "stitching": "seam-optimized"
+      }
+    },
+    {
+      "id": "vp-social-4k-h264",
+      "label": "Social 4K (H.264)",
+      "resolution": "4096x2048",
+      "aspect_ratio": "2:1",
+      "frame_rate": 30,
+      "bitrate_mbps": 45,
+      "delivery_format": "mp4",
+      "video_codec": "H.264 High",
+      "audio": {
+        "codec": "AAC-LC",
+        "channels": "stereo",
+        "bitrate_kbps": 192,
+        "sample_rate_hz": 44100
+      },
+      "max_duration_minutes": 10,
+      "profile": "social",
+      "intended_use": ["youtube", "facebook", "embedded"],
+      "metadata": {
+        "color_space": "Rec.709",
+        "dynamic_range": "SDR",
+        "stabilization": "spherical",
+        "stitching": "fast"
+      }
+    }
+  ],
+  "quality_targets": {
+    "stitch_tolerance_px": 2,
+    "stereo_alignment_error_deg": 0.5,
+    "max_motion_blur_ms": 3,
+    "stabilization_drift_deg": 0.2
+  }
+}
