@@ -16,6 +16,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Calendar, MapPin, User, Phone, Mail } from "@/lib/icons"
+import {
+  CAPTURE_GUIDANCE_SECTIONS,
+  type CaptureGuidanceSection,
+  UNIVERSAL_CAPTURE_GUIDANCE,
+} from "@/lib/capture-guidance"
 
 interface CaptureServicesProps {
   services: CaptureService[]
@@ -52,51 +57,9 @@ export function CaptureServices({ services, properties = [], onUpdateService, on
     notes: "",
   })
 
-  const captureGuidance = useMemo(
-    () => [
-      {
-        title: "Smartphone Photo Sweep (Photogrammetry)",
-        description: "High-overlap photography for photorealistic textures.",
-        checklist: [
-          "70% overlap between consecutive shots; spiral path per room.",
-          "Capture 60–90 photos for a 12 m² room including ceiling/floor passes.",
-          "Walk perimeter twice (chest height, then eye level) with extra doorway frames.",
-          "Use all available lighting/HDR and pause to avoid motion blur.",
-        ],
-      },
-      {
-        title: "RGB-D / Phone LiDAR Capture",
-        description: "Depth-enabled mobile scan for rapid reconstruction.",
-        checklist: [
-          "Maintain 50% overlap between sweeps and stay within 3 m of surfaces.",
-          "Scan each room for 45–90 seconds with ceiling/floor sweeps.",
-          "Trace perimeter at waist height, then vertical passes on key features.",
-          "Calibrate IMU beforehand and include a 2 m reference target in first sweep.",
-        ],
-      },
-      {
-        title: "Professional LiDAR / 360° Camera",
-        description: "Tripod-based survey for sub-5 cm dimensional accuracy.",
-        checklist: [
-          "Tripod stations every 3–4 m with 40% spherical overlap.",
-          "Minimum 3 setups in small rooms, 5–7 in larger/irregular spaces.",
-          "Capture clockwise from main entrance; add elevated scans where relevant.",
-          "Balance lighting, avoid glare, and place surveyed targets or AprilTags.",
-        ],
-      },
-    ],
-    [],
-  )
+  const captureGuidance = useMemo<readonly CaptureGuidanceSection[]>(() => CAPTURE_GUIDANCE_SECTIONS, [])
 
-  const universalGuidance = useMemo(
-    () => [
-      "Sync device clocks before each session and log device firmware.",
-      "Apply naming convention <propertyId>_<YYYYMMDD>_<roomLabel>_<sequence>.",
-      "Document room notes, restricted areas, and calibration artifacts in the manifest.",
-      "Upload raw files immediately after capture to secured storage.",
-    ],
-    [],
-  )
+  const universalGuidance = useMemo(() => UNIVERSAL_CAPTURE_GUIDANCE, [])
 
   const handleServiceTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     if (isCaptureServiceType(event.target.value)) {

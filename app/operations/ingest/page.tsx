@@ -1,19 +1,29 @@
+"use client"
+
 import Link from "next/link"
+import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
+import { CaptureGuidanceModal } from "@/components/operations/capture-guidance-modal"
 
 const docsBase = "/docs/pipeline"
 
 const docLinks = [
   { label: "Component Inventory", href: `${docsBase}/component-inventory.csv` },
-  { label: "Capture Guidance", href: `${docsBase}/capture-guidance.md` },
+  { label: "Capture Guidance", href: `${docsBase}/capture_guidance.md` },
   { label: "Ingest Job Schema", href: `${docsBase}/ingest-job-schema.json` },
   { label: "Processing Blueprint", href: `${docsBase}/processing-pipeline.md` },
+  { label: "Processing Outputs", href: `${docsBase}/processing-outputs.md` },
   { label: "Viewer UX Spec", href: `${docsBase}/viewer-ux-spec.md` },
-  { label: "QA Test Matrix", href: `${docsBase}/qa-test-matrix.md` }
+  { label: "Viewer Manifest Sample", href: `${docsBase}/viewer-manifest.json` },
+  { label: "QA Test Matrix", href: `${docsBase}/qa-test-matrix.md` },
+  { label: "Staging QA Results", href: `${docsBase}/staging-qa-results.json` },
+  { label: "Cost Estimate", href: `${docsBase}/cost-estimate.pdf` },
 ]
 
 export default function IngestOperationsPage() {
+  const [showGuidance, setShowGuidance] = useState(false)
+
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-8 px-4 py-12">
       <header className="space-y-2">
@@ -42,6 +52,9 @@ export default function IngestOperationsPage() {
             <Link href="/docs/pipeline/ingest-manifest-example.json" prefetch={false}>
               View Manifest Example
             </Link>
+          </Button>
+          <Button variant="secondary" onClick={() => setShowGuidance(true)}>
+            Capture Guidance
           </Button>
         </div>
       </section>
@@ -74,6 +87,8 @@ export default function IngestOperationsPage() {
           <li>Set up analytics dashboards for viewer engagement and QA completion rates.</li>
         </ul>
       </section>
+
+      <CaptureGuidanceModal open={showGuidance} onOpenChange={setShowGuidance} />
     </div>
   )
 }
