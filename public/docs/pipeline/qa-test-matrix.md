@@ -1,0 +1,12 @@
+# QA Test Matrix
+
+| ID | Scenario | Preconditions | Steps | Expected Result | Automation Notes |
+|----|----------|---------------|-------|-----------------|------------------|
+| QA-01 | Photogrammetry upload flow | Capture manifest + image ZIP available | 1. Upload smartphone photogrammetry sweep via uploader. 2. Verify ingest job enters `queued` state. 3. Wait for staging viewer link. | Processed 3D model appears in staging viewer with photoreal textures. | Automate via CI harness invoking ingest API with sample data. |
+| QA-02 | LiDAR fusion quality | Hybrid dataset (RGB + LiDAR) uploaded | 1. Submit hybrid ingest job. 2. Compare measurement layer results vs. calibration target. | Fusion output within configured tolerance (≤ 3 cm). | Automated check computes deviation; fails if > tolerance. |
+| QA-03 | Viewer measurement validation | Published scene available | 1. Open viewer. 2. Measure distance between two known corners. | Displayed metric & imperial values within tolerance (< ±5%). | Instrumented UI test via Playwright + mocked measurement layer. |
+| QA-04 | Bandwidth adaptation | Viewer accessible; throttling tool configured | 1. Load viewer at 2 Mbps, 5 Mbps, 20 Mbps. | Scene loads within 5s at ≥5 Mbps, low-bandwidth fallback at 2 Mbps with coarse LOD. | Use automated throttled network profiles in CI smoke tests. |
+| QA-05 | Hotspot lifecycle | Authenticated editor role | 1. Create five hotspots with templates. 2. Edit and delete subset. 3. Export metadata. | Hotspots persist with correct coordinates; export matches viewer state. | API-level test verifying CRUD + export payload. |
+| QA-06 | Privacy redaction | Ingest job flagged for redaction | 1. Submit job with `privacy_redaction=true`. 2. Review processed assets. | Faces/license plates blurred; audit log entry generated. | Add CV pipeline unit tests + sample fixtures. |
+| QA-07 | Access control & share links | Space published with ACL | 1. Generate tokenized URL. 2. Attempt access with/without token. | Only authorized viewers gain access; expired token denied. | Integration test using signed URL service with TTL overrides. |
+| QA-08 | Automated QA gate | Processing job completes | 1. Run QA automation suite. | QA results logged; blocking issues prevent publish. | Hook into CI/CD gating pipeline. |

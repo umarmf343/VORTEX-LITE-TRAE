@@ -21,6 +21,7 @@ import {
   updateProperty,
   upsertShare,
 } from "@/lib/server/data-store"
+import { ensureIngestControlPlane } from "@/lib/server/ingest-control-plane"
 import type {
   CaptureService,
   CrossPlatformShare,
@@ -33,6 +34,8 @@ import type {
 } from "@/lib/types"
 
 export const dynamic = "force-dynamic"
+
+void ensureIngestControlPlane()
 
 export async function GET() {
   const data = await getDataSnapshot()

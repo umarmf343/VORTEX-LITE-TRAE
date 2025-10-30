@@ -2,10 +2,19 @@
 
 import type React from "react"
 
-import { useEffect, useState } from "react"
+import Link from "next/link"
+import { useEffect, useMemo, useState } from "react"
 import type { CaptureService, Property } from "@/lib/types"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Calendar, MapPin, User, Phone, Mail } from "@/lib/icons"
 
 interface CaptureServicesProps {
@@ -32,6 +41,7 @@ const isCaptureServiceType = (value: string): value is CaptureService["serviceTy
 
 export function CaptureServices({ services, properties = [], onUpdateService, onCreateService }: CaptureServicesProps) {
   const [showForm, setShowForm] = useState(false)
+  const [showGuidance, setShowGuidance] = useState(false)
   const [formData, setFormData] = useState<CaptureServiceFormData>({
     propertyId: properties[0]?.id || "",
     clientName: "",
@@ -41,6 +51,52 @@ export function CaptureServices({ services, properties = [], onUpdateService, on
     serviceType: "premium",
     notes: "",
   })
+
+  const captureGuidance = useMemo(
+    () => [
+      {
+        title: "Smartphone Photo Sweep (Photogrammetry)",
+        description: "High-overlap photography for photorealistic textures.",
+        checklist: [
+          "70% overlap between consecutive shots; spiral path per room.",
+          "Capture 60–90 photos for a 12 m² room including ceiling/floor passes.",
+          "Walk perimeter twice (chest height, then eye level) with extra doorway frames.",
+          "Use all available lighting/HDR and pause to avoid motion blur.",
+        ],
+      },
+      {
+        title: "RGB-D / Phone LiDAR Capture",
+        description: "Depth-enabled mobile scan for rapid reconstruction.",
+        checklist: [
+          "Maintain 50% overlap between sweeps and stay within 3 m of surfaces.",
+          "Scan each room for 45–90 seconds with ceiling/floor sweeps.",
+          "Trace perimeter at waist height, then vertical passes on key features.",
+          "Calibrate IMU beforehand and include a 2 m reference target in first sweep.",
+        ],
+      },
+      {
+        title: "Professional LiDAR / 360° Camera",
+        description: "Tripod-based survey for sub-5 cm dimensional accuracy.",
+        checklist: [
+          "Tripod stations every 3–4 m with 40% spherical overlap.",
+          "Minimum 3 setups in small rooms, 5–7 in larger/irregular spaces.",
+          "Capture clockwise from main entrance; add elevated scans where relevant.",
+          "Balance lighting, avoid glare, and place surveyed targets or AprilTags.",
+        ],
+      },
+    ],
+    [],
+  )
+
+  const universalGuidance = useMemo(
+    () => [
+      "Sync device clocks before each session and log device firmware.",
+      "Apply naming convention <propertyId>_<YYYYMMDD>_<roomLabel>_<sequence>.",
+      "Document room notes, restricted areas, and calibration artifacts in the manifest.",
+      "Upload raw files immediately after capture to secured storage.",
+    ],
+    [],
+  )
 
   const handleServiceTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     if (isCaptureServiceType(event.target.value)) {
@@ -91,10 +147,69 @@ export function CaptureServices({ services, properties = [], onUpdateService, on
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-bold">Capture Services</h2>
-        <Button onClick={() => setShowForm(!showForm)}>Request Capture Service</Button>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="space-y-1">
+          <h2 className="text-2xl font-bold">Capture Services</h2>
+          <p className="text-sm text-muted-foreground">
+            Coordinate field capture, initiate ingest jobs, and distribute capture guidance to crews.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" onClick={() => setShowGuidance(true)}>
+            View Capture Guidance
+          </Button>
+          <Button variant="secondary" asChild>
+            <Link href="/operations/ingest">Start Ingest Pipeline</Link>
+          </Button>
+          <Button onClick={() => setShowForm(!showForm)}>Request Capture Service</Button>
+        </div>
       </div>
+
+      <Dialog open={showGuidance} onOpenChange={setShowGuidance}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader className="text-left">
+            <DialogTitle>Capture Guidance</DialogTitle>
+            <DialogDescription>
+              Minimum field standards for supported capture modalities. Share with field teams before deployment.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 text-sm">
+            {captureGuidance.map((section) => (
+              <div key={section.title} className="space-y-2">
+                <div>
+                  <h3 className="text-base font-semibold">{section.title}</h3>
+                  <p className="text-muted-foreground">{section.description}</p>
+                </div>
+                <ul className="list-disc space-y-1 pl-5">
+                  {section.checklist.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+            <div className="space-y-2">
+              <h3 className="text-base font-semibold">Universal Practices</h3>
+              <ul className="list-disc space-y-1 pl-5">
+                {universalGuidance.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+            <p className="rounded-md bg-muted p-3 text-xs text-muted-foreground">
+              Need the full standards document? Download the operational playbook from the Immersive Pipeline Control Plane under
+              Resources.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowGuidance(false)}>
+              Close
+            </Button>
+            <Button asChild>
+              <Link href="/operations/ingest">Open Control Plane</Link>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {showForm && (
         <Card className="p-6 bg-blue-50">

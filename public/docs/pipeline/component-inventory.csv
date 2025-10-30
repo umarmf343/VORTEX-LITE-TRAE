@@ -1,0 +1,1 @@
+CaptureUploader,Product Ops,missing,CPU:4vCPU|GPU:Optional|Storage:0.5TB;ProcessingOrchestrator,Infra Engineering,missing,CPU:32vCPU|GPU:2xA40|Storage:5TB;ViewerWebApp,Frontend Guild,exists,ClientGPU+CDN;AssetDelivery/CDN,Platform Ops,partial,CPU:4vCPU|Storage:S3+EdgeCache
