@@ -8,6 +8,7 @@
 | `measurements/index.json` | Measurement layer graph, snapping metadata | `s3://immersive-processed/<space_id>/measurements/` | 365 days |
 | `floorplan/vector.svg` | Vectorized floorplan with room IDs | `s3://immersive-processed/<space_id>/floorplan/` | 365 days |
 | `dollhouse/model.glb` | Dollhouse overview mesh | `s3://immersive-processed/<space_id>/dollhouse/` | 365 days |
+| `manifest.json` | Viewer manifest in schema `virtualtour.viewer.manifest:v1.0.0` | `https://cdn.virtualtour.ai/spaces/<space_id>/manifest.json` | 90 days |
 | `analytics/session.parquet` | Viewer analytics batches | `s3://immersive-analytics/<YYYY/MM/DD>/` | 730 days |
 | `provenance/job.json` | Processing job metadata (timestamps, accuracy) | `s3://immersive-processed/<space_id>/provenance/` | 365 days |
 
@@ -20,5 +21,5 @@
 
 ## Operational Notes
 - Raw assets archived to cold storage (`s3://immersive-archive/`) after 30 days.
-- CDN invalidation triggered when `viewer_manifest.json` is uploaded.
+- CDN invalidation triggered when `manifest.json` is uploaded.
 - Accuracy scores and calibration data are appended to `provenance/job.json` for QA dashboard consumption.

@@ -24,8 +24,8 @@
     },
     {
       "test": "Mode transitions",
-      "status": "not_run",
-      "notes": "Awaiting processed manifest to drive walkthrough."
+      "status": "pass",
+      "notes": "Viewer manifest loaded; walkthrough default node, dollhouse toggle, floorplan projection validated via smoke test."
     },
     {
       "test": "Hotspot & analytics",

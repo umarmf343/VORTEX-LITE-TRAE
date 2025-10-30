@@ -461,6 +461,129 @@ export interface VRSettings {
   gyroscopeEnabled: boolean
 }
 
+export type ViewerManifestHotspotType = "INFO" | "LINK" | "VIDEO" | "IMAGE" | "AUDIO" | "PRODUCT"
+
+export interface ViewerManifestGeometryLodLevel {
+  level: number
+  triangle_count: number
+  tile_size: number
+  description?: string
+}
+
+export interface ViewerManifestGeometryTile {
+  tile_id: string
+  url: string
+  lod: number
+  bounds: number[]
+}
+
+export interface ViewerManifestGeometry {
+  lod_levels: ViewerManifestGeometryLodLevel[]
+  mesh_tiles: ViewerManifestGeometryTile[]
+}
+
+export interface ViewerManifestTexture {
+  lod: number
+  url: string
+  resolution: string
+  format: "jpg" | "png" | "ktx2" | "basisu"
+}
+
+export interface ViewerManifestCameraNode {
+  id: string
+  position: number[]
+  rotation: number[]
+  fov?: number
+  thumbnail?: string
+}
+
+export interface ViewerManifestConnection {
+  from: string
+  to: string
+  transition_type: "WALK" | "STAIR" | "TELEPORT"
+  distance?: number
+}
+
+export interface ViewerManifestNavigation {
+  camera_nodes: ViewerManifestCameraNode[]
+  connections: ViewerManifestConnection[]
+}
+
+export interface ViewerManifestWalkthroughView {
+  default_node: string
+  pathfinding_enabled: boolean
+}
+
+export interface ViewerManifestDollhouseView {
+  model_url?: string
+  scale_factor?: number
+  supports_floor_toggle?: boolean
+}
+
+export interface ViewerManifestFloorPlanRoom {
+  room_id: string
+  name: string
+  points: number[][]
+}
+
+export interface ViewerManifestFloorPlanView {
+  projection_url?: string
+  room_polygons: ViewerManifestFloorPlanRoom[]
+}
+
+export interface ViewerManifestViews {
+  walkthrough: ViewerManifestWalkthroughView
+  dollhouse: ViewerManifestDollhouseView
+  floorplan: ViewerManifestFloorPlanView
+}
+
+export interface ViewerManifestHotspot {
+  id: string
+  type: ViewerManifestHotspotType
+  title: string
+  content: string
+  position: number[]
+  media_url?: string
+  visible_in_views: Array<"walkthrough" | "dollhouse" | "floorplan">
+  author: string
+  created_at: string
+}
+
+export interface ViewerManifestMeasurement {
+  id: string
+  point_a: number[]
+  point_b: number[]
+  distance_meters: number
+  created_by: string
+}
+
+export interface ViewerManifestAnalytics {
+  views_count: number
+  average_dwell_time: number
+  click_heatmap_url: string
+}
+
+export interface ViewerManifestAccess {
+  token: string
+  permissions: Array<"view" | "measure" | "comment" | "admin">
+  expiry: string
+}
+
+export interface ViewerManifest {
+  space_id: string
+  version: string
+  owner: string
+  created_at: string
+  geometry: ViewerManifestGeometry
+  textures: ViewerManifestTexture[]
+  navigation: ViewerManifestNavigation
+  views: ViewerManifestViews
+  hotspots: ViewerManifestHotspot[]
+  measurements: ViewerManifestMeasurement[]
+  analytics?: ViewerManifestAnalytics
+  access: ViewerManifestAccess
+}
+
 export interface AdvancedAnalyticsReport {
   propertyId: string
   generatedAt: Date
