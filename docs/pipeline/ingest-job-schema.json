@@ -15,7 +15,7 @@
   "properties": {
     "job_id": {
       "type": "string",
-      "pattern": "^ingest_[a-z0-9\-]{8,}$"
+      "pattern": "^ingest_[a-z0-9-]{8,}$"
     },
     "owner": {
       "type": "object",

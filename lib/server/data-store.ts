@@ -16,6 +16,11 @@ import type {
   TechnicianProfile,
   Visitor,
 } from "@/lib/types"
+import {
+  ensureViewerManifestForState,
+  generateViewerManifestArtifact,
+  removeViewerManifestArtifact,
+} from "@/lib/server/viewer-manifest"
 
 interface RawStats {
   totalVisits: number
@@ -101,6 +106,10 @@ const loadState = async (): Promise<StoredData> => {
   try {
     await ensureDirectory()
     const state = await readJsonFile(STATE_FILE)
+    await ensureViewerManifestForState(
+      state.properties.map((property) => parseRawProperty(deepClone(property))),
+      state.floorPlans.map((plan) => deepClone(plan)),
+    )
     return state
   } catch (error: unknown) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
@@ -108,6 +117,10 @@ const loadState = async (): Promise<StoredData> => {
     }
     const mock = await readJsonFile(MOCK_FILE)
     await writeState(mock)
+    await ensureViewerManifestForState(
+      mock.properties.map((property) => parseRawProperty(deepClone(property))),
+      mock.floorPlans.map((plan) => deepClone(plan)),
+    )
     return mock
   }
 }
@@ -135,6 +148,39 @@ const defaultBranding = (propertyId: string): CSSCustomization => ({
   whiteLabel: false,
   removeBranding: false,
 })
+
+const deepClone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
+
+const parseRawProperty = (raw: RawProperty): Property => ({
+  ...raw,
+  createdAt: new Date(raw.createdAt),
+  updatedAt: new Date(raw.updatedAt),
+  stats: {
+    ...raw.stats,
+    lastUpdated: new Date(raw.stats.lastUpdated),
+  },
+})
+
+const buildManifestInput = (property: RawProperty, floorPlans: FloorPlan[]) => {
+  const propertyClone = deepClone(property)
+  const manifestProperty = parseRawProperty(propertyClone)
+  const floorPlan = property.floorPlanId
+    ? floorPlans.find((item) => item.id === property.floorPlanId)
+    : undefined
+  return { property: manifestProperty, floorPlan: floorPlan ? deepClone(floorPlan) : undefined }
+}
+
+const syncViewerManifestForProperty = async (propertyId: string) => {
+  const state = await getState()
+  const property = state.properties.find((item) => item.id === propertyId)
+  if (!property) {
+    await removeViewerManifestArtifact(propertyId)
+    return
+  }
+
+  const manifestInput = buildManifestInput(property, state.floorPlans)
+  await generateViewerManifestArtifact(manifestInput)
+}
 
 export const getDataSnapshot = async (): Promise<StoredData> => {
   const state = await getState()
@@ -208,6 +254,8 @@ export const createProperty = async (input: CreatePropertyInput): Promise<RawPro
     }
   })
 
+  await syncViewerManifestForProperty(id)
+
   return property
 }
 
@@ -230,6 +278,9 @@ export const updateProperty = async (
     property.updatedAt = isoNow()
     updated = property
   })
+  if (updated) {
+    await syncViewerManifestForProperty(updated.id)
+  }
   return updated
 }
 
@@ -252,6 +303,9 @@ export const deleteProperty = async (id: string): Promise<boolean> => {
       )
     }
   })
+  if (deleted) {
+    await removeViewerManifestArtifact(id)
+  }
   return deleted
 }
 

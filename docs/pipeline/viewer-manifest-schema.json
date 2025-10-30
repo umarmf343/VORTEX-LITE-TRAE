@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "virtualtour.viewer.manifest:v1.0.0",
+  "title": "VirtualTour Viewer Manifest Schema",
+  "type": "object",
+  "required": [
+    "space_id",
+    "version",
+    "owner",
+    "created_at",
+    "geometry",
+    "textures",
+    "navigation",
+    "views",
+    "hotspots",
+    "measurements",
+    "access"
+  ],
+  "properties": {
+    "space_id": {
+      "type": "string",
+      "description": "Unique ID for the space."
+    },
+    "version": {
+      "type": "string",
+      "description": "Manifest version and revision number (e.g., v1.0.0)."
+    },
+    "owner": {
+      "type": "string",
+      "description": "User or organization that owns this space."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "geometry": {
+      "type": "object",
+      "required": ["lod_levels", "mesh_tiles"],
+      "properties": {
+        "lod_levels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "level": { "type": "integer" },
+              "triangle_count": { "type": "integer" },
+              "tile_size": { "type": "integer" },
+              "description": { "type": "string" }
+            }
+          }
+        },
+        "mesh_tiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "tile_id": { "type": "string" },
+              "url": { "type": "string" },
+              "lod": { "type": "integer" },
+              "bounds": {
+                "type": "array",
+                "items": { "type": "number" },
+                "description": "Bounding box coordinates [minX, minY, minZ, maxX, maxY, maxZ]"
+              }
+            }
+          }
+        }
+      }
+    },
+    "textures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lod": { "type": "integer" },
+          "url": { "type": "string" },
+          "resolution": { "type": "string", "description": "Resolution, e.g., 1024x1024" },
+          "format": { "type": "string", "enum": ["jpg", "png", "ktx2", "basisu"] }
+        }
+      }
+    },
+    "navigation": {
+      "type": "object",
+      "required": ["camera_nodes", "connections"],
+      "properties": {
+        "camera_nodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "position", "rotation"],
+            "properties": {
+              "id": { "type": "string" },
+              "position": {
+                "type": "array",
+                "items": { "type": "number" },
+                "description": "[x, y, z] coordinates of camera node"
+              },
+              "rotation": {
+                "type": "array",
+                "items": { "type": "number" },
+                "description": "[pitch, yaw, roll] in radians"
+              },
+              "fov": { "type": "number", "description": "Field of view in degrees" },
+              "thumbnail": { "type": "string", "description": "Preview image URL" }
+            }
+          }
+        },
+        "connections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "from": { "type": "string" },
+              "to": { "type": "string" },
+              "transition_type": { "type": "string", "enum": ["WALK", "STAIR", "TELEPORT"] },
+              "distance": { "type": "number" }
+            }
+          }
+        }
+      }
+    },
+    "views": {
+      "type": "object",
+      "required": ["walkthrough", "dollhouse", "floorplan"],
+      "properties": {
+        "walkthrough": {
+          "type": "object",
+          "properties": {
+            "default_node": { "type": "string" },
+            "pathfinding_enabled": { "type": "boolean" }
+          }
+        },
+        "dollhouse": {
+          "type": "object",
+          "properties": {
+            "model_url": { "type": "string" },
+            "scale_factor": { "type": "number" },
+            "supports_floor_toggle": { "type": "boolean" }
+          }
+        },
+        "floorplan": {
+          "type": "object",
+          "properties": {
+            "projection_url": { "type": "string" },
+            "room_polygons": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "room_id": { "type": "string" },
+                  "name": { "type": "string" },
+                  "points": {
+                    "type": "array",
+                    "items": { "type": "array", "items": { "type": "number" } },
+                    "description": "List of 2D coordinates for room polygon"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "hotspots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "type": { "type": "string", "enum": ["INFO", "LINK", "VIDEO", "IMAGE", "AUDIO", "PRODUCT"] },
+          "title": { "type": "string" },
+          "content": { "type": "string" },
+          "position": {
+            "type": "array",
+            "items": { "type": "number" },
+            "description": "[x, y, z] world coordinates"
+          },
+          "media_url": { "type": "string" },
+          "visible_in_views": {
+            "type": "array",
+            "items": { "type": "string", "enum": ["walkthrough", "dollhouse", "floorplan"] }
+          },
+          "author": { "type": "string" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "measurements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "point_a": { "type": "array", "items": { "type": "number" } },
+          "point_b": { "type": "array", "items": { "type": "number" } },
+          "distance_meters": { "type": "number" },
+          "created_by": { "type": "string" }
+        }
+      }
+    },
+    "analytics": {
+      "type": "object",
+      "properties": {
+        "views_count": { "type": "integer" },
+        "average_dwell_time": { "type": "number" },
+        "click_heatmap_url": { "type": "string" }
+      }
+    },
+    "access": {
+      "type": "object",
+      "required": ["token", "permissions", "expiry"],
+      "properties": {
+        "token": { "type": "string" },
+        "permissions": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["view", "measure", "comment", "admin"] }
+        },
+        "expiry": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

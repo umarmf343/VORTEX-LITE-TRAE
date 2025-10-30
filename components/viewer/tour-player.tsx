@@ -14,6 +14,7 @@ import type {
   SphrHotspot,
   SphrSpaceNode,
   TourPoint,
+  ViewerManifest,
 } from "@/lib/types"
 import { SceneViewer } from "./scene-viewer"
 import { FloorPlanViewer } from "./floor-plan-viewer"
@@ -52,6 +53,7 @@ import {
   Layers,
 } from "@/lib/icons"
 import { ZoomControls } from "./zoom-controls"
+import { useViewerManifest } from "@/hooks/use-viewer-manifest"
 
 type SharePlatform = "facebook" | "twitter" | "linkedin" | "email"
 
@@ -78,6 +80,38 @@ const clampFallbackOffset = (
     y: Math.max(-maxY, Math.min(maxY, offset.y)),
   }
 }
+
+const convertManifestHotspotType = (
+  type: ViewerManifest["hotspots"][number]["type"],
+): Hotspot["type"] => {
+  switch (type) {
+    case "LINK":
+      return "link"
+    case "VIDEO":
+      return "video"
+    case "IMAGE":
+      return "image"
+    case "AUDIO":
+      return "audio"
+    case "PRODUCT":
+      return "cta"
+    default:
+      return "info"
+  }
+}
+
+const convertManifestHotspotToScene = (
+  entry: ViewerManifest["hotspots"][number],
+): Hotspot => ({
+  id: entry.id,
+  x: entry.position?.[0] ?? 0,
+  y: entry.position?.[1] ?? 0,
+  type: convertManifestHotspotType(entry.type),
+  title: entry.title ?? entry.id,
+  description: entry.content ?? "",
+  actionUrl: entry.type === "LINK" ? entry.content : undefined,
+  mediaUrl: entry.media_url,
+})
 
 interface TourPlayerProps {
   property: Property
@@ -178,6 +212,8 @@ export function TourPlayer({
     }
   }, [])
   const guidedTours = property.guidedTours ?? []
+  const { manifest, isLoading: isManifestLoading, error: manifestError, url: manifestUrl } = useViewerManifest(property.id)
+  const manifestSignatureRef = useRef<string | null>(null)
 
   const handleSceneEngagement = useCallback(
     (sceneId: string, dwellTime: number) => {
@@ -242,6 +278,59 @@ export function TourPlayer({
   }, [property.id, property.scenes, deriveMeasurementDefaults, deriveLayerDefaults])
 
   useEffect(() => {
+    if (!manifest) {
+      return
+    }
+
+    const signature = `${manifest.version}:${manifest.created_at}:${manifest.access.expiry}`
+    if (manifestSignatureRef.current === signature) {
+      return
+    }
+    manifestSignatureRef.current = signature
+
+    const defaultNodeId =
+      manifest.views.walkthrough?.default_node ?? manifest.navigation.camera_nodes[0]?.id
+    if (defaultNodeId) {
+      const targetIndex = property.scenes.findIndex((scene) => scene.id === defaultNodeId)
+      if (targetIndex >= 0) {
+        setCurrentSceneIndex(targetIndex)
+      }
+    }
+
+    if (manifest.views.dollhouse?.supports_floor_toggle) {
+      setIs3DEnabled(true)
+    }
+
+    if (manifest.measurements.length > 0) {
+      const measurementSceneId = defaultNodeId ?? property.scenes[0]?.id
+      if (measurementSceneId) {
+        setMeasurementsByScene((prev) => {
+          const existing = prev[measurementSceneId] ?? []
+          const manifestMeasurements = manifest.measurements.map((entry) => ({
+            id: entry.id,
+            startX: entry.point_a[0] ?? 0,
+            startY: entry.point_a[1] ?? 0,
+            endX: entry.point_b[0] ?? 0,
+            endY: entry.point_b[1] ?? 0,
+            distance: entry.distance_meters,
+            unit: "m" as const,
+            measurementType: "distance" as const,
+            label: entry.id,
+            createdAt: manifest.created_at,
+          }))
+          const merged = [...existing]
+          for (const measurement of manifestMeasurements) {
+            if (!merged.some((item) => item.id === measurement.id)) {
+              merged.push(measurement)
+            }
+          }
+          return { ...prev, [measurementSceneId]: merged }
+        })
+      }
+    }
+  }, [manifest, property.scenes])
+
+  useEffect(() => {
     const supported = detectWebGL2Support()
     setIsWebGLSupported(supported)
     setIs3DEnabled(supported)
@@ -260,7 +349,65 @@ export function TourPlayer({
     fallbackOffsetRef.current = fallbackOffset
   }, [fallbackOffset])
 
-  const currentScene = property.scenes[currentSceneIndex]
+  const baseScene = property.scenes[currentSceneIndex]
+  const manifestDefaultNodeId =
+    manifest?.views.walkthrough?.default_node ?? manifest?.navigation.camera_nodes[0]?.id ?? null
+
+  const manifestHotspots = useMemo(() => {
+    if (!manifest) {
+      return null
+    }
+    return manifest.hotspots.map((entry) => convertManifestHotspotToScene(entry))
+  }, [manifest])
+
+  const currentScene = useMemo(() => {
+    if (!manifestHotspots) {
+      return baseScene
+    }
+    const targetSceneId = manifestDefaultNodeId ?? baseScene.id
+    if (baseScene.id !== targetSceneId) {
+      return baseScene
+    }
+
+    const existingIds = new Set(baseScene.hotspots.map((hotspot) => hotspot.id))
+    const mergedHotspots = [...baseScene.hotspots]
+    for (const hotspot of manifestHotspots) {
+      if (!existingIds.has(hotspot.id)) {
+        mergedHotspots.push(hotspot)
+      }
+    }
+
+    return { ...baseScene, hotspots: mergedHotspots }
+  }, [baseScene, manifestDefaultNodeId, manifestHotspots])
+
+  const effectiveFloorPlan = useMemo(() => {
+    if (!floorPlan) {
+      return floorPlan
+    }
+    if (!manifest?.views.floorplan?.projection_url) {
+      return floorPlan
+    }
+    return {
+      ...floorPlan,
+      imageUrl: manifest.views.floorplan.projection_url,
+    }
+  }, [floorPlan, manifest])
+
+  const manifestDollhouseModel = useMemo(() => {
+    if (!property.dollhouseModel) {
+      return property.dollhouseModel
+    }
+    if (!manifest?.views.dollhouse?.model_url) {
+      return property.dollhouseModel
+    }
+    return {
+      ...property.dollhouseModel,
+      meshUrl: manifest.views.dollhouse.model_url,
+    }
+  }, [property.dollhouseModel, manifest])
+  const resolvedFloorPlan = effectiveFloorPlan ?? floorPlan ?? null
+  const manifestMeasurementCount = manifest?.measurements.length ?? 0
+  const manifestDisplayUrl = manifestUrl?.replace(/^https?:\/\//, "") ?? null
 
   useEffect(() => {
     setFallbackZoom(1)
@@ -861,6 +1008,46 @@ export function TourPlayer({
         </div>
       </div>
 
+      <div className="bg-gray-950/60 border-b border-gray-800">
+        <div className="max-w-7xl mx-auto flex flex-col gap-2 px-4 py-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-2 text-sm">
+            {isManifestLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
+            ) : manifestError ? (
+              <AlertCircle className="h-4 w-4 text-red-400" />
+            ) : (
+              <Navigation className="h-4 w-4 text-emerald-400" />
+            )}
+            <span className="text-gray-200">
+              {isManifestLoading
+                ? "Loading viewer manifest…"
+                : manifestError
+                  ? "Manifest unavailable. Using local scene data."
+                  : `Viewer manifest ready • default node ${manifestDefaultNodeId ?? "not specified"}`}
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-4 text-xs text-gray-400">
+            {manifest && (
+              <span>
+                Hotspots {manifest.hotspots.length} • Measurements {manifestMeasurementCount} • Dollhouse
+                {" "}
+                {manifest.views.dollhouse?.supports_floor_toggle ? "multi-floor" : "single floor"}
+              </span>
+            )}
+            {manifestDisplayUrl && (
+              <a
+                href={manifestUrl ?? "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="truncate text-blue-400 hover:text-blue-300"
+              >
+                {manifestDisplayUrl}
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Main Viewer */}
       <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 max-w-7xl mx-auto w-full">
         <div
@@ -910,7 +1097,7 @@ export function TourPlayer({
                 updateDataLayerVisibility(currentScene.id, layerId, visible)
               }
               walkthroughMeta={walkthroughMeta}
-              dollhouseModel={property.dollhouseModel}
+              dollhouseModel={manifestDollhouseModel}
               onDollhouseNavigate={handleDollhouseNavigate}
             />
           ) : (
@@ -1553,12 +1740,12 @@ export function TourPlayer({
             </div>
           </Card>
 
-          {floorPlan && (
+          {resolvedFloorPlan && (
             <Card className="p-4 bg-gray-900 border-gray-800">
               <h3 className="font-semibold text-white mb-3">Floor Plan</h3>
               <div className="space-y-3">
                 <img
-                  src={floorPlan.imageUrl || "/placeholder.svg"}
+                  src={resolvedFloorPlan.imageUrl || "/placeholder.svg"}
                   alt={`${property.name} floor plan`}
                   className="w-full h-32 object-cover rounded"
                 />
@@ -1711,12 +1898,12 @@ export function TourPlayer({
         </div>
       )}
 
-      {showFloorPlan && floorPlan && (
+      {showFloorPlan && resolvedFloorPlan && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-5xl bg-gray-900 border-gray-800">
             <div className="flex flex-col gap-3 p-4 border-b border-gray-800 sm:flex-row sm:items-start sm:justify-between">
               <div className="text-center sm:text-left">
-                <h2 className="text-lg font-semibold text-white">{floorPlan.name}</h2>
+                <h2 className="text-lg font-semibold text-white">{resolvedFloorPlan.name}</h2>
                 <p className="text-sm text-gray-400">Tap rooms to jump directly into their scenes.</p>
               </div>
               <Button variant="outline" onClick={() => setShowFloorPlan(false)} className="self-center sm:self-auto">
@@ -1725,7 +1912,7 @@ export function TourPlayer({
             </div>
             <div className="h-[540px]">
               <FloorPlanViewer
-                floorPlan={floorPlan}
+                floorPlan={resolvedFloorPlan}
                 branding={property.branding}
                 onRoomClick={handleFloorPlanRoomClick}
               />
