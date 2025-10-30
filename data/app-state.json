@@ -52,6 +52,99 @@
         "dollhouse",
         "floor-plan"
       ],
+      "dollhouseModel": {
+        "dollhouseId": "dollhouse-prop-001",
+        "spaceId": "prop-001",
+        "meshUrl": "/models/penthouse-dollhouse-low.gltf",
+        "lodLevels": ["low", "mid", "high"],
+        "boundingBox": { "width": 60, "depth": 44, "height": 26 },
+        "floorGap": 1.5,
+        "autoRotatePreview": true,
+        "floors": [
+          {
+            "floor": 1,
+            "name": "Main Level",
+            "height": 12,
+            "baseElevation": 0,
+            "rooms": [
+              {
+                "id": "room-living",
+                "name": "Skyline Living Room",
+                "width": 28,
+                "depth": 22,
+                "height": 10,
+                "position": { "x": 0, "y": 0, "z": 4 },
+                "sceneId": "scene-001",
+                "color": "#1f2937",
+                "tags": ["Double-height", "Skyline"]
+              },
+              {
+                "id": "room-kitchen",
+                "name": "Chef's Kitchen",
+                "width": 18,
+                "depth": 16,
+                "height": 10,
+                "position": { "x": 18, "y": 0, "z": -10 },
+                "sceneId": "scene-003",
+                "color": "#1d4ed8",
+                "tags": ["Waterfall island", "Appliance wall"]
+              },
+              {
+                "id": "room-foyer",
+                "name": "Private Elevator Foyer",
+                "width": 12,
+                "depth": 14,
+                "height": 10,
+                "position": { "x": -22, "y": 0, "z": -6 },
+                "sceneId": "scene-001-foyer",
+                "color": "#0f172a",
+                "tags": ["Gallery", "Arrival"]
+              },
+              {
+                "id": "room-dining",
+                "name": "Dining Gallery",
+                "width": 16,
+                "depth": 12,
+                "height": 10,
+                "position": { "x": 10, "y": 0, "z": 18 },
+                "color": "#312e81",
+                "tags": ["Wine wall", "Lighting"]
+              }
+            ]
+          },
+          {
+            "floor": 2,
+            "name": "Mezzanine Retreat",
+            "height": 10,
+            "baseElevation": 13.5,
+            "rooms": [
+              {
+                "id": "room-primary",
+                "name": "Primary Suite",
+                "width": 20,
+                "depth": 18,
+                "height": 9,
+                "position": { "x": 2, "y": 0, "z": 6 },
+                "sceneId": "scene-002",
+                "color": "#1e293b",
+                "tags": ["Ensuite", "City view"]
+              },
+              {
+                "id": "room-office",
+                "name": "Glass Office",
+                "width": 14,
+                "depth": 12,
+                "height": 9,
+                "position": { "x": -16, "y": 0, "z": 4 },
+                "color": "#0ea5e9",
+                "tags": ["Library", "Workspace"]
+              }
+            ]
+          }
+        ],
+        "createdAt": "2024-10-15T00:00:00.000Z",
+        "updatedAt": "2024-10-20T00:00:00.000Z"
+      },
       "guidedTours": [
         {
           "id": "penthouse-highlight",

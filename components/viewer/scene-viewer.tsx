@@ -12,6 +12,9 @@ import type {
   Scene as SceneType,
   SceneViewMode,
   TourPoint,
+  DollhouseModel,
+  DollhouseFloorMetadata,
+  DollhouseRoomMetadata,
 } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import {
@@ -39,7 +42,9 @@ import {
   Loader2,
   Trash2,
   Undo2,
+  Building2,
 } from "@/lib/icons"
+import { cn } from "@/lib/utils"
 import {
   MathUtils,
   Mesh,
@@ -58,6 +63,7 @@ import {
 import WebGLCapabilities from "three/examples/jsm/capabilities/WebGL.js"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 import { ZoomControls } from "./zoom-controls"
+import { DollhouseViewer } from "./dollhouse-viewer"
 
 type WebGLContextType = "webgl2" | "webgl" | "experimental-webgl"
 
@@ -350,6 +356,11 @@ interface SceneViewerProps {
     nextSceneName?: string
     previousSceneName?: string
   }
+  dollhouseModel?: DollhouseModel
+  onDollhouseNavigate?: (
+    sceneId: string,
+    metadata?: { floor: number; roomId: string; roomName: string },
+  ) => void
 }
 
 export function SceneViewer({
@@ -373,6 +384,8 @@ export function SceneViewer({
   activeDataLayers,
   onDataLayerToggle,
   walkthroughMeta,
+  dollhouseModel,
+  onDollhouseNavigate,
 }: SceneViewerProps) {
   const [measuring, setMeasuringState] = useState<boolean>(measurementMode ?? false)
   const [measureStart, setMeasureStart] = useState<{ x: number; y: number } | null>(null)
@@ -460,10 +473,11 @@ export function SceneViewer({
     },
     [activeDataLayers, onDataLayerToggle, visibleLayerIds],
   )
-  const resolvedViewModes = useMemo<SceneViewMode[]>(
-    () => (availableViewModes?.length ? availableViewModes : allViewModes),
-    [availableViewModes],
-  )
+  const effectiveDollhouseModel = scene.dollhouseModel ?? dollhouseModel ?? null
+  const resolvedViewModes = useMemo<SceneViewMode[]>(() => {
+    const baseModes = availableViewModes?.length ? availableViewModes : allViewModes
+    return baseModes.filter((mode) => (mode === "dollhouse" ? Boolean(effectiveDollhouseModel) : true))
+  }, [availableViewModes, effectiveDollhouseModel])
   const [currentViewMode, setCurrentViewMode] = useState<SceneViewMode>(() => {
     const preferred = scene.defaultViewMode && resolvedViewModes.includes(scene.defaultViewMode)
       ? scene.defaultViewMode
@@ -507,6 +521,21 @@ export function SceneViewer({
   const isInteractingRef = useRef(false)
   const animationFrameRef = useRef<number>()
   const autoRotateRef = useRef(autoRotate)
+  const lastNonDollhouseViewRef = useRef<SceneViewMode>("walkthrough")
+
+  useEffect(() => {
+    if (currentViewMode !== "dollhouse") {
+      lastNonDollhouseViewRef.current = currentViewMode
+    }
+  }, [currentViewMode])
+
+  useEffect(() => {
+    if (currentViewMode === "dollhouse" && !effectiveDollhouseModel) {
+      const fallback =
+        lastNonDollhouseViewRef.current === "dollhouse" ? "walkthrough" : lastNonDollhouseViewRef.current
+      setCurrentViewMode(fallback)
+    }
+  }, [currentViewMode, effectiveDollhouseModel])
   const autoRotateSpeedRef = useRef(autoRotateSpeed)
   const autoRotateDirectionRef = useRef(autoRotateDirection)
   const measurementsRef = useRef<Measurement[]>(initialMeasurements)
@@ -631,6 +660,7 @@ export function SceneViewer({
     [annotations, visibleLayerIds],
   )
   const immersiveModeActive = immersiveViewModes.includes(currentViewMode)
+  const isDollhouseMode = currentViewMode === "dollhouse"
   const isWalkthroughMode = currentViewMode === "walkthrough"
   const wasWalkthroughModeRef = useRef(isWalkthroughMode)
 
@@ -643,6 +673,19 @@ export function SceneViewer({
     }
     wasWalkthroughModeRef.current = isWalkthroughMode
   }, [isWalkthroughMode])
+
+  useEffect(() => {
+    if (isDollhouseMode && measuring) {
+      updateMeasuring(false)
+    }
+  }, [isDollhouseMode, measuring, updateMeasuring])
+
+  useEffect(() => {
+    if (isDollhouseMode) {
+      setShowAnnotationInput(false)
+      setShowLayerMenu(false)
+    }
+  }, [isDollhouseMode])
 
   useEffect(() => {
     const nextMeasurements =
@@ -1808,6 +1851,22 @@ export function SceneViewer({
     }
   }
 
+  const handleDollhouseRoomSelect = useCallback(
+    (room: DollhouseRoomMetadata, floor: DollhouseFloorMetadata) => {
+      if (!room.sceneId) return
+      const fallbackMode =
+        lastNonDollhouseViewRef.current === "dollhouse" ? "walkthrough" : lastNonDollhouseViewRef.current
+      setCurrentViewMode(fallbackMode)
+      setShowViewModes(false)
+      onDollhouseNavigate?.(room.sceneId, {
+        floor: floor.floor,
+        roomId: room.id,
+        roomName: room.name,
+      })
+    },
+    [onDollhouseNavigate],
+  )
+
   const handleDisplayUnitChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value as Measurement["unit"]
     if (["ft", "m", "in"].includes(value)) {
@@ -1829,15 +1888,23 @@ export function SceneViewer({
       return <div className="w-full h-full bg-black" />
     }
     if (currentViewMode === "dollhouse") {
+      if (effectiveDollhouseModel) {
+        return (
+          <DollhouseViewer
+            model={effectiveDollhouseModel}
+            activeSceneId={scene.id}
+            onRoomSelect={handleDollhouseRoomSelect}
+          />
+        )
+      }
       return (
-        <div className="w-full h-full flex items-center justify-center bg-gray-900 perspective">
-          <div style={{ transform: "rotateX(45deg) rotateZ(45deg)", transformStyle: "preserve-3d" }}>
-            <img
-              src={currentImageUrl || "/placeholder.svg"}
-              alt={scene.name}
-              className="w-96 h-96 object-cover rounded shadow-2xl"
-            />
+        <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-gray-900 text-center text-gray-200">
+          <div className="rounded-full border border-gray-700 bg-gray-800/70 px-3 py-1 text-xs uppercase tracking-wide text-gray-300">
+            Dollhouse unavailable
           </div>
+          <p className="max-w-sm text-sm text-gray-300">
+            This space has not published a dollhouse layer yet. Ask your capture team to generate a proxy model to enable the 3D overview.
+          </p>
         </div>
       )
     } else if (currentViewMode === "floor-plan") {
@@ -1860,7 +1927,9 @@ export function SceneViewer({
         ? "cursor-crosshair"
         : sphericalViewModes.includes(currentViewMode)
           ? "cursor-grab"
-          : "cursor-crosshair"
+          : isDollhouseMode
+            ? "cursor-grab"
+            : "cursor-crosshair"
   const viewerFlexClass = !sphericalViewModes.includes(currentViewMode) && vrMode ? "flex" : ""
 
   return (
@@ -2646,7 +2715,12 @@ export function SceneViewer({
       </div>
 
       {/* Controls */}
-      <div className="bg-gray-900 border-t border-gray-800 p-4 flex gap-2 items-center justify-between overflow-x-auto flex-wrap">
+      <div
+        className={cn(
+          "bg-gray-900 border-t border-gray-800 p-4 flex gap-2 items-center justify-between overflow-x-auto flex-wrap transition-opacity duration-300",
+          isDollhouseMode && "opacity-10 hover:opacity-90 focus-within:opacity-90",
+        )}
+      >
         <div className="flex gap-2 flex-wrap">
           {canZoom ? (
             <ZoomControls
@@ -2849,6 +2923,17 @@ export function SceneViewer({
               VR Mode
             </Button>
           )}
+          {effectiveDollhouseModel && (
+            <Button
+              size="sm"
+              variant={currentViewMode === "dollhouse" ? "default" : "outline"}
+              onClick={() => handleViewModeSelect("dollhouse")}
+              className="gap-2"
+            >
+              <Building2 className="h-4 w-4" />
+              Dollhouse
+            </Button>
+          )}
           <div className="relative">
             <Button size="sm" variant="outline" onClick={() => setShowViewModes(!showViewModes)} className="gap-2">
               <Layers className="w-4 h-4" />
@@ -2864,7 +2949,7 @@ export function SceneViewer({
                       currentViewMode === mode ? "bg-gray-700 text-blue-400" : "text-gray-300"
                     }`}
                   >
-                    {mode}
+                    {mode === "dollhouse" ? "dollhouse" : mode}
                   </button>
                 ))}
               </div>
