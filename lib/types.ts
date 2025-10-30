@@ -282,6 +282,77 @@ export interface CaptureService {
   createdAt: Date
 }
 
+export type IngestSourceType = "photogrammetry" | "rgbd" | "lidar360" | "hybrid"
+
+export type IngestJobState =
+  | "queued"
+  | "processing"
+  | "qa"
+  | "publish-ready"
+  | "published"
+  | "failed"
+
+export interface IngestJobFile {
+  uri: string
+  sizeBytes: number
+  checksum: string
+  modality: "image" | "depth" | "pointcloud" | "video" | "imu"
+  captureSpan?: {
+    startedAt?: string
+    endedAt?: string
+  }
+}
+
+export interface IngestJobCaptureMeta {
+  device: {
+    model: string
+    sensorType: string
+    firmware?: string
+  }
+  timestampUtc: string
+  captureAppVersion: string
+  imuTimestamps?: string[]
+  environment?: {
+    lightingNotes?: string
+    temperatureC?: number
+  }
+}
+
+export interface IngestJob {
+  jobId: string
+  owner: {
+    team: string
+    submittedBy: string
+  }
+  sourceType: IngestSourceType
+  rawFiles: IngestJobFile[]
+  captureMeta: IngestJobCaptureMeta
+  locationId: string
+  tags: string[]
+  priority?: "standard" | "expedited" | "sla-critical"
+  qaRequirements?: {
+    accuracyToleranceCm?: number
+    privacyRedaction?: boolean
+    accessLevel?: "internal" | "client" | "public"
+  }
+  webhookUrls?: string[]
+  state?: IngestJobState
+}
+
+export interface IngestQueueConfig {
+  ingestJobs: string
+  processingDispatch: string
+  qaNotifications: string
+}
+
+export interface IngestControlPlaneState {
+  schemaVersion: string
+  registeredAt: string
+  schema: Record<string, unknown>
+  queues: IngestQueueConfig
+  notes?: string
+}
+
 export interface PropertyReport {
   propertyId: string
   generatedAt: Date

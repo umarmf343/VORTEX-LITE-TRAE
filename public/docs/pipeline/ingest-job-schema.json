@@ -1,0 +1,115 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://baladshelter.io/schemas/ingest-job.json",
+  "title": "Immersive Capture Ingest Job",
+  "type": "object",
+  "required": [
+    "job_id",
+    "owner",
+    "source_type",
+    "raw_files",
+    "capture_meta",
+    "location_id",
+    "tags"
+  ],
+  "properties": {
+    "job_id": {
+      "type": "string",
+      "pattern": "^ingest_[a-z0-9\-]{8,}$"
+    },
+    "owner": {
+      "type": "object",
+      "required": ["team", "submitted_by"],
+      "properties": {
+        "team": { "type": "string" },
+        "submitted_by": { "type": "string", "format": "email" }
+      }
+    },
+    "source_type": {
+      "type": "string",
+      "enum": ["photogrammetry", "rgbd", "lidar360", "hybrid"]
+    },
+    "raw_files": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["uri", "size_bytes", "checksum", "modality"],
+        "properties": {
+          "uri": { "type": "string", "format": "uri" },
+          "size_bytes": { "type": "integer", "minimum": 1 },
+          "checksum": { "type": "string" },
+          "modality": {
+            "type": "string",
+            "enum": ["image", "depth", "pointcloud", "video", "imu"]
+          },
+          "capture_span": {
+            "type": "object",
+            "properties": {
+              "started_at": { "type": "string", "format": "date-time" },
+              "ended_at": { "type": "string", "format": "date-time" }
+            }
+          }
+        }
+      }
+    },
+    "capture_meta": {
+      "type": "object",
+      "required": ["device", "timestamp_utc", "capture_app_version"],
+      "properties": {
+        "device": {
+          "type": "object",
+          "required": ["model", "sensor_type"],
+          "properties": {
+            "model": { "type": "string" },
+            "sensor_type": { "type": "string" },
+            "firmware": { "type": "string" }
+          }
+        },
+        "timestamp_utc": { "type": "string", "format": "date-time" },
+        "capture_app_version": { "type": "string" },
+        "imu_timestamps": {
+          "type": "array",
+          "items": { "type": "string", "format": "date-time" }
+        },
+        "environment": {
+          "type": "object",
+          "properties": {
+            "lighting_notes": { "type": "string" },
+            "temperature_c": { "type": "number" }
+          }
+        }
+      }
+    },
+    "location_id": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["standard", "expedited", "sla-critical"],
+      "default": "standard"
+    },
+    "qa_requirements": {
+      "type": "object",
+      "properties": {
+        "accuracy_tolerance_cm": { "type": "number", "minimum": 0 },
+        "privacy_redaction": { "type": "boolean" },
+        "access_level": { "type": "string", "enum": ["internal", "client", "public"] }
+      }
+    },
+    "webhook_urls": {
+      "type": "array",
+      "items": { "type": "string", "format": "uri" }
+    }
+  },
+  "additionalProperties": false,
+  "x-queue": {
+    "ingest_jobs": "queue.immersive.ingest.jobs",
+    "processing_dispatch": "topic.immersive.processing.dispatch",
+    "qa_notifications": "topic.immersive.qa.events"
+  }
+}

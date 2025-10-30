@@ -1,0 +1,51 @@
+{
+  "job_id": "ingest_9f72b1cd",
+  "owner": {
+    "team": "Capture Ops",
+    "submitted_by": "field.lead@baladshelter.com"
+  },
+  "source_type": "hybrid",
+  "raw_files": [
+    {
+      "uri": "s3://immersive-raw/prop-1254/20240618/kitchen_main_01_photogram.zip",
+      "size_bytes": 182345678,
+      "checksum": "sha256:3cf1d...",
+      "modality": "image",
+      "capture_span": {
+        "started_at": "2024-06-18T15:02:11Z",
+        "ended_at": "2024-06-18T15:12:45Z"
+      }
+    },
+    {
+      "uri": "s3://immersive-raw/prop-1254/20240618/kitchen_main_lidar.ply",
+      "size_bytes": 52345678,
+      "checksum": "sha256:99aa1...",
+      "modality": "pointcloud"
+    }
+  ],
+  "capture_meta": {
+    "device": {
+      "model": "iPhone 15 Pro",
+      "sensor_type": "LiDAR+RGB",
+      "firmware": "iOS 17.4"
+    },
+    "timestamp_utc": "2024-06-18T15:30:00Z",
+    "capture_app_version": "2.3.1",
+    "imu_timestamps": ["2024-06-18T15:02:11Z", "2024-06-18T15:12:45Z"],
+    "environment": {
+      "lighting_notes": "All fixtures on, blinds half open.",
+      "temperature_c": 22.5
+    }
+  },
+  "location_id": "prop-1254",
+  "tags": ["interior", "residential", "three-bedroom"],
+  "priority": "expedited",
+  "qa_requirements": {
+    "accuracy_tolerance_cm": 3,
+    "privacy_redaction": true,
+    "access_level": "client"
+  },
+  "webhook_urls": [
+    "https://staging.baladshelter.com/webhooks/ingest"
+  ]
+}
