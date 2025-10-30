@@ -90,7 +90,7 @@ const ADMIN_VIEW_MODES: readonly ViewMode[] = [
   "journey",
 ] as const
 
-type LazyComponentFactory<Props> = () => Promise<{ default: ComponentType<Props> }>
+type LazyComponentFactory<Props> = () => Promise<ComponentType<Props>>
 
 function ViewerFallback({ message }: { message: string }) {
   return (
@@ -115,7 +115,7 @@ function AdminModuleSkeleton({ label }: { label: string }) {
 }
 
 function createAdminModule<Props>(loader: LazyComponentFactory<Props>, label: string) {
-  return dynamic<Props>(loader, {
+  return dynamic<Props>(() => loader(), {
     ssr: false,
     loading: () => <AdminModuleSkeleton label={label} />,
   })
@@ -129,17 +129,12 @@ const PropertyList = createAdminModule<{
   onStats?: (property: Property) => void
 }>(
   () =>
-    import("@/components/admin/property-list").then((mod) => ({
-      default: mod.PropertyList,
-    })),
+    import("@/components/admin/property-list").then((mod) => mod.PropertyList),
   "property list",
 )
 
 const TourPlayer = dynamic(
-  () =>
-    import("@/components/viewer/tour-player").then((mod) => ({
-      default: mod.TourPlayer,
-    })),
+  () => import("@/components/viewer/tour-player").then((mod) => mod.TourPlayer),
   {
     ssr: false,
     loading: () => <ViewerFallback message="Preparing interactive tour…" />,
@@ -147,10 +142,7 @@ const TourPlayer = dynamic(
 )
 
 const MatterportEmbed = dynamic(
-  () =>
-    import("@/components/viewer/matterport-embed").then((mod) => ({
-      default: mod.MatterportEmbed,
-    })),
+  () => import("@/components/viewer/matterport-embed").then((mod) => mod.MatterportEmbed),
   {
     ssr: false,
     loading: () => <ViewerFallback message="Loading Matterport Showcase…" />,
@@ -162,10 +154,7 @@ const AnalyticsDashboard = createAdminModule<{
   visitors: Visitor[]
   leads: Lead[]
 }>(
-  () =>
-    import("@/components/admin/analytics-dashboard").then((mod) => ({
-      default: mod.AnalyticsDashboard,
-    })),
+  () => import("@/components/admin/analytics-dashboard").then((mod) => mod.AnalyticsDashboard),
   "analytics",
 )
 
@@ -174,10 +163,7 @@ const AdvancedAnalytics = createAdminModule<{
   visitors: Visitor[]
   leads: Lead[]
 }>(
-  () =>
-    import("@/components/admin/advanced-analytics").then((mod) => ({
-      default: mod.AdvancedAnalytics,
-    })),
+  () => import("@/components/admin/advanced-analytics").then((mod) => mod.AdvancedAnalytics),
   "advanced analytics",
 )
 
@@ -185,10 +171,7 @@ const LeadsDashboard = createAdminModule<{
   leads: Lead[]
   onUpdateLead?: (leadId: string, updates: Partial<Lead>) => void
 }>(
-  () =>
-    import("@/components/admin/leads-dashboard").then((mod) => ({
-      default: mod.LeadsDashboard,
-    })),
+  () => import("@/components/admin/leads-dashboard").then((mod) => mod.LeadsDashboard),
   "lead management",
 )
 
@@ -198,20 +181,14 @@ const CaptureServices = createAdminModule<{
   onUpdateService?: (id: string, updates: Partial<CaptureService>) => void
   onCreateService?: (service: CaptureService) => void
 }>(
-  () =>
-    import("@/components/admin/capture-services").then((mod) => ({
-      default: mod.CaptureServices,
-    })),
+  () => import("@/components/admin/capture-services").then((mod) => mod.CaptureServices),
   "capture services",
 )
 
 const PropertyReports = createAdminModule<{
   property: Property
 }>(
-  () =>
-    import("@/components/admin/property-reports").then((mod) => ({
-      default: mod.default,
-    })),
+  () => import("@/components/admin/property-reports").then((mod) => mod.default),
   "reports",
 )
 
@@ -220,10 +197,7 @@ const BookingSystem = createAdminModule<{
   slots: BookingSlot[]
   onBook?: (slotId: string, booking: { name: string; email: string; phone?: string }) => void
 }>(
-  () =>
-    import("@/components/admin/booking-system").then((mod) => ({
-      default: mod.default,
-    })),
+  () => import("@/components/admin/booking-system").then((mod) => mod.default),
   "booking system",
 )
 
@@ -231,10 +205,7 @@ const CrossPlatformSharing = createAdminModule<{
   propertyId: string
   sharing: CrossPlatformShare
 }>(
-  () =>
-    import("@/components/admin/cross-platform-sharing").then((mod) => ({
-      default: mod.default,
-    })),
+  () => import("@/components/admin/cross-platform-sharing").then((mod) => mod.default),
   "cross-platform sharing",
 )
 
@@ -242,10 +213,7 @@ const PropertyComparison = createAdminModule<{
   properties: Property[]
   onClose?: () => void
 }>(
-  () =>
-    import("@/components/admin/property-comparison").then((mod) => ({
-      default: mod.PropertyComparison,
-    })),
+  () => import("@/components/admin/property-comparison").then((mod) => mod.PropertyComparison),
   "property comparison",
 )
 
@@ -255,10 +223,7 @@ const MergeSpaces = createAdminModule<{
   onCreateMerge?: (merge: PropertyMerge) => void
   onDeleteMerge?: (mergeId: string) => void
 }>(
-  () =>
-    import("@/components/admin/merge-spaces").then((mod) => ({
-      default: mod.MergeSpaces,
-    })),
+  () => import("@/components/admin/merge-spaces").then((mod) => mod.MergeSpaces),
   "merge spaces",
 )
 
@@ -267,10 +232,7 @@ const CustomBranding = createAdminModule<{
   branding?: CSSCustomization
   onSave?: (branding: CSSCustomization) => void
 }>(
-  () =>
-    import("@/components/admin/custom-branding").then((mod) => ({
-      default: mod.CustomBranding,
-    })),
+  () => import("@/components/admin/custom-branding").then((mod) => mod.CustomBranding),
   "custom branding",
 )
 
@@ -280,9 +242,7 @@ const TechnicianManagement = createAdminModule<{
   onAssignTechnician?: (serviceId: string, technicianId: string) => void
 }>(
   () =>
-    import("@/components/admin/technician-management").then((mod) => ({
-      default: mod.TechnicianManagement,
-    })),
+    import("@/components/admin/technician-management").then((mod) => mod.TechnicianManagement),
   "technician management",
 )
 
@@ -290,10 +250,7 @@ const EmbedCodeGenerator = createAdminModule<{
   propertyId: string
   propertyName: string
 }>(
-  () =>
-    import("@/components/admin/embed-code-generator").then((mod) => ({
-      default: mod.EmbedCodeGenerator,
-    })),
+  () => import("@/components/admin/embed-code-generator").then((mod) => mod.EmbedCodeGenerator),
   "embed tools",
 )
 
@@ -301,10 +258,7 @@ const VisitorJourneyMap = createAdminModule<{
   visitors: Visitor[]
   propertyId: string
 }>(
-  () =>
-    import("@/components/admin/visitor-journey-map").then((mod) => ({
-      default: mod.VisitorJourneyMap,
-    })),
+  () => import("@/components/admin/visitor-journey-map").then((mod) => mod.VisitorJourneyMap),
   "visitor journey",
 )
 
@@ -314,10 +268,7 @@ const Models3D = createAdminModule<{
   onAddModel?: (model: Model3DAsset) => void
   onRemoveModel?: (modelId: string) => void
 }>(
-  () =>
-    import("@/components/admin/3d-models").then((mod) => ({
-      default: mod.Models3D,
-    })),
+  () => import("@/components/admin/3d-models").then((mod) => mod.Models3D),
   "3d models",
 )
 
@@ -327,10 +278,7 @@ const SceneTypes = createAdminModule<{
   onAddSceneType?: (scene: SceneTypeConfig) => void
   onRemoveSceneType?: (sceneId: string) => void
 }>(
-  () =>
-    import("@/components/admin/scene-types").then((mod) => ({
-      default: mod.SceneTypes,
-    })),
+  () => import("@/components/admin/scene-types").then((mod) => mod.SceneTypes),
   "scene types",
 )
 
