@@ -1,0 +1,2174 @@
+{
+  "properties": [
+    {
+      "id": "prop-001",
+      "name": "Luxury Downtown Penthouse",
+      "address": "123 Park Avenue, New York, NY 10022",
+      "price": 4500000,
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "sqft": 4200,
+      "description": "Stunning penthouse with panoramic city views, high-end finishes, and smart home automation.",
+      "images": [
+        "/luxury-penthouse-living-room.png",
+        "/modern-kitchen-with-marble-counters.jpg",
+        "/master-bedroom-with-city-view.jpg",
+        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=2400&q=80",
+        "https://images.unsplash.com/photo-1528909514045-2fa4ac7a08ba?auto=format&fit=crop&w=2400&q=80",
+        "https://images.unsplash.com/photo-1479839672679-a46483c0e7c8?auto=format&fit=crop&w=2400&q=80",
+        "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=2400&q=80"
+      ],
+      "thumbnail": "/penthouse-exterior.jpg",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "updatedAt": "2024-10-20T00:00:00.000Z",
+      "isFavorite": false,
+      "tags": [
+        "luxury",
+        "penthouse",
+        "city-view",
+        "smart-home"
+      ],
+      "floorPlanId": "floor-001",
+      "dayNightImages": {
+        "day": "/luxury-penthouse-day.jpg",
+        "night": "/luxury-penthouse-night.jpg"
+      },
+      "matterportModelId": "SxQL3iGyoDo",
+      "matterportExperienceLabel": "Matterport Showcase",
+      "branding": {
+        "primaryColor": "#1a3a52",
+        "secondaryColor": "#d4af37",
+        "logo": "/baladshelter-logo.jpg",
+        "companyName": "BaladShelter",
+        "contactEmail": "info@baladshelter.com",
+        "contactPhone": "+1 (555) 123-4567",
+        "whiteLabelMode": false
+      },
+      "supportedViewModes": [
+        "walkthrough",
+        "360",
+        "first-person",
+        "orbit",
+        "dollhouse",
+        "floor-plan"
+      ],
+      "guidedTours": [
+        {
+          "id": "penthouse-highlight",
+          "name": "Signature Showcase",
+          "description": "Experience the dramatic entry sequence and the most requested vantage points of the residence in under four minutes.",
+          "coverImage": "/luxury-penthouse-living-room.png",
+          "estimatedDurationMinutes": 3.5,
+          "callouts": [
+            "Guided storyline across the three hero scenes",
+            "Stop-level callouts with lifestyle talking points",
+            "Optimized pacing for live sales presentations"
+          ],
+          "highlightMetrics": {
+            "totalStops": 4,
+            "totalDistanceFeet": 180,
+            "featuredScenes": [
+              "Living Room",
+              "Master Bedroom",
+              "Kitchen"
+            ]
+          },
+          "stops": [
+            {
+              "id": "penthouse-highlight-1",
+              "sceneId": "scene-001",
+              "sceneName": "Living Room",
+              "yaw": 12,
+              "pitch": -4,
+              "note": "Foyer Arrival",
+              "durationSeconds": 9,
+              "highlight": "Reveal the volume of the double-height living space on arrival."
+            },
+            {
+              "id": "penthouse-highlight-2",
+              "sceneId": "scene-001",
+              "sceneName": "Living Room",
+              "yaw": -48,
+              "pitch": -2,
+              "note": "Skyline Panorama",
+              "durationSeconds": 10,
+              "highlight": "Pause on the 270° skyline wrap for the wow moment.",
+              "mediaUrl": "/luxury-penthouse-living-room-360.jpg"
+            },
+            {
+              "id": "penthouse-highlight-3",
+              "sceneId": "scene-002",
+              "sceneName": "Master Bedroom",
+              "yaw": 35,
+              "pitch": -8,
+              "note": "Owner's Retreat",
+              "durationSeconds": 8,
+              "highlight": "Call out the custom upholstered headboard and ensuite connection."
+            },
+            {
+              "id": "penthouse-highlight-4",
+              "sceneId": "scene-003",
+              "sceneName": "Kitchen",
+              "yaw": -22,
+              "pitch": -6,
+              "note": "Entertainer's Kitchen",
+              "durationSeconds": 9,
+              "highlight": "Finish with the chef-grade appliance wall and marble waterfall island."
+            }
+          ]
+        },
+        {
+          "id": "penthouse-evening-twilight",
+          "name": "Twilight Lifestyle Walkthrough",
+          "description": "An evening-focused flow that pairs the night lighting package with lifestyle talking points for remote showings.",
+          "coverImage": "/luxury-penthouse-night.jpg",
+          "estimatedDurationMinutes": 4.2,
+          "callouts": [
+            "Leans into the integrated lighting scenes",
+            "Pairs perfectly with night-time photography",
+            "Designed for remote buyer consultations"
+          ],
+          "highlightMetrics": {
+            "totalStops": 5,
+            "totalDistanceFeet": 210,
+            "featuredScenes": [
+              "Living Room",
+              "Master Bedroom",
+              "Kitchen"
+            ]
+          },
+          "stops": [
+            {
+              "id": "penthouse-evening-1",
+              "sceneId": "scene-001",
+              "sceneName": "Living Room",
+              "yaw": 78,
+              "pitch": -5,
+              "note": "Lounge Gathering",
+              "durationSeconds": 8,
+              "highlight": "Introduce the backlit shelving and integrated audio system."
+            },
+            {
+              "id": "penthouse-evening-2",
+              "sceneId": "scene-001",
+              "sceneName": "Living Room",
+              "yaw": -95,
+              "pitch": -3,
+              "note": "City Lights",
+              "durationSeconds": 10,
+              "highlight": "Hold the frame on the evening skyline to reinforce location value."
+            },
+            {
+              "id": "penthouse-evening-3",
+              "sceneId": "scene-002",
+              "sceneName": "Master Bedroom",
+              "yaw": -18,
+              "pitch": -7,
+              "note": "Relaxed Evening",
+              "durationSeconds": 9,
+              "highlight": "Point out the automation shades and ambient lighting scenes."
+            },
+            {
+              "id": "penthouse-evening-4",
+              "sceneId": "scene-003",
+              "sceneName": "Kitchen",
+              "yaw": 58,
+              "pitch": -4,
+              "note": "Culinary Prep",
+              "durationSeconds": 8,
+              "highlight": "Call attention to the waterfall island and concealed appliance garage."
+            },
+            {
+              "id": "penthouse-evening-5",
+              "sceneId": "scene-003",
+              "sceneName": "Kitchen",
+              "yaw": -160,
+              "pitch": -6,
+              "note": "Entertainers' Finale",
+              "durationSeconds": 9,
+              "highlight": "Close on the indoor-outdoor connection toward the terrace."
+            }
+          ]
+        },
+        {
+          "id": "penthouse-full-residence",
+          "name": "Full Residence Immersive Journey",
+          "description": "A complete nine-stop progression through every signature space with multimedia callouts and dwell recommendations.",
+          "coverImage": "https://images.unsplash.com/photo-1479839672679-a46483c0e7c8?auto=format&fit=crop&w=1600&q=80",
+          "estimatedDurationMinutes": 7.2,
+          "callouts": [
+            "Nine-scene scripted walkthrough covering public and private zones",
+            "Hotspot prompts for live presenters and async viewers",
+            "Ideal for onboarding remote buyers to the full residence"
+          ],
+          "highlightMetrics": {
+            "totalStops": 9,
+            "totalDistanceFeet": 420,
+            "featuredScenes": [
+              "Private Elevator Foyer",
+              "Skyline Living Room",
+              "Chef's Kitchen",
+              "Owner's Suite",
+              "Cinema Lounge"
+            ]
+          },
+          "stops": [
+            {
+              "id": "full-tour-foyer",
+              "sceneId": "scene-001-foyer",
+              "sceneName": "Private Elevator Foyer",
+              "yaw": 12,
+              "pitch": -6,
+              "note": "Arrival narrative",
+              "durationSeconds": 35,
+              "highlight": "Set the tone with private elevator access and art curation."
+            },
+            {
+              "id": "full-tour-living",
+              "sceneId": "scene-001",
+              "sceneName": "Skyline Living Room",
+              "yaw": -28,
+              "pitch": -4,
+              "note": "Great room reveal",
+              "durationSeconds": 40,
+              "highlight": "Emphasize double-height volume and floor-to-ceiling glass."
+            },
+            {
+              "id": "full-tour-terrace",
+              "sceneId": "scene-001-terrace",
+              "sceneName": "Sky Terrace & Lounge",
+              "yaw": 64,
+              "pitch": -8,
+              "note": "Outdoor lifestyle",
+              "durationSeconds": 36,
+              "highlight": "Call out fire pit, planters, and city views.",
+              "mediaUrl": "https://player.vimeo.com/video/76979871?h=bf0e24c908"
+            },
+            {
+              "id": "full-tour-dining",
+              "sceneId": "scene-003-dining",
+              "sceneName": "Dining Gallery",
+              "yaw": -18,
+              "pitch": -2,
+              "note": "Entertaining core",
+              "durationSeconds": 32,
+              "highlight": "Discuss the 12-seat table, wine wall, and adjacency to kitchen."
+            },
+            {
+              "id": "full-tour-kitchen",
+              "sceneId": "scene-003",
+              "sceneName": "Chef's Kitchen",
+              "yaw": 48,
+              "pitch": -5,
+              "note": "Culinary amenities",
+              "durationSeconds": 34,
+              "highlight": "Detail appliance suite and prep pantry."
+            },
+            {
+              "id": "full-tour-office",
+              "sceneId": "scene-003-office",
+              "sceneName": "Executive Study",
+              "yaw": 20,
+              "pitch": -4,
+              "note": "Work-from-home ready",
+              "durationSeconds": 28,
+              "highlight": "Point out built-ins and technology stack."
+            },
+            {
+              "id": "full-tour-lounge",
+              "sceneId": "scene-003-lounge",
+              "sceneName": "Cinema Lounge",
+              "yaw": -32,
+              "pitch": -3,
+              "note": "Entertainment suite",
+              "durationSeconds": 30,
+              "highlight": "Highlight acoustic treatments and wet bar."
+            },
+            {
+              "id": "full-tour-bedroom",
+              "sceneId": "scene-002",
+              "sceneName": "Owner's Suite",
+              "yaw": 62,
+              "pitch": -7,
+              "note": "Private retreat",
+              "durationSeconds": 32,
+              "highlight": "Cover automated shades and private terrace access."
+            },
+            {
+              "id": "full-tour-ensuite",
+              "sceneId": "scene-002-ensuite",
+              "sceneName": "Spa Ensuite",
+              "yaw": -40,
+              "pitch": -5,
+              "note": "Wellness finale",
+              "durationSeconds": 33,
+              "highlight": "Describe steam shower, soaking tub, and concierge programming."
+            }
+          ]
+        }
+      ],
+      "sphrSpace": {
+        "initialNodeId": "penthouse-lobby",
+        "defaultFov": 70,
+        "description": "Port of the SPHR experience with Three.js powered navigation, allowing smooth jumps between immersive panoramas and rich info callouts.",
+        "nodes": [
+          {
+            "id": "penthouse-lobby",
+            "name": "Skyline Lobby",
+            "panoramaUrl": "https://static.mused.org/spaceshare/IMG_20231101_074927_00_479.jpg",
+            "initialYaw": 40,
+            "initialPitch": -5,
+            "hotspots": [
+              {
+                "id": "lobby-to-living",
+                "title": "Enter the Great Room",
+                "type": "navigation",
+                "yaw": 18,
+                "pitch": -8,
+                "targetNodeId": "penthouse-living"
+              },
+              {
+                "id": "lobby-to-suite",
+                "title": "Owner's Suite",
+                "type": "navigation",
+                "yaw": -120,
+                "pitch": -6,
+                "targetNodeId": "penthouse-suite"
+              },
+              {
+                "id": "lobby-lighting",
+                "title": "Layered Lighting",
+                "type": "info",
+                "yaw": -48,
+                "pitch": -12,
+                "description": "Programmable cove lighting and art spots wash the entry volume—ported directly from the SPHR tour lighting presets."
+              },
+              {
+                "id": "lobby-to-dining",
+                "title": "Dining Gallery",
+                "type": "navigation",
+                "yaw": 82,
+                "pitch": -4,
+                "targetNodeId": "penthouse-dining"
+              }
+            ]
+          },
+          {
+            "id": "penthouse-living",
+            "name": "Grand Living Room",
+            "panoramaUrl": "https://static.mused.org/spaceshare/IMG_20231101_075039_00_482.jpg",
+            "initialYaw": -110,
+            "initialPitch": -4,
+            "hotspots": [
+              {
+                "id": "living-to-lobby",
+                "title": "Back to Lobby",
+                "type": "navigation",
+                "yaw": 160,
+                "pitch": -4,
+                "targetNodeId": "penthouse-lobby"
+              },
+              {
+                "id": "living-to-suite",
+                "title": "Primary Suite",
+                "type": "navigation",
+                "yaw": -30,
+                "pitch": -6,
+                "targetNodeId": "penthouse-suite"
+              },
+              {
+                "id": "living-spotlight",
+                "title": "Skyline Spotlight",
+                "type": "info",
+                "yaw": 15,
+                "pitch": -2,
+                "description": "Floor-to-ceiling glass wraps 270° around this room. Hotspot metrics from SPHR highlight 82% engagement here."
+              },
+              {
+                "id": "living-media",
+                "title": "Designer Walkthrough",
+                "type": "media",
+                "yaw": -90,
+                "pitch": -3,
+                "mediaUrl": "https://cdn.mused.org/media/penthouse-design-story.mp4",
+                "description": "Play the designer's SPHR walkthrough with staging commentary."
+              },
+              {
+                "id": "living-to-dining",
+                "title": "Enter Dining Gallery",
+                "type": "navigation",
+                "yaw": -60,
+                "pitch": -6,
+                "targetNodeId": "penthouse-dining"
+              },
+              {
+                "id": "living-to-terrace",
+                "title": "Open Sky Terrace",
+                "type": "navigation",
+                "yaw": 12,
+                "pitch": -6,
+                "targetNodeId": "penthouse-terrace"
+              }
+            ]
+          },
+          {
+            "id": "penthouse-suite",
+            "name": "Owner's Suite",
+            "panoramaUrl": "https://static.mused.org/spaceshare/IMG_20231101_075124_00_485.jpg",
+            "initialYaw": 95,
+            "initialPitch": -6,
+            "hotspots": [
+              {
+                "id": "suite-to-living",
+                "title": "Return to Great Room",
+                "type": "navigation",
+                "yaw": 40,
+                "pitch": -10,
+                "targetNodeId": "penthouse-living"
+              },
+              {
+                "id": "suite-terrace",
+                "title": "Step to Terrace",
+                "type": "info",
+                "yaw": -130,
+                "pitch": -5,
+                "description": "12' sliding glass walls stack to reveal the terrace. Imported SPHR depth maps power the parallax hint on hover."
+              },
+              {
+                "id": "suite-to-lobby",
+                "title": "Entry Gallery",
+                "type": "navigation",
+                "yaw": 170,
+                "pitch": -3,
+                "targetNodeId": "penthouse-lobby"
+              },
+              {
+                "id": "suite-to-ensuite",
+                "title": "Spa Ensuite",
+                "type": "navigation",
+                "yaw": -45,
+                "pitch": -8,
+                "targetNodeId": "penthouse-ensuite"
+              }
+            ]
+          },
+          {
+            "id": "penthouse-terrace",
+            "name": "Sky Terrace",
+            "panoramaUrl": "https://static.mused.org/spaceshare/IMG_20231101_075213_00_488.jpg",
+            "initialYaw": 24,
+            "initialPitch": -4,
+            "hotspots": [
+              {
+                "id": "terrace-to-living",
+                "title": "Great Room",
+                "type": "navigation",
+                "yaw": -120,
+                "pitch": -8,
+                "targetNodeId": "penthouse-living"
+              },
+              {
+                "id": "terrace-to-lounge",
+                "title": "Cinema Lounge",
+                "type": "navigation",
+                "yaw": 60,
+                "pitch": -6,
+                "targetNodeId": "penthouse-lounge"
+              },
+              {
+                "id": "terrace-entertainment",
+                "title": "Outdoor Entertainment Package",
+                "type": "info",
+                "yaw": 18,
+                "pitch": -10,
+                "description": "Distributed audio, lighting scenes, and weatherproof televisions."
+              }
+            ]
+          },
+          {
+            "id": "penthouse-dining",
+            "name": "Dining Gallery",
+            "panoramaUrl": "https://static.mused.org/spaceshare/IMG_20231101_075339_00_492.jpg",
+            "initialYaw": -48,
+            "initialPitch": -3,
+            "hotspots": [
+              {
+                "id": "dining-to-kitchen",
+                "title": "Chef's Kitchen",
+                "type": "navigation",
+                "yaw": -82,
+                "pitch": -5,
+                "targetNodeId": "penthouse-kitchen"
+              },
+              {
+                "id": "dining-to-lobby",
+                "title": "Lobby Return",
+                "type": "navigation",
+                "yaw": 120,
+                "pitch": -6,
+                "targetNodeId": "penthouse-lobby"
+              },
+              {
+                "id": "dining-wine-wall",
+                "title": "Interactive Wine Wall",
+                "type": "info",
+                "yaw": 24,
+                "pitch": -8,
+                "description": "Temperature-controlled cellar with RFID inventory tracking."
+              }
+            ]
+          },
+          {
+            "id": "penthouse-kitchen",
+            "name": "Chef's Kitchen",
+            "panoramaUrl": "https://static.mused.org/spaceshare/IMG_20231101_075427_00_495.jpg",
+            "initialYaw": -20,
+            "initialPitch": -4,
+            "hotspots": [
+              {
+                "id": "kitchen-to-dining",
+                "title": "Dining Gallery",
+                "type": "navigation",
+                "yaw": 140,
+                "pitch": -6,
+                "targetNodeId": "penthouse-dining"
+              },
+              {
+                "id": "kitchen-to-office",
+                "title": "Executive Study",
+                "type": "navigation",
+                "yaw": -30,
+                "pitch": -5,
+                "targetNodeId": "penthouse-office"
+              },
+              {
+                "id": "kitchen-appliance-tour",
+                "title": "Appliance Suite",
+                "type": "info",
+                "yaw": 12,
+                "pitch": -12,
+                "description": "Wolf 60\" range, dual dishwashers, and integrated espresso bar."
+              }
+            ]
+          },
+          {
+            "id": "penthouse-office",
+            "name": "Executive Study",
+            "panoramaUrl": "https://static.mused.org/spaceshare/IMG_20231101_075512_00_498.jpg",
+            "initialYaw": 60,
+            "initialPitch": -6,
+            "hotspots": [
+              {
+                "id": "office-to-lounge",
+                "title": "Cinema Lounge",
+                "type": "navigation",
+                "yaw": -90,
+                "pitch": -8,
+                "targetNodeId": "penthouse-lounge"
+              },
+              {
+                "id": "office-to-kitchen",
+                "title": "Back to Kitchen",
+                "type": "navigation",
+                "yaw": 120,
+                "pitch": -7,
+                "targetNodeId": "penthouse-kitchen"
+              },
+              {
+                "id": "office-focus-mode",
+                "title": "Focus Mode Presets",
+                "type": "info",
+                "yaw": 36,
+                "pitch": -10,
+                "description": "Electrochromic glass and sound masking controlled from the app."
+              }
+            ]
+          },
+          {
+            "id": "penthouse-lounge",
+            "name": "Cinema Lounge",
+            "panoramaUrl": "https://static.mused.org/spaceshare/IMG_20231101_075612_00_501.jpg",
+            "initialYaw": -32,
+            "initialPitch": -6,
+            "hotspots": [
+              {
+                "id": "lounge-to-office",
+                "title": "Executive Study",
+                "type": "navigation",
+                "yaw": 120,
+                "pitch": -6,
+                "targetNodeId": "penthouse-office"
+              },
+              {
+                "id": "lounge-to-terrace",
+                "title": "Sky Terrace",
+                "type": "navigation",
+                "yaw": -60,
+                "pitch": -7,
+                "targetNodeId": "penthouse-terrace"
+              },
+              {
+                "id": "lounge-cinema-spec",
+                "title": "Cinema Specifications",
+                "type": "info",
+                "yaw": 6,
+                "pitch": -12,
+                "description": "Tiered seating, acoustic wall panels, and 9.2.4 Atmos audio."
+              }
+            ]
+          },
+          {
+            "id": "penthouse-ensuite",
+            "name": "Spa Ensuite",
+            "panoramaUrl": "https://static.mused.org/spaceshare/IMG_20231101_075701_00_504.jpg",
+            "initialYaw": -16,
+            "initialPitch": -4,
+            "hotspots": [
+              {
+                "id": "ensuite-to-suite",
+                "title": "Owner's Suite",
+                "type": "navigation",
+                "yaw": 160,
+                "pitch": -6,
+                "targetNodeId": "penthouse-suite"
+              },
+              {
+                "id": "ensuite-spa-program",
+                "title": "Spa Programming",
+                "type": "info",
+                "yaw": 24,
+                "pitch": -10,
+                "description": "Steam, chromotherapy, and aromatherapy presets via Savant."
+              }
+            ]
+          }
+        ]
+      },
+      "scenes": [
+        {
+          "id": "scene-001-foyer",
+          "name": "Private Elevator Foyer",
+          "imageUrl": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=2400&q=80",
+          "thumbnail": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=720&q=80",
+          "viewCount": 82,
+          "dwellTime": 18,
+          "defaultViewMode": "walkthrough",
+          "hotspots": [
+            {
+              "id": "hotspot-foyer-art",
+              "x": 38,
+              "y": 42,
+              "type": "info",
+              "title": "Curated Art Gallery",
+              "description": "Rotating installations from local artists welcome guests in the private lobby.",
+              "clickCount": 19
+            },
+            {
+              "id": "hotspot-foyer-to-living",
+              "x": 62,
+              "y": 55,
+              "type": "link",
+              "title": "Enter the Grand Living Room",
+              "description": "Step through the pivot door into the skyline great room.",
+              "targetSceneId": "scene-001",
+              "clickCount": 41
+            },
+            {
+              "id": "hotspot-foyer-audio",
+              "x": 20,
+              "y": 60,
+              "type": "audio",
+              "title": "Ambient Arrival Score",
+              "description": "Custom-composed soundtrack that cues automatically for private events.",
+              "mediaUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+              "clickCount": 11
+            }
+          ],
+          "measurements": [
+            {
+              "id": "measure-foyer-span",
+              "startX": 18,
+              "startY": 58,
+              "endX": 82,
+              "endY": 58,
+              "distance": 14.5,
+              "unit": "ft",
+              "measurementType": "distance",
+              "label": "Gallery span",
+              "createdAt": "2024-01-18T12:00:00.000Z"
+            }
+          ],
+          "annotations": [
+            {
+              "id": "annotation-foyer-console",
+              "x": 48,
+              "y": 50,
+              "text": "Floating stone console with integrated lighting",
+              "color": "#22d3ee",
+              "layerId": "layer-foyer-design"
+            }
+          ],
+          "dataLayers": [
+            {
+              "id": "layer-foyer-design",
+              "name": "Foyer Finish Package",
+              "description": "Materials, lighting, and millwork details for the private arrival gallery.",
+              "defaultVisible": true
+            },
+            {
+              "id": "layer-foyer-security",
+              "name": "Access & Security",
+              "description": "Keyless entry, surveillance, and concierge desk locations.",
+              "defaultVisible": false
+            }
+          ],
+          "order": 0
+        },
+        {
+          "id": "scene-001",
+          "name": "Skyline Living Room",
+          "imageUrl": "/luxury-penthouse-living-room-360.jpg",
+          "thumbnail": "/luxury-penthouse-living-room.png",
+          "viewCount": 168,
+          "dwellTime": 52,
+          "defaultViewMode": "walkthrough",
+          "hotspots": [
+            {
+              "id": "hotspot-001",
+              "x": 45,
+              "y": 50,
+              "type": "info",
+              "title": "Floor-to-Ceiling Windows",
+              "description": "Premium glass with UV protection and smart tinting",
+              "clickCount": 27
+            },
+            {
+              "id": "hotspot-002",
+              "x": 70,
+              "y": 60,
+              "type": "video",
+              "title": "Smart Home Demo",
+              "description": "Watch the smart home automation in action",
+              "mediaUrl": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+              "clickCount": 21
+            },
+            {
+              "id": "hotspot-003",
+              "x": 30,
+              "y": 40,
+              "type": "cta",
+              "title": "Schedule Tour",
+              "description": "Book an in-person viewing",
+              "clickCount": 12
+            },
+            {
+              "id": "hotspot-living-to-terrace",
+              "x": 82,
+              "y": 44,
+              "type": "link",
+              "title": "Open the Sky Terrace",
+              "description": "Flow directly to the outdoor lounge overlooking Midtown.",
+              "targetSceneId": "scene-001-terrace",
+              "clickCount": 33
+            },
+            {
+              "id": "hotspot-living-to-dining",
+              "x": 18,
+              "y": 52,
+              "type": "link",
+              "title": "Transition to Dining Gallery",
+              "description": "Pivot toward the sculptural dining table for entertaining.",
+              "targetSceneId": "scene-003-dining",
+              "clickCount": 24
+            }
+          ],
+          "measurements": [
+            {
+              "id": "measure-living-01",
+              "startX": 22,
+              "startY": 52,
+              "endX": 68,
+              "endY": 52,
+              "distance": 18.5,
+              "unit": "ft",
+              "measurementType": "distance",
+              "label": "Sofa wall span",
+              "createdAt": "2024-01-18T14:18:00.000Z"
+            },
+            {
+              "id": "measure-living-ceiling",
+              "startX": 52,
+              "startY": 18,
+              "endX": 52,
+              "endY": 78,
+              "distance": 22,
+              "unit": "ft",
+              "measurementType": "distance",
+              "label": "Double-height ceiling",
+              "createdAt": "2024-01-20T10:00:00.000Z"
+            }
+          ],
+          "annotations": [
+            {
+              "id": "annotation-001",
+              "x": 54,
+              "y": 60,
+              "text": "Sectional seating with integrated storage",
+              "color": "#38bdf8",
+              "layerId": "layer-interior"
+            },
+            {
+              "id": "annotation-002",
+              "x": 34,
+              "y": 46,
+              "text": "Smart dimmer panel",
+              "color": "#f97316",
+              "layerId": "layer-electrical"
+            },
+            {
+              "id": "annotation-003",
+              "x": 62,
+              "y": 35,
+              "text": "360° city skyline vantage point",
+              "color": "#facc15"
+            },
+            {
+              "id": "annotation-living-fireplace",
+              "x": 28,
+              "y": 58,
+              "text": "Linear fireplace with marble surround",
+              "color": "#34d399",
+              "layerId": "layer-interior"
+            }
+          ],
+          "dataLayers": [
+            {
+              "id": "layer-interior",
+              "name": "Interior Design",
+              "description": "Furniture placement and finish selections.",
+              "defaultVisible": true
+            },
+            {
+              "id": "layer-electrical",
+              "name": "Electrical Layout",
+              "description": "Outlet locations and smart controls.",
+              "defaultVisible": false
+            },
+            {
+              "id": "layer-living-staging",
+              "name": "Staging Notes",
+              "description": "Agent talking points for live-streamed showings.",
+              "defaultVisible": true
+            }
+          ],
+          "order": 1
+        },
+        {
+          "id": "scene-001-terrace",
+          "name": "Sky Terrace & Lounge",
+          "imageUrl": "https://images.unsplash.com/photo-1479839672679-a46483c0e7c8?auto=format&fit=crop&w=2400&q=80",
+          "thumbnail": "https://images.unsplash.com/photo-1479839672679-a46483c0e7c8?auto=format&fit=crop&w=720&q=80",
+          "viewCount": 132,
+          "dwellTime": 37,
+          "hotspots": [
+            {
+              "id": "hotspot-terrace-firepit",
+              "x": 44,
+              "y": 62,
+              "type": "info",
+              "title": "Fire Pit Lounge",
+              "description": "Gas fire pit anchors the outdoor seating lounge with radiant heaters overhead.",
+              "clickCount": 26
+            },
+            {
+              "id": "hotspot-terrace-to-living",
+              "x": 18,
+              "y": 46,
+              "type": "link",
+              "title": "Return to Living Room",
+              "description": "Slide back through the NanaWall into the great room.",
+              "targetSceneId": "scene-001",
+              "clickCount": 34
+            },
+            {
+              "id": "hotspot-terrace-video",
+              "x": 70,
+              "y": 48,
+              "type": "video",
+              "title": "Sunset Drone Flyover",
+              "description": "Aerial perspective of the terrace and surrounding skyline.",
+              "mediaUrl": "https://player.vimeo.com/video/76979871?h=bf0e24c908",
+              "clickCount": 17
+            }
+          ],
+          "measurements": [
+            {
+              "id": "measure-terrace-depth",
+              "startX": 15,
+              "startY": 70,
+              "endX": 85,
+              "endY": 70,
+              "distance": 28,
+              "unit": "ft",
+              "measurementType": "distance",
+              "label": "Outdoor lounge depth",
+              "createdAt": "2024-01-21T09:12:00.000Z"
+            }
+          ],
+          "annotations": [
+            {
+              "id": "annotation-terrace-planters",
+              "x": 60,
+              "y": 58,
+              "text": "Self-watering planters with integrated lighting",
+              "color": "#a855f7"
+            }
+          ],
+          "dataLayers": [
+            {
+              "id": "layer-terrace-landscape",
+              "name": "Landscape Plan",
+              "description": "Plant species and irrigation routing.",
+              "defaultVisible": false
+            }
+          ],
+          "order": 2
+        },
+        {
+          "id": "scene-002",
+          "name": "Owner's Suite",
+          "imageUrl": "/luxury-master-bedroom-with-city-view.jpg",
+          "thumbnail": "/master-bedroom-with-city-view.jpg",
+          "viewCount": 118,
+          "dwellTime": 38,
+          "hotspots": [
+            {
+              "id": "hotspot-004",
+              "x": 50,
+              "y": 45,
+              "type": "link",
+              "title": "Back to Living Room",
+              "description": "Return to main area",
+              "targetSceneId": "scene-001",
+              "clickCount": 16
+            },
+            {
+              "id": "hotspot-005",
+              "x": 60,
+              "y": 55,
+              "type": "audio",
+              "title": "Room Audio System",
+              "description": "Premium Bose sound system",
+              "mediaUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+              "clickCount": 9
+            },
+            {
+              "id": "hotspot-bedroom-to-ensuite",
+              "x": 82,
+              "y": 52,
+              "type": "link",
+              "title": "Spa Ensuite",
+              "description": "Continue into the steam shower and soaking tub retreat.",
+              "targetSceneId": "scene-002-ensuite",
+              "clickCount": 27
+            },
+            {
+              "id": "hotspot-bedroom-to-terrace",
+              "x": 22,
+              "y": 40,
+              "type": "link",
+              "title": "Private Terrace Access",
+              "description": "Step to the sunrise terrace shared with the wellness lounge.",
+              "targetSceneId": "scene-001-terrace",
+              "clickCount": 14
+            }
+          ],
+          "measurements": [
+            {
+              "id": "measure-bedroom-01",
+              "startX": 28,
+              "startY": 58,
+              "endX": 72,
+              "endY": 58,
+              "distance": 16.2,
+              "unit": "ft",
+              "measurementType": "distance",
+              "label": "Bed wall length",
+              "createdAt": "2024-01-19T09:42:00.000Z"
+            },
+            {
+              "id": "measure-bedroom-closet",
+              "startX": 65,
+              "startY": 40,
+              "endX": 92,
+              "endY": 40,
+              "distance": 11.8,
+              "unit": "ft",
+              "measurementType": "distance",
+              "label": "Closet corridor",
+              "createdAt": "2024-01-22T08:30:00.000Z"
+            }
+          ],
+          "annotations": [
+            {
+              "id": "annotation-004",
+              "x": 48,
+              "y": 42,
+              "text": "Custom upholstered headboard",
+              "color": "#6366f1",
+              "layerId": "layer-interior-bedroom"
+            },
+            {
+              "id": "annotation-005",
+              "x": 66,
+              "y": 64,
+              "text": "Integrated reading sconces",
+              "color": "#f97316",
+              "layerId": "layer-lighting"
+            },
+            {
+              "id": "annotation-bedroom-shades",
+              "x": 32,
+              "y": 48,
+              "text": "Automated blackout shades",
+              "color": "#22c55e",
+              "layerId": "layer-lighting"
+            }
+          ],
+          "dataLayers": [
+            {
+              "id": "layer-interior-bedroom",
+              "name": "Interior Styling",
+              "description": "Furniture and textiles for the suite.",
+              "defaultVisible": true
+            },
+            {
+              "id": "layer-lighting",
+              "name": "Lighting Plan",
+              "description": "Fixture placement and electrical drops.",
+              "defaultVisible": false
+            },
+            {
+              "id": "layer-bedroom-wellness",
+              "name": "Wellness Technology",
+              "description": "Air purification and circadian lighting programs.",
+              "defaultVisible": false
+            }
+          ],
+          "order": 3
+        },
+        {
+          "id": "scene-002-ensuite",
+          "name": "Spa Ensuite",
+          "imageUrl": "https://images.unsplash.com/photo-1616594039964-74805d4d03b2?auto=format&fit=crop&w=2400&q=80",
+          "thumbnail": "https://images.unsplash.com/photo-1616594039964-74805d4d03b2?auto=format&fit=crop&w=720&q=80",
+          "viewCount": 97,
+          "dwellTime": 29,
+          "hotspots": [
+            {
+              "id": "hotspot-ensuite-tub",
+              "x": 58,
+              "y": 54,
+              "type": "info",
+              "title": "Stone Soaking Tub",
+              "description": "Hand-carved marble tub with city views and chromotherapy lighting.",
+              "clickCount": 22
+            },
+            {
+              "id": "hotspot-ensuite-steam",
+              "x": 28,
+              "y": 48,
+              "type": "info",
+              "title": "Steam Shower Suite",
+              "description": "Aromatherapy, body sprays, and digital temperature controls.",
+              "clickCount": 18
+            },
+            {
+              "id": "hotspot-ensuite-back-bedroom",
+              "x": 82,
+              "y": 60,
+              "type": "link",
+              "title": "Return to Owner's Suite",
+              "description": "Slide pocket door back to the bedroom.",
+              "targetSceneId": "scene-002",
+              "clickCount": 25
+            },
+            {
+              "id": "hotspot-ensuite-consult",
+              "x": 18,
+              "y": 62,
+              "type": "cta",
+              "title": "Book Wellness Consultation",
+              "description": "Connect with the concierge team for spa programming.",
+              "clickCount": 7
+            }
+          ],
+          "measurements": [
+            {
+              "id": "measure-ensuite-length",
+              "startX": 22,
+              "startY": 64,
+              "endX": 78,
+              "endY": 64,
+              "distance": 21.4,
+              "unit": "ft",
+              "measurementType": "distance",
+              "label": "Ensuite length",
+              "createdAt": "2024-01-23T07:20:00.000Z"
+            }
+          ],
+          "annotations": [
+            {
+              "id": "annotation-ensuite-vanity",
+              "x": 42,
+              "y": 52,
+              "text": "Dual floating vanities with LED mirrors",
+              "color": "#f472b6"
+            }
+          ],
+          "dataLayers": [
+            {
+              "id": "layer-ensuite-plumbing",
+              "name": "Plumbing Diagram",
+              "description": "Water lines, drains, and fixtures for renovation planning.",
+              "defaultVisible": false
+            }
+          ],
+          "order": 4
+        },
+        {
+          "id": "scene-003",
+          "name": "Chef's Kitchen",
+          "imageUrl": "/modern-luxury-kitchen-with-marble.jpg",
+          "thumbnail": "/modern-kitchen-with-marble-counters.jpg",
+          "viewCount": 112,
+          "dwellTime": 34,
+          "hotspots": [
+            {
+              "id": "hotspot-006",
+              "x": 40,
+              "y": 50,
+              "type": "image",
+              "title": "Marble Countertops",
+              "description": "Italian marble with professional appliances",
+              "mediaUrl": "/modern-kitchen-with-marble-counters.jpg",
+              "clickCount": 22
+            },
+            {
+              "id": "hotspot-kitchen-to-dining",
+              "x": 78,
+              "y": 48,
+              "type": "link",
+              "title": "Flow to Dining Gallery",
+              "description": "See the 12-seat dining table with skyline backdrop.",
+              "targetSceneId": "scene-003-dining",
+              "clickCount": 31
+            },
+            {
+              "id": "hotspot-kitchen-appliance",
+              "x": 28,
+              "y": 42,
+              "type": "info",
+              "title": "Integrated Appliance Wall",
+              "description": "Sub-Zero and Wolf appliances concealed behind custom millwork.",
+              "clickCount": 18
+            },
+            {
+              "id": "hotspot-kitchen-video",
+              "x": 60,
+              "y": 65,
+              "type": "video",
+              "title": "Chef's Table Experience",
+              "description": "Hosted dinner series featuring Michelin-star chefs.",
+              "mediaUrl": "https://player.vimeo.com/video/45830194?h=3bce16fa1f",
+              "clickCount": 13
+            }
+          ],
+          "measurements": [
+            {
+              "id": "measure-kitchen-01",
+              "startX": 30,
+              "startY": 45,
+              "endX": 70,
+              "endY": 65,
+              "distance": 245,
+              "unit": "ft",
+              "measurementType": "area",
+              "label": "Kitchen footprint",
+              "points": [
+                {
+                  "x": 30,
+                  "y": 45
+                },
+                {
+                  "x": 68,
+                  "y": 44
+                },
+                {
+                  "x": 72,
+                  "y": 65
+                },
+                {
+                  "x": 34,
+                  "y": 66
+                }
+              ]
+            }
+          ],
+          "annotations": [
+            {
+              "id": "annotation-kitchen-island",
+              "x": 52,
+              "y": 56,
+              "text": "Waterfall island with seating for six",
+              "color": "#60a5fa"
+            },
+            {
+              "id": "annotation-kitchen-pantry",
+              "x": 18,
+              "y": 40,
+              "text": "Hidden prep pantry with secondary appliances",
+              "color": "#f97316"
+            }
+          ],
+          "dataLayers": [
+            {
+              "id": "layer-kitchen-appliances",
+              "name": "Appliance Package",
+              "description": "Detailed list of appliances and smart integrations.",
+              "defaultVisible": true
+            }
+          ],
+          "order": 5
+        },
+        {
+          "id": "scene-003-dining",
+          "name": "Dining Gallery",
+          "imageUrl": "https://images.unsplash.com/photo-1528909514045-2fa4ac7a08ba?auto=format&fit=crop&w=2400&q=80",
+          "thumbnail": "https://images.unsplash.com/photo-1528909514045-2fa4ac7a08ba?auto=format&fit=crop&w=720&q=80",
+          "viewCount": 105,
+          "dwellTime": 31,
+          "hotspots": [
+            {
+              "id": "hotspot-dining-lighting",
+              "x": 52,
+              "y": 42,
+              "type": "info",
+              "title": "Sculptural Chandelier",
+              "description": "Statement fixture with programmable scenes for entertaining.",
+              "clickCount": 20
+            },
+            {
+              "id": "hotspot-dining-to-kitchen",
+              "x": 82,
+              "y": 52,
+              "type": "link",
+              "title": "Return to Chef's Kitchen",
+              "description": "View back toward the culinary hub.",
+              "targetSceneId": "scene-003",
+              "clickCount": 29
+            },
+            {
+              "id": "hotspot-dining-to-office",
+              "x": 20,
+              "y": 58,
+              "type": "link",
+              "title": "Executive Study",
+              "description": "Discover the custom-built home office.",
+              "targetSceneId": "scene-003-office",
+              "clickCount": 16
+            }
+          ],
+          "measurements": [
+            {
+              "id": "measure-dining-table",
+              "startX": 40,
+              "startY": 55,
+              "endX": 64,
+              "endY": 55,
+              "distance": 11.5,
+              "unit": "ft",
+              "measurementType": "distance",
+              "label": "Dining table length",
+              "createdAt": "2024-01-23T15:00:00.000Z"
+            }
+          ],
+          "annotations": [
+            {
+              "id": "annotation-dining-wine",
+              "x": 30,
+              "y": 48,
+              "text": "Climate-controlled wine wall",
+              "color": "#facc15"
+            }
+          ],
+          "dataLayers": [
+            {
+              "id": "layer-dining-entertaining",
+              "name": "Entertaining Notes",
+              "description": "Capacity, flow, and AV callouts for events.",
+              "defaultVisible": true
+            }
+          ],
+          "order": 6
+        },
+        {
+          "id": "scene-003-office",
+          "name": "Executive Study",
+          "imageUrl": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=2400&q=80",
+          "thumbnail": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=720&q=80",
+          "viewCount": 84,
+          "dwellTime": 22,
+          "hotspots": [
+            {
+              "id": "hotspot-office-builtins",
+              "x": 36,
+              "y": 50,
+              "type": "info",
+              "title": "Custom Built-ins",
+              "description": "Walnut shelving with integrated task lighting and hidden storage.",
+              "clickCount": 14
+            },
+            {
+              "id": "hotspot-office-to-dining",
+              "x": 80,
+              "y": 52,
+              "type": "link",
+              "title": "Back to Dining Gallery",
+              "description": "Rejoin the main entertaining core.",
+              "targetSceneId": "scene-003-dining",
+              "clickCount": 19
+            },
+            {
+              "id": "hotspot-office-to-lounge",
+              "x": 18,
+              "y": 46,
+              "type": "link",
+              "title": "Cinema Lounge",
+              "description": "Transition to the acoustic media lounge.",
+              "targetSceneId": "scene-003-lounge",
+              "clickCount": 15
+            }
+          ],
+          "measurements": [
+            {
+              "id": "measure-office-desk",
+              "startX": 44,
+              "startY": 58,
+              "endX": 64,
+              "endY": 58,
+              "distance": 9.2,
+              "unit": "ft",
+              "measurementType": "distance",
+              "label": "Desk length",
+              "createdAt": "2024-01-24T09:45:00.000Z"
+            }
+          ],
+          "annotations": [
+            {
+              "id": "annotation-office-view",
+              "x": 60,
+              "y": 40,
+              "text": "East-facing morning light",
+              "color": "#38bdf8"
+            }
+          ],
+          "dataLayers": [
+            {
+              "id": "layer-office-tech",
+              "name": "Technology Infrastructure",
+              "description": "Fiber drops, acoustic treatments, and conferencing equipment.",
+              "defaultVisible": false
+            }
+          ],
+          "order": 7
+        },
+        {
+          "id": "scene-003-lounge",
+          "name": "Cinema Lounge",
+          "imageUrl": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=2400&q=80",
+          "thumbnail": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=720&q=80",
+          "viewCount": 76,
+          "dwellTime": 24,
+          "hotspots": [
+            {
+              "id": "hotspot-lounge-screen",
+              "x": 48,
+              "y": 40,
+              "type": "info",
+              "title": "Acoustic Projection Wall",
+              "description": "120-inch acoustically transparent screen with 9.2 surround sound.",
+              "clickCount": 18
+            },
+            {
+              "id": "hotspot-lounge-to-office",
+              "x": 82,
+              "y": 58,
+              "type": "link",
+              "title": "Back to Executive Study",
+              "description": "Flow to the private workspace.",
+              "targetSceneId": "scene-003-office",
+              "clickCount": 13
+            },
+            {
+              "id": "hotspot-lounge-to-terrace",
+              "x": 20,
+              "y": 52,
+              "type": "link",
+              "title": "Night Terrace",
+              "description": "Step onto the terrace for evening entertaining.",
+              "targetSceneId": "scene-001-terrace",
+              "clickCount": 17
+            }
+          ],
+          "measurements": [
+            {
+              "id": "measure-lounge-width",
+              "startX": 24,
+              "startY": 60,
+              "endX": 76,
+              "endY": 60,
+              "distance": 18.9,
+              "unit": "ft",
+              "measurementType": "distance",
+              "label": "Lounge width",
+              "createdAt": "2024-01-24T12:10:00.000Z"
+            }
+          ],
+          "annotations": [
+            {
+              "id": "annotation-lounge-bar",
+              "x": 66,
+              "y": 62,
+              "text": "Backlit wet bar with refrigeration drawers",
+              "color": "#f97316"
+            }
+          ],
+          "dataLayers": [
+            {
+              "id": "layer-lounge-av",
+              "name": "AV Specifications",
+              "description": "Speaker layout, acoustic treatments, and projector equipment.",
+              "defaultVisible": false
+            }
+          ],
+          "order": 8
+        }
+      ],
+      "stats": {
+        "totalVisits": 342,
+        "uniqueVisitors": 287,
+        "avgDuration": 8.5,
+        "conversionRate": 12.5,
+        "leadsGenerated": 34,
+        "lastUpdated": "2025-10-27T12:12:12.085Z",
+        "hotspotEngagement": {
+          "hotspot-foyer-art": 19,
+          "hotspot-foyer-to-living": 41,
+          "hotspot-001": 27,
+          "hotspot-002": 21,
+          "hotspot-003": 12,
+          "hotspot-living-to-terrace": 33,
+          "hotspot-living-to-dining": 24,
+          "hotspot-terrace-firepit": 26,
+          "hotspot-terrace-video": 17,
+          "hotspot-bedroom-to-ensuite": 27,
+          "hotspot-kitchen-to-dining": 31,
+          "hotspot-dining-to-office": 16,
+          "hotspot-office-to-lounge": 15,
+          "hotspot-lounge-to-terrace": 17
+        },
+        "scenePopularity": {
+          "scene-001-foyer": 82,
+          "scene-001": 168,
+          "scene-001-terrace": 132,
+          "scene-002": 118,
+          "scene-002-ensuite": 97,
+          "scene-003": 112,
+          "scene-003-dining": 105,
+          "scene-003-office": 84,
+          "scene-003-lounge": 76
+        }
+      }
+    },
+    {
+      "id": "prop-002",
+      "name": "Modern Suburban Family Home",
+      "address": "456 Oak Street, Austin, TX 78704",
+      "price": 850000,
+      "bedrooms": 4,
+      "bathrooms": 2.5,
+      "sqft": 3100,
+      "description": "Contemporary home with open floor plan, energy-efficient features, and beautiful backyard.",
+      "images": [
+        "/modern-suburban-home-exterior.jpg",
+        "/open-concept-living-area.jpg",
+        "/backyard-with-pool.png"
+      ],
+      "thumbnail": "/suburban-home-front.jpg",
+      "createdAt": "2024-02-10T00:00:00.000Z",
+      "updatedAt": "2024-10-18T00:00:00.000Z",
+      "isFavorite": false,
+      "tags": [
+        "family-home",
+        "suburban",
+        "pool",
+        "modern"
+      ],
+      "floorPlanId": "floor-002",
+      "dayNightImages": {
+        "day": "/modern-suburban-home-exterior.jpg",
+        "night": "/suburban-home-front.jpg"
+      },
+      "matterportModelId": "9n7LZmjGgA3",
+      "matterportExperienceLabel": "Family Home Showcase",
+      "branding": {
+        "primaryColor": "#1a3a52",
+        "secondaryColor": "#d4af37",
+        "logo": "/baladshelter-logo.jpg",
+        "companyName": "BaladShelter",
+        "contactEmail": "info@baladshelter.com",
+        "contactPhone": "+1 (555) 123-4567",
+        "whiteLabelMode": false
+      },
+      "guidedTours": [
+        {
+          "id": "suburban-family-flow",
+          "name": "Family Living Flow",
+          "description": "A quick orientation to the family-friendly layout highlighting the foyer welcome, main gathering area, and resort-style backyard.",
+          "coverImage": "/open-concept-living-area.jpg",
+          "estimatedDurationMinutes": 2.6,
+          "callouts": [
+            "Great for weekend open-house recaps",
+            "Pairs voiceover prompts with every stop",
+            "Keeps buyers focused on the indoor-outdoor connection"
+          ],
+          "highlightMetrics": {
+            "totalStops": 3,
+            "totalDistanceFeet": 140,
+            "featuredScenes": [
+              "Foyer",
+              "Living Area",
+              "Backyard"
+            ]
+          },
+          "stops": [
+            {
+              "id": "suburban-flow-1",
+              "sceneId": "scene-004",
+              "sceneName": "Foyer",
+              "yaw": -5,
+              "pitch": -6,
+              "note": "Welcoming Entry",
+              "durationSeconds": 7,
+              "highlight": "Invite viewers to imagine greeting guests in the airy foyer."
+            },
+            {
+              "id": "suburban-flow-2",
+              "sceneId": "scene-005",
+              "sceneName": "Living Area",
+              "yaw": 32,
+              "pitch": -8,
+              "note": "Central Gathering",
+              "durationSeconds": 9,
+              "highlight": "Call out the open concept layout and flexible seating options."
+            },
+            {
+              "id": "suburban-flow-3",
+              "sceneId": "scene-006",
+              "sceneName": "Backyard",
+              "yaw": -54,
+              "pitch": -5,
+              "note": "Outdoor Escape",
+              "durationSeconds": 10,
+              "highlight": "Finish with the resort-style pool and outdoor kitchen zone."
+            }
+          ]
+        }
+      ],
+      "scenes": [
+        {
+          "id": "scene-004",
+          "name": "Foyer",
+          "imageUrl": "/modern-home-foyer-entrance.jpg",
+          "thumbnail": "/modern-home-foyer-entrance.jpg",
+          "viewCount": 76,
+          "dwellTime": 15,
+          "hotspots": [],
+          "measurements": [],
+          "annotations": [],
+          "order": 1
+        },
+        {
+          "id": "scene-005",
+          "name": "Living Area",
+          "imageUrl": "/open-concept-living-room.jpg",
+          "thumbnail": "/open-concept-living-room.jpg",
+          "viewCount": 92,
+          "dwellTime": 38,
+          "hotspots": [
+            {
+              "id": "hotspot-007",
+              "x": 50,
+              "y": 50,
+              "type": "info",
+              "title": "Open Concept Design",
+              "description": "Seamless flow between living and dining areas",
+              "clickCount": 14
+            }
+          ],
+          "measurements": [],
+          "annotations": [],
+          "order": 2
+        },
+        {
+          "id": "scene-006",
+          "name": "Backyard",
+          "imageUrl": "/backyard-with-pool.png",
+          "thumbnail": "/backyard-with-pool.png",
+          "viewCount": 68,
+          "dwellTime": 25,
+          "hotspots": [
+            {
+              "id": "hotspot-008",
+              "x": 45,
+              "y": 60,
+              "type": "info",
+              "title": "Resort-Style Pool",
+              "description": "Heated pool with spa jets and waterfall",
+              "clickCount": 11
+            }
+          ],
+          "measurements": [],
+          "annotations": [],
+          "order": 3
+        }
+      ],
+      "stats": {
+        "totalVisits": 156,
+        "uniqueVisitors": 128,
+        "avgDuration": 6.2,
+        "conversionRate": 8.3,
+        "leadsGenerated": 12,
+        "lastUpdated": "2025-10-27T12:12:12.085Z",
+        "hotspotEngagement": {
+          "hotspot-007": 14,
+          "hotspot-008": 11
+        },
+        "scenePopularity": {
+          "scene-004": 76,
+          "scene-005": 92,
+          "scene-006": 68
+        }
+      }
+    }
+  ],
+  "leads": [
+    {
+      "id": "lead-001",
+      "propertyId": "prop-001",
+      "name": "John Smith",
+      "email": "john.smith@email.com",
+      "phone": "+1 (555) 987-6543",
+      "message": "Very interested in the penthouse. Would like to schedule a viewing.",
+      "visitDuration": 12.5,
+      "scenesViewed": 3,
+      "createdAt": "2025-10-25T12:12:12.085Z",
+      "status": "qualified",
+      "notes": "High-value prospect, serious buyer",
+      "source": "virtual-tour"
+    },
+    {
+      "id": "lead-002",
+      "propertyId": "prop-001",
+      "name": "Sarah Johnson",
+      "email": "sarah.j@email.com",
+      "phone": "+1 (555) 234-5678",
+      "message": "Interested in learning more about the property.",
+      "visitDuration": 8.2,
+      "scenesViewed": 2,
+      "createdAt": "2025-10-22T12:12:12.085Z",
+      "status": "contacted",
+      "notes": "Relocating from California",
+      "source": "virtual-tour"
+    },
+    {
+      "id": "lead-003",
+      "propertyId": "prop-002",
+      "name": "Alicia Brown",
+      "email": "alicia.brown@email.com",
+      "phone": "+1 (555) 765-4321",
+      "message": "Interested in backyard amenities.",
+      "visitDuration": 6.8,
+      "scenesViewed": 2,
+      "createdAt": "2025-10-24T12:12:12.085Z",
+      "status": "new",
+      "notes": "Prefers weekend viewings",
+      "source": "virtual-tour"
+    }
+  ],
+  "visitors": [
+    {
+      "id": "visitor-001",
+      "propertyId": "prop-001",
+      "sessionId": "session-001",
+      "email": "visitor1@email.com",
+      "name": "Michael Chen",
+      "phone": "+1 (555) 111-2222",
+      "visitedAt": "2025-10-26T12:12:12.085Z",
+      "duration": 15.3,
+      "scenesViewed": [
+        "scene-001",
+        "scene-002",
+        "scene-003"
+      ],
+      "hotspotClicks": 5,
+      "measurements": 2,
+      "leadQuality": "hot",
+      "deviceType": "desktop",
+      "referralSource": "google",
+      "sceneEngagement": {
+        "scene-001": {
+          "sceneId": "scene-001",
+          "viewCount": 1,
+          "dwellTime": 45,
+          "hotspotInteractions": {
+            "hotspot-001": 1,
+            "hotspot-002": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "visitor-002",
+      "propertyId": "prop-001",
+      "sessionId": "session-002",
+      "visitedAt": "2025-10-27T00:12:12.085Z",
+      "duration": 9.2,
+      "scenesViewed": [
+        "scene-001",
+        "scene-003"
+      ],
+      "hotspotClicks": 3,
+      "measurements": 1,
+      "leadQuality": "warm",
+      "deviceType": "mobile",
+      "referralSource": "facebook"
+    },
+    {
+      "id": "visitor-003",
+      "propertyId": "prop-002",
+      "sessionId": "session-003",
+      "visitedAt": "2025-10-23T12:12:12.085Z",
+      "duration": 7.5,
+      "scenesViewed": [
+        "scene-004",
+        "scene-006"
+      ],
+      "hotspotClicks": 2,
+      "measurements": 0,
+      "leadQuality": "cold",
+      "deviceType": "desktop",
+      "referralSource": "email"
+    }
+  ],
+  "captureServices": [
+    {
+      "id": "capture-001",
+      "propertyId": "prop-001",
+      "clientName": "Robert Williams",
+      "clientEmail": "robert@email.com",
+      "clientPhone": "+1 (555) 555-5555",
+      "propertyAddress": "789 Maple Drive, Los Angeles, CA 90001",
+      "serviceType": "premium",
+      "status": "scheduled",
+      "scheduledDate": "2025-11-03T12:12:12.086Z",
+      "assignedTechnicianId": "tech-001",
+      "notes": "Luxury property, needs 360° coverage",
+      "createdAt": "2025-10-27T12:12:12.086Z"
+    }
+  ],
+  "bookingSlots": [
+    {
+      "id": "slot-001",
+      "propertyId": "prop-001",
+      "date": "2025-10-28T12:12:12.086Z",
+      "time": "10:00 AM",
+      "duration": 60,
+      "available": true
+    },
+    {
+      "id": "slot-002",
+      "propertyId": "prop-001",
+      "date": "2025-10-28T12:12:12.086Z",
+      "time": "2:00 PM",
+      "duration": 60,
+      "available": true
+    },
+    {
+      "id": "slot-003",
+      "propertyId": "prop-001",
+      "date": "2025-10-29T12:12:12.086Z",
+      "time": "10:00 AM",
+      "duration": 60,
+      "available": false,
+      "bookedBy": "John Smith"
+    },
+    {
+      "id": "slot-004",
+      "propertyId": "prop-002",
+      "date": "2025-10-30T12:12:12.086Z",
+      "time": "1:00 PM",
+      "duration": 45,
+      "available": true
+    }
+  ],
+  "propertyMerges": [
+    {
+      "id": "merge-001",
+      "name": "Downtown Complex",
+      "properties": [
+        "prop-001",
+        "prop-002"
+      ],
+      "floorOrder": [
+        "prop-001",
+        "prop-002"
+      ],
+      "createdAt": "2025-10-27T12:12:12.086Z"
+    }
+  ],
+  "crossPlatformShares": [
+    {
+      "propertyId": "prop-001",
+      "platforms": {
+        "googleStreetView": true,
+        "vrbo": true,
+        "realtorCom": true,
+        "zillow": false,
+        "facebook": true,
+        "twitter": true,
+        "linkedin": false
+      },
+      "shareLinks": {
+        "googleStreetView": "https://www.google.com/maps/...",
+        "vrbo": "https://www.vrbo.com/...",
+        "realtorCom": "https://www.realtor.com/..."
+      }
+    },
+    {
+      "propertyId": "prop-002",
+      "platforms": {
+        "googleStreetView": true,
+        "vrbo": false,
+        "realtorCom": true,
+        "zillow": true,
+        "facebook": true,
+        "twitter": false,
+        "linkedin": true
+      },
+      "shareLinks": {
+        "googleStreetView": "https://www.google.com/maps/...",
+        "realtorCom": "https://www.realtor.com/...",
+        "zillow": "https://www.zillow.com/..."
+      }
+    }
+  ],
+  "floorPlans": [
+    {
+      "id": "floor-001",
+      "name": "Penthouse Floor Plan",
+      "imageUrl": "/floor-plan-layout.jpg",
+      "scale": 1,
+      "rooms": [
+        {
+          "id": "room-001",
+          "name": "Private Foyer",
+          "x": 40,
+          "y": 20,
+          "width": 160,
+          "height": 120,
+          "sceneId": "scene-001-foyer",
+          "color": "#0ea5e9",
+          "dimensions": "14ft x 12ft"
+        },
+        {
+          "id": "room-002",
+          "name": "Skyline Living Room",
+          "x": 220,
+          "y": 20,
+          "width": 220,
+          "height": 180,
+          "sceneId": "scene-001",
+          "color": "#3b82f6",
+          "dimensions": "32ft x 25ft"
+        },
+        {
+          "id": "room-003",
+          "name": "Sky Terrace",
+          "x": 460,
+          "y": 20,
+          "width": 180,
+          "height": 200,
+          "sceneId": "scene-001-terrace",
+          "color": "#f97316",
+          "dimensions": "26ft x 24ft"
+        },
+        {
+          "id": "room-004",
+          "name": "Owner's Suite",
+          "x": 220,
+          "y": 220,
+          "width": 200,
+          "height": 160,
+          "sceneId": "scene-002",
+          "color": "#8b5cf6",
+          "dimensions": "24ft x 20ft"
+        },
+        {
+          "id": "room-005",
+          "name": "Spa Ensuite",
+          "x": 440,
+          "y": 220,
+          "width": 180,
+          "height": 140,
+          "sceneId": "scene-002-ensuite",
+          "color": "#ec4899",
+          "dimensions": "20ft x 14ft"
+        },
+        {
+          "id": "room-006",
+          "name": "Chef's Kitchen",
+          "x": 20,
+          "y": 220,
+          "width": 180,
+          "height": 160,
+          "sceneId": "scene-003",
+          "color": "#22c55e",
+          "dimensions": "20ft x 18ft"
+        },
+        {
+          "id": "room-007",
+          "name": "Dining Gallery",
+          "x": 20,
+          "y": 400,
+          "width": 200,
+          "height": 140,
+          "sceneId": "scene-003-dining",
+          "color": "#fde047",
+          "dimensions": "20ft x 16ft"
+        },
+        {
+          "id": "room-008",
+          "name": "Executive Study",
+          "x": 240,
+          "y": 400,
+          "width": 180,
+          "height": 140,
+          "sceneId": "scene-003-office",
+          "color": "#14b8a6",
+          "dimensions": "18ft x 14ft"
+        },
+        {
+          "id": "room-009",
+          "name": "Cinema Lounge",
+          "x": 420,
+          "y": 400,
+          "width": 200,
+          "height": 160,
+          "sceneId": "scene-003-lounge",
+          "color": "#f97316",
+          "dimensions": "22ft x 18ft"
+        }
+      ]
+    },
+    {
+      "id": "floor-002",
+      "name": "Family Home Floor Plan",
+      "imageUrl": "/floor-plan-layout.jpg",
+      "scale": 1,
+      "rooms": [
+        {
+          "id": "room-101",
+          "name": "Foyer",
+          "x": 40,
+          "y": 40,
+          "width": 160,
+          "height": 120,
+          "sceneId": "scene-004",
+          "color": "#22c55e",
+          "dimensions": "12ft x 10ft"
+        },
+        {
+          "id": "room-102",
+          "name": "Living Room",
+          "x": 220,
+          "y": 40,
+          "width": 220,
+          "height": 180,
+          "sceneId": "scene-005",
+          "color": "#0ea5e9",
+          "dimensions": "18ft x 14ft"
+        },
+        {
+          "id": "room-103",
+          "name": "Backyard",
+          "x": 100,
+          "y": 240,
+          "width": 300,
+          "height": 200,
+          "sceneId": "scene-006",
+          "color": "#f97316",
+          "dimensions": "30ft x 20ft"
+        }
+      ]
+    }
+  ],
+  "modelAssets": [
+    {
+      "id": "model-001",
+      "propertyId": "prop-001",
+      "name": "Living Room Furniture",
+      "url": "https://models.baladshelter.com/living-room.glb",
+      "format": "glb",
+      "sceneId": "scene-001",
+      "scale": 1
+    },
+    {
+      "id": "model-002",
+      "propertyId": "prop-002",
+      "name": "Backyard Landscaping",
+      "url": "https://models.baladshelter.com/backyard.glb",
+      "format": "glb",
+      "sceneId": "scene-006",
+      "scale": 1
+    },
+    {
+      "id": "model-003",
+      "propertyId": "prop-001",
+      "name": "Sky Terrace Furniture Set",
+      "url": "https://models.baladshelter.com/sky-terrace.glb",
+      "format": "glb",
+      "sceneId": "scene-001-terrace",
+      "scale": 1
+    },
+    {
+      "id": "model-004",
+      "propertyId": "prop-001",
+      "name": "Dining Gallery Lighting Rig",
+      "url": "https://models.baladshelter.com/dining-lighting.glb",
+      "format": "glb",
+      "sceneId": "scene-003-dining",
+      "scale": 1
+    },
+    {
+      "id": "model-005",
+      "propertyId": "prop-001",
+      "name": "Cinema Lounge Seating",
+      "url": "https://models.baladshelter.com/cinema-lounge.glb",
+      "format": "glb",
+      "sceneId": "scene-003-lounge",
+      "scale": 1
+    }
+  ],
+  "sceneTypeConfigs": [
+    {
+      "id": "scene-type-001",
+      "propertyId": "prop-001",
+      "sceneId": "scene-001",
+      "type": "equirectangular",
+      "imageUrl": "/luxury-penthouse-living-room-360.jpg",
+      "description": "Main living area captured in 8K"
+    },
+    {
+      "id": "scene-type-002",
+      "propertyId": "prop-002",
+      "sceneId": "scene-005",
+      "type": "sphere",
+      "imageUrl": "/open-concept-living-room.jpg",
+      "description": "Spherical panorama of living area"
+    },
+    {
+      "id": "scene-type-003",
+      "propertyId": "prop-001",
+      "sceneId": "scene-001-terrace",
+      "type": "equirectangular",
+      "imageUrl": "https://images.unsplash.com/photo-1479839672679-a46483c0e7c8?auto=format&fit=crop&w=2400&q=80",
+      "description": "Outdoor terrace captured in 8K for immersive playback."
+    },
+    {
+      "id": "scene-type-004",
+      "propertyId": "prop-001",
+      "sceneId": "scene-002-ensuite",
+      "type": "equirectangular",
+      "imageUrl": "https://images.unsplash.com/photo-1616594039964-74805d4d03b2?auto=format&fit=crop&w=2400&q=80",
+      "description": "Spa ensuite 360 render used in the wellness walkthrough."
+    },
+    {
+      "id": "scene-type-005",
+      "propertyId": "prop-001",
+      "sceneId": "scene-003-dining",
+      "type": "cube",
+      "imageUrl": "https://images.unsplash.com/photo-1528909514045-2fa4ac7a08ba?auto=format&fit=crop&w=2400&q=80",
+      "description": "Dining room cube map for real-time relighting."
+    },
+    {
+      "id": "scene-type-006",
+      "propertyId": "prop-001",
+      "sceneId": "scene-003-office",
+      "type": "equirectangular",
+      "imageUrl": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=2400&q=80",
+      "description": "Executive study capture for VR interactive mode."
+    },
+    {
+      "id": "scene-type-007",
+      "propertyId": "prop-001",
+      "sceneId": "scene-003-lounge",
+      "type": "equirectangular",
+      "imageUrl": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=2400&q=80",
+      "description": "Cinema lounge immersive panorama for SPHR import."
+    }
+  ],
+  "technicians": [
+    {
+      "id": "tech-001",
+      "name": "Laura Mendes",
+      "email": "laura.mendes@votex360.com",
+      "phone": "+1 (555) 777-8899",
+      "specialization": "premium",
+      "availability": [
+        "2025-10-29T12:12:12.086Z"
+      ],
+      "completedJobs": 48,
+      "rating": 4.8
+    },
+    {
+      "id": "tech-002",
+      "name": "Ethan Patel",
+      "email": "ethan.patel@votex360.com",
+      "phone": "+1 (555) 222-1188",
+      "specialization": "vr",
+      "availability": [
+        "2025-10-31T12:12:12.086Z"
+      ],
+      "completedJobs": 36,
+      "rating": 4.7
+    }
+  ],
+  "brandingSettings": {
+    "prop-001": {
+      "propertyId": "prop-001",
+      "customCSS": ".tour-player { background: radial-gradient(circle at top, #0f172a, #020617); }",
+      "whiteLabel": false,
+      "removeBranding": false,
+      "customDomain": "penthouse.baladshelter.com"
+    },
+    "prop-002": {
+      "propertyId": "prop-002",
+      "customCSS": ".property-card { border-radius: 24px; }",
+      "whiteLabel": true,
+      "removeBranding": false,
+      "customDomain": "suburbanhomes.baladshelter.com"
+    }
+  }
+}
