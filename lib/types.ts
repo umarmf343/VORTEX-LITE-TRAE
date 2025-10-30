@@ -6,6 +6,40 @@ export type SceneViewMode =
   | "dollhouse"
   | "floor-plan"
 
+export interface DollhouseRoomMetadata {
+  id: string
+  name: string
+  width: number
+  depth: number
+  height: number
+  position: { x: number; y: number; z: number }
+  sceneId?: string
+  color?: string
+  opacity?: number
+  tags?: string[]
+}
+
+export interface DollhouseFloorMetadata {
+  floor: number
+  name: string
+  height: number
+  baseElevation?: number
+  rooms: DollhouseRoomMetadata[]
+}
+
+export interface DollhouseModel {
+  dollhouseId: string
+  spaceId: string
+  meshUrl?: string
+  lodLevels?: string[]
+  boundingBox: { width: number; depth: number; height: number }
+  floors: DollhouseFloorMetadata[]
+  floorGap?: number
+  autoRotatePreview?: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
 export interface Property {
   id: string
   name: string
@@ -32,6 +66,7 @@ export interface Property {
   matterportExperienceLabel?: string
   guidedTours?: GuidedTour[]
   sphrSpace?: SphrSpace
+  dollhouseModel?: DollhouseModel
 }
 
 export interface Scene {
@@ -47,6 +82,7 @@ export interface Scene {
   viewCount?: number
   defaultViewMode?: SceneViewMode
   dataLayers?: DataLayer[]
+  dollhouseModel?: DollhouseModel
 }
 
 export interface Hotspot {

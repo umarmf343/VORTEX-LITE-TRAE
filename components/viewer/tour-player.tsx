@@ -835,6 +835,14 @@ export function TourPlayer({
     }
   }
 
+  const handleDollhouseNavigate = (sceneId: string) => {
+    const sceneIndex = property.scenes.findIndex((scene) => scene.id === sceneId)
+    if (sceneIndex >= 0) {
+      setCurrentSceneIndex(sceneIndex)
+      setMeasurementMode(false)
+    }
+  }
+
   return (
     <div className="w-full h-screen flex flex-col bg-black">
       {/* Header */}
@@ -902,6 +910,8 @@ export function TourPlayer({
                 updateDataLayerVisibility(currentScene.id, layerId, visible)
               }
               walkthroughMeta={walkthroughMeta}
+              dollhouseModel={property.dollhouseModel}
+              onDollhouseNavigate={handleDollhouseNavigate}
             />
           ) : (
             <div className="relative h-full min-h-[55vh] sm:min-h-[65vh] md:min-h-[70vh] overflow-hidden rounded-xl border border-gray-800 bg-gray-900/60">
