@@ -1,0 +1,227 @@
+{
+  "schemaVersion": "virtualtour.ingest.job:v1.0.0",
+  "registeredAt": "2025-10-30T14:28:49.093Z",
+  "schema": {
+    "$schema": "https://schema.virtualtour.ai/v1/ingest-job.json",
+    "$id": "virtualtour.ingest.job",
+    "title": "VirtualTour Ingest Job Schema",
+    "type": "object",
+    "x-model": "virtualtour.ingest.job",
+    "x-version": "v1.0.0",
+    "required": [
+      "job_id",
+      "space_id",
+      "owner",
+      "source_type",
+      "raw_assets",
+      "metadata",
+      "status"
+    ],
+    "properties": {
+      "job_id": {
+        "type": "string",
+        "description": "Unique ID assigned to this processing job."
+      },
+      "space_id": {
+        "type": "string",
+        "description": "Unique ID of the virtual space to which this capture belongs."
+      },
+      "owner": {
+        "type": "string",
+        "description": "User or organization initiating the job."
+      },
+      "source_type": {
+        "type": "string",
+        "enum": [
+          "PHOTOGRAMMETRY",
+          "LIDAR",
+          "HYBRID",
+          "PANO_360"
+        ],
+        "description": "Capture method used for generating the digital twin."
+      },
+      "raw_assets": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "file_name",
+            "file_url",
+            "file_type"
+          ],
+          "properties": {
+            "file_name": {
+              "type": "string"
+            },
+            "file_url": {
+              "type": "string",
+              "format": "uri"
+            },
+            "file_type": {
+              "type": "string",
+              "enum": [
+                "image",
+                "depthmap",
+                "pointcloud",
+                "video"
+              ]
+            },
+            "file_size": {
+              "type": "integer",
+              "description": "Size in bytes",
+              "minimum": 0
+            },
+            "capture_timestamp": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "additionalProperties": false
+        },
+        "minItems": 1
+      },
+      "metadata": {
+        "type": "object",
+        "required": [
+          "device",
+          "capture_location",
+          "imu_data",
+          "gps_accuracy"
+        ],
+        "properties": {
+          "device": {
+            "type": "string",
+            "description": "Capture device model or identifier"
+          },
+          "capture_location": {
+            "type": "object",
+            "properties": {
+              "latitude": {
+                "type": "number"
+              },
+              "longitude": {
+                "type": "number"
+              },
+              "altitude": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "latitude",
+              "longitude"
+            ],
+            "additionalProperties": false
+          },
+          "imu_data": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "Raw accelerometer/gyroscope readings during capture."
+          },
+          "gps_accuracy": {
+            "type": "number",
+            "description": "Meters of GPS precision reported by the device"
+          },
+          "lighting_condition": {
+            "type": "string",
+            "enum": [
+              "DAYLIGHT",
+              "LOW_LIGHT",
+              "MIXED"
+            ]
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "QUEUED",
+          "PROCESSING",
+          "REDUCTION",
+          "FUSION",
+          "TEXTURING",
+          "QA",
+          "PUBLISHED",
+          "FAILED"
+        ],
+        "description": "Real-time processing status."
+      },
+      "progress": {
+        "type": "number",
+        "description": "Processing percentage (0–100).",
+        "minimum": 0,
+        "maximum": 100
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "additionalProperties": false
+  },
+  "queues": {
+    "ingestJobs": "queue.immersive.ingest.jobs",
+    "processingDispatch": "topic.immersive.processing.dispatch",
+    "qaNotifications": "topic.immersive.qa.events"
+  },
+  "statusWebhooks": {
+    "onQueued": {
+      "event": "onQueued",
+      "status": "QUEUED",
+      "enabled": true,
+      "description": "Dispatched when an ingest job is accepted into the queue."
+    },
+    "onProcessing": {
+      "event": "onProcessing",
+      "status": "PROCESSING",
+      "enabled": true,
+      "description": "Triggered when preprocessing workers begin operating on raw assets."
+    },
+    "onReduction": {
+      "event": "onReduction",
+      "status": "REDUCTION",
+      "enabled": true,
+      "description": "Signals the reduction pass that normalizes source capture data."
+    },
+    "onFusion": {
+      "event": "onFusion",
+      "status": "FUSION",
+      "enabled": true,
+      "description": "Issued when LiDAR and photogrammetry assets are fused."
+    },
+    "onTexturing": {
+      "event": "onTexturing",
+      "status": "TEXTURING",
+      "enabled": true,
+      "description": "Notifies subscribers that texture baking is underway."
+    },
+    "onQa": {
+      "event": "onQa",
+      "status": "QA",
+      "enabled": true,
+      "description": "Emitted when the QA stage begins for reconstructed assets."
+    },
+    "onPublished": {
+      "event": "onPublished",
+      "status": "PUBLISHED",
+      "enabled": true,
+      "description": "Confirms a successful publish event to downstream viewers."
+    },
+    "onFailed": {
+      "event": "onFailed",
+      "status": "FAILED",
+      "enabled": true,
+      "description": "Broadcast whenever a job halts due to unrecoverable errors."
+    }
+  },
+  "notes": "Auto-registered via ingest control plane bootstrap."
+}
