@@ -49,7 +49,50 @@
   "views": {
     "walkthrough": {
       "default_node": "cam_01",
-      "pathfinding_enabled": true
+      "pathfinding_enabled": true,
+      "immersive_space": {
+        "spaceId": "3BR_flat_walkthrough",
+        "defaultNodeId": "cam_01",
+        "spatialMeshUrl": "https://cdn.virtualtour.ai/spaces/3BR_flat_01/walkthrough/mesh.glb",
+        "textureSetUrl": "https://cdn.virtualtour.ai/spaces/3BR_flat_01/walkthrough/textures/",
+        "hdrEnvironmentUrl": "https://cdn.virtualtour.ai/spaces/3BR_flat_01/walkthrough/sky.hdr",
+        "manualWalkEnabled": true,
+        "nodes": [
+          {
+            "id": "cam_01",
+            "position": [0, 0, 0],
+            "orientation": { "yaw": 0 },
+            "connectedTo": ["cam_02"],
+            "label": "Foyer Anchor"
+          },
+          {
+            "id": "cam_02",
+            "position": [4.2, 0, 1.4],
+            "orientation": { "yaw": 0.5 },
+            "connectedTo": ["cam_01"],
+            "label": "Living Core"
+          }
+        ],
+        "hotspots": [
+          {
+            "id": "immersive-hs-balcony",
+            "title": "Balcony Slider",
+            "description": "Glass pocket doors retract fully into the wall for seamless indoor-outdoor living.",
+            "position": [4.6, 1.5, -2.2],
+            "type": "info"
+          }
+        ],
+        "autoTour": {
+          "enabled": true,
+          "order": ["cam_01", "cam_02"],
+          "dwellMs": 4800
+        },
+        "captureMetadata": {
+          "resolution": "8K",
+          "depthPrecision": "millimeter",
+          "originAlignment": true
+        }
+      }
     },
     "dollhouse": {
       "model_url": "https://cdn.virtualtour.ai/spaces/3BR_flat_01/dollhouse.glb",
