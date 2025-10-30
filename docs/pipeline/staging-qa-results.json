@@ -1,0 +1,41 @@
+{
+  "generated_at": "2024-07-02T19:00:00Z",
+  "environment": "local-simulated",
+  "results": [
+    {
+      "test": "Photogrammetry trial",
+      "status": "not_run",
+      "notes": "Sample capture assets unavailable in repository; pipeline execution deferred."
+    },
+    {
+      "test": "LiDAR fusion trial",
+      "status": "not_run",
+      "notes": "LiDAR sample data and GPU workers not provisioned in local environment."
+    },
+    {
+      "test": "Measurement QA",
+      "status": "not_run",
+      "notes": "Requires processed digital twin with reference measurements."
+    },
+    {
+      "test": "Viewer performance",
+      "status": "not_run",
+      "notes": "Network simulation tooling unavailable inside CI container."
+    },
+    {
+      "test": "Mode transitions",
+      "status": "not_run",
+      "notes": "Awaiting processed manifest to drive walkthrough."
+    },
+    {
+      "test": "Hotspot & analytics",
+      "status": "not_run",
+      "notes": "Analytics backend not connected in local environment."
+    },
+    {
+      "test": "Redaction",
+      "status": "not_run",
+      "notes": "Automated redaction queue not implemented; placeholder only."
+    }
+  ]
+}
