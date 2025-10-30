@@ -36,6 +36,11 @@
       "test": "Redaction",
       "status": "not_run",
       "notes": "Automated redaction queue not implemented; placeholder only."
+    },
+    {
+      "test": "Video preview player smoke",
+      "status": "warning",
+      "notes": "360° video QA suite executed for space_3BR_flat_01; stabilization drift flagged for manual review."
     }
   ]
 }

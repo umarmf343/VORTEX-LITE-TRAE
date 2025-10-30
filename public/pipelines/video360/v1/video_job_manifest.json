@@ -1,0 +1,64 @@
+{
+  "job_id": "video_job_space_3BR_flat_01",
+  "pipeline": "video360",
+  "version": "v1",
+  "space_id": "space_3BR_flat_01",
+  "queued_at": "2025-10-30T11:05:00Z",
+  "priority": "standard",
+  "requested_by": "user_54XF9",
+  "status": "QUEUED",
+  "source_capture": {
+    "stitch": {
+      "input_bucket": "s3://immersive-raw/spaces/space_3BR_flat_01/video/",
+      "input_fps": 60,
+      "exposure_locked": true,
+      "color_profile": "D-Log",
+      "gyro_calibration": "cal_20251030.json"
+    },
+    "audio_tracks": [
+      {
+        "name": "ambisonic_b",
+        "format": "AmbiX",
+        "channels": 4,
+        "sample_rate_hz": 48000
+      }
+    ],
+    "metadata": {
+      "rig": "Insta360 Titan",
+      "capture_date": "2025-10-29",
+      "location": {
+        "lat": 6.5244,
+        "lng": 3.3792
+      },
+      "operator": "tech-002"
+    }
+  },
+  "deliverables": [
+    {
+      "preset_id": "vp-master-8k-prores",
+      "destination": "s3://immersive-archive/masters/space_3BR_flat_01/",
+      "retention_days": 180
+    },
+    {
+      "preset_id": "vp-streaming-6k-hevc",
+      "destination": "s3://immersive-processed/streaming/space_3BR_flat_01/",
+      "retention_days": 90
+    },
+    {
+      "preset_id": "vp-social-4k-h264",
+      "destination": "s3://immersive-processed/social/space_3BR_flat_01/",
+      "retention_days": 60
+    }
+  ],
+  "qa_config": {
+    "run_spatial_alignment": true,
+    "run_color_balance": true,
+    "run_audio_phase_check": true,
+    "max_allowed_color_delta": 2.5,
+    "max_allowed_stabilization_drift": 0.4
+  },
+  "webhook": {
+    "on_complete": "https://ops.virtualtour.ai/hooks/video360/job-complete",
+    "on_failure": "https://ops.virtualtour.ai/hooks/video360/job-failed"
+  }
+}
