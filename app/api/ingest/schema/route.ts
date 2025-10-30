@@ -8,5 +8,6 @@ export async function GET() {
     version: state.schemaVersion,
     queues: state.queues,
     schema: state.schema,
+    status_webhooks: state.statusWebhooks,
   })
 }

@@ -318,61 +318,50 @@ export interface CaptureService {
   createdAt: Date
 }
 
-export type IngestSourceType = "photogrammetry" | "rgbd" | "lidar360" | "hybrid"
+export type IngestSourceType = "PHOTOGRAMMETRY" | "LIDAR" | "HYBRID" | "PANO_360"
 
-export type IngestJobState =
-  | "queued"
-  | "processing"
-  | "qa"
-  | "publish-ready"
-  | "published"
-  | "failed"
+export type IngestJobStatus =
+  | "QUEUED"
+  | "PROCESSING"
+  | "REDUCTION"
+  | "FUSION"
+  | "TEXTURING"
+  | "QA"
+  | "PUBLISHED"
+  | "FAILED"
 
-export interface IngestJobFile {
-  uri: string
-  sizeBytes: number
-  checksum: string
-  modality: "image" | "depth" | "pointcloud" | "video" | "imu"
-  captureSpan?: {
-    startedAt?: string
-    endedAt?: string
-  }
+export interface IngestJobRawAsset {
+  fileName: string
+  fileUrl: string
+  fileType: "image" | "depthmap" | "pointcloud" | "video"
+  fileSize?: number
+  captureTimestamp?: string
 }
 
-export interface IngestJobCaptureMeta {
-  device: {
-    model: string
-    sensorType: string
-    firmware?: string
+export interface IngestJobMetadata {
+  device: string
+  captureLocation: {
+    latitude: number
+    longitude: number
+    altitude?: number
   }
-  timestampUtc: string
-  captureAppVersion: string
-  imuTimestamps?: string[]
-  environment?: {
-    lightingNotes?: string
-    temperatureC?: number
-  }
+  imuData: Record<string, unknown>[]
+  gpsAccuracy: number
+  lightingCondition?: "DAYLIGHT" | "LOW_LIGHT" | "MIXED"
+  notes?: string
 }
 
 export interface IngestJob {
   jobId: string
-  owner: {
-    team: string
-    submittedBy: string
-  }
+  spaceId: string
+  owner: string
   sourceType: IngestSourceType
-  rawFiles: IngestJobFile[]
-  captureMeta: IngestJobCaptureMeta
-  locationId: string
-  tags: string[]
-  priority?: "standard" | "expedited" | "sla-critical"
-  qaRequirements?: {
-    accuracyToleranceCm?: number
-    privacyRedaction?: boolean
-    accessLevel?: "internal" | "client" | "public"
-  }
-  webhookUrls?: string[]
-  state?: IngestJobState
+  rawAssets: IngestJobRawAsset[]
+  metadata: IngestJobMetadata
+  status: IngestJobStatus
+  progress?: number
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface IngestQueueConfig {
@@ -381,11 +370,21 @@ export interface IngestQueueConfig {
   qaNotifications: string
 }
 
+export interface IngestStatusWebhookConfig {
+  event: string
+  status: IngestJobStatus
+  enabled: boolean
+  description: string
+}
+
+export type IngestStatusWebhookMap = Record<string, IngestStatusWebhookConfig>
+
 export interface IngestControlPlaneState {
   schemaVersion: string
   registeredAt: string
   schema: Record<string, unknown>
   queues: IngestQueueConfig
+  statusWebhooks: IngestStatusWebhookMap
   notes?: string
 }
 
