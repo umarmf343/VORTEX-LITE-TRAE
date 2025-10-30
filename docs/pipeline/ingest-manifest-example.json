@@ -1,51 +1,47 @@
 {
-  "job_id": "ingest_9f72b1cd",
-  "owner": {
-    "team": "Capture Ops",
-    "submitted_by": "field.lead@baladshelter.com"
-  },
-  "source_type": "hybrid",
-  "raw_files": [
+  "job_id": "job_20251030_A1X9",
+  "space_id": "space_3BR_flat_01",
+  "owner": "user_54XF9",
+  "source_type": "HYBRID",
+  "raw_assets": [
     {
-      "uri": "s3://immersive-raw/prop-1254/20240618/kitchen_main_01_photogram.zip",
-      "size_bytes": 182345678,
-      "checksum": "sha256:3cf1d...",
-      "modality": "image",
-      "capture_span": {
-        "started_at": "2024-06-18T15:02:11Z",
-        "ended_at": "2024-06-18T15:12:45Z"
-      }
+      "file_name": "IMG_0012.JPG",
+      "file_url": "https://storage.virtualtour.ai/spaces/3BR_flat_01/IMG_0012.JPG",
+      "file_type": "image",
+      "file_size": 4821991,
+      "capture_timestamp": "2025-10-30T09:42:16Z"
     },
     {
-      "uri": "s3://immersive-raw/prop-1254/20240618/kitchen_main_lidar.ply",
-      "size_bytes": 52345678,
-      "checksum": "sha256:99aa1...",
-      "modality": "pointcloud"
+      "file_name": "IMG_0013.JPG",
+      "file_url": "https://storage.virtualtour.ai/spaces/3BR_flat_01/IMG_0013.JPG",
+      "file_type": "image",
+      "file_size": 4953402,
+      "capture_timestamp": "2025-10-30T09:42:22Z"
+    },
+    {
+      "file_name": "scan_001.pcd",
+      "file_url": "https://storage.virtualtour.ai/spaces/3BR_flat_01/scan_001.pcd",
+      "file_type": "pointcloud",
+      "file_size": 18723109,
+      "capture_timestamp": "2025-10-30T09:43:05Z"
     }
   ],
-  "capture_meta": {
-    "device": {
-      "model": "iPhone 15 Pro",
-      "sensor_type": "LiDAR+RGB",
-      "firmware": "iOS 17.4"
+  "metadata": {
+    "device": "iPhone 15 Pro (LiDAR)",
+    "capture_location": {
+      "latitude": 6.5244,
+      "longitude": 3.3792,
+      "altitude": 56.2
     },
-    "timestamp_utc": "2024-06-18T15:30:00Z",
-    "capture_app_version": "2.3.1",
-    "imu_timestamps": ["2024-06-18T15:02:11Z", "2024-06-18T15:12:45Z"],
-    "environment": {
-      "lighting_notes": "All fixtures on, blinds half open.",
-      "temperature_c": 22.5
-    }
+    "imu_data": [
+      { "timestamp": 1698682832000, "accel": [0.03, 0.12, 9.78], "gyro": [0.001, -0.008, 0.006] }
+    ],
+    "gps_accuracy": 2.1,
+    "lighting_condition": "DAYLIGHT",
+    "notes": "Full apartment sweep with hallway overlap."
   },
-  "location_id": "prop-1254",
-  "tags": ["interior", "residential", "three-bedroom"],
-  "priority": "expedited",
-  "qa_requirements": {
-    "accuracy_tolerance_cm": 3,
-    "privacy_redaction": true,
-    "access_level": "client"
-  },
-  "webhook_urls": [
-    "https://staging.baladshelter.com/webhooks/ingest"
-  ]
+  "status": "QUEUED",
+  "progress": 0,
+  "created_at": "2025-10-30T09:44:00Z",
+  "updated_at": "2025-10-30T09:44:00Z"
 }
