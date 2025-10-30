@@ -1,0 +1,13 @@
+{
+  "enable_hd_photo_export": true,
+  "default_output_resolution": "4096x2160",
+  "default_dpi": 300,
+  "auto_generate_at_scan": true,
+  "module": "MediaExporter.HDPhotoModule",
+  "supersampling": 4,
+  "background_mode": "hdr",
+  "icc_profiles": {
+    "web": "sRGB",
+    "print": "CMYK"
+  }
+}

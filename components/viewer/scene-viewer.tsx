@@ -44,6 +44,8 @@ import {
   Trash2,
   Undo2,
   Building2,
+  Camera,
+  Globe,
 } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 import {
@@ -369,6 +371,14 @@ interface SceneViewerProps {
     metadata?: { floor: number; roomId: string; roomName: string },
   ) => void
   immersiveWalkthrough?: ImmersiveWalkthroughSpace | null
+  onCaptureStill?: (options: { kind: "panorama" | "still" }) => void
+  capturePreview?: {
+    url: string
+    label: string
+    resolution: string
+    timestamp: string
+    format: string
+  } | null
 }
 
 export function SceneViewer({
@@ -395,6 +405,8 @@ export function SceneViewer({
   dollhouseModel,
   onDollhouseNavigate,
   immersiveWalkthrough,
+  onCaptureStill,
+  capturePreview,
 }: SceneViewerProps) {
   const [measuring, setMeasuringState] = useState<boolean>(measurementMode ?? false)
   const [measureStart, setMeasureStart] = useState<{ x: number; y: number } | null>(null)
@@ -2032,6 +2044,46 @@ export function SceneViewer({
         onMouseMove={immersiveWalkthroughActive ? undefined : handlePointerMove}
         onMouseLeave={immersiveWalkthroughActive ? undefined : handlePointerLeave}
       >
+        {onCaptureStill ? (
+          <div className="pointer-events-none absolute top-4 right-4 z-30 flex w-full max-w-xs flex-col items-end gap-3">
+            <div className="pointer-events-auto flex flex-wrap items-center justify-end gap-2">
+              <Button
+                size="sm"
+                className="gap-2 bg-emerald-600/90 text-white hover:bg-emerald-500"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onCaptureStill({ kind: "still" })
+                }}
+              >
+                <Camera className="h-4 w-4" /> Capture Still
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-2 border-blue-500/60 text-blue-100"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onCaptureStill({ kind: "panorama" })
+                }}
+              >
+                <Globe className="h-4 w-4" /> Capture 360°
+              </Button>
+            </div>
+            {capturePreview ? (
+              <div className="pointer-events-auto w-full overflow-hidden rounded-lg border border-emerald-500/40 bg-black/80 shadow-xl">
+                <div className="relative h-24 w-full overflow-hidden">
+                  <img src={capturePreview.url} alt={capturePreview.label} className="h-full w-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+                </div>
+                <div className="space-y-1 p-3 text-xs text-gray-200">
+                  <p className="font-semibold text-white">{capturePreview.label}</p>
+                  <p className="text-[11px] text-gray-400">{capturePreview.resolution} • {capturePreview.format}</p>
+                  <p className="text-[10px] text-emerald-300">Captured {new Date(capturePreview.timestamp).toLocaleTimeString()}</p>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
         {renderError && sphericalRendererActive ? (
           <>
             <img
