@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "VirtualTour Measurement Schema",
+  "version": "1.0.0",
+  "description": "Schema describing persisted measurements, calibration metadata, and export configuration for Measurement Mode.",
+  "type": "object",
+  "required": ["measurements"],
+  "properties": {
+    "spaceId": {
+      "type": "string"
+    },
+    "accuracyScore": {
+      "type": "object",
+      "required": ["rmsErrorCm", "accuracyPercent"],
+      "properties": {
+        "rmsErrorCm": { "type": "number", "minimum": 0 },
+        "accuracyPercent": { "type": "number", "minimum": 0, "maximum": 1 },
+        "toleranceCm": { "type": "number", "minimum": 0 },
+        "capturedAt": { "type": "string", "format": "date-time" },
+        "anchorDistanceMeters": { "type": "number", "minimum": 0 },
+        "operatorId": { "type": "string" }
+      }
+    },
+    "measurements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "measurementType",
+          "distance",
+          "unit"
+        ],
+        "properties": {
+          "id": { "type": "string" },
+          "measurementType": {
+            "type": "string",
+            "enum": ["distance", "path", "area", "height", "room", "volume"]
+          },
+          "unit": { "type": "string", "enum": ["ft", "m", "in"] },
+          "distance": { "type": "number" },
+          "areaSquareMeters": { "type": "number" },
+          "height": { "type": "number" },
+          "startX": { "type": "number" },
+          "startY": { "type": "number" },
+          "endX": { "type": "number" },
+          "endY": { "type": "number" },
+          "points2d": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["x", "y"],
+              "properties": {
+                "x": { "type": "number" },
+                "y": { "type": "number" }
+              }
+            }
+          },
+          "points3d": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["x", "y", "z"],
+              "properties": {
+                "x": { "type": "number" },
+                "y": { "type": "number" },
+                "z": { "type": "number" },
+                "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+                "source": { "type": "string", "enum": ["lidar", "photogrammetry", "hybrid"] }
+              }
+            }
+          },
+          "accuracy": {
+            "type": "object",
+            "required": ["rmsErrorCm", "confidence", "source", "calibrated"],
+            "properties": {
+              "rmsErrorCm": { "type": "number", "minimum": 0 },
+              "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+              "calibrated": { "type": "boolean" },
+              "toleranceCm": { "type": "number", "minimum": 0 },
+              "calibratedAt": { "type": "string", "format": "date-time" },
+              "source": { "type": "string", "enum": ["lidar", "photogrammetry", "hybrid"] }
+            }
+          },
+          "annotation": {
+            "type": "object",
+            "properties": {
+              "title": { "type": "string" },
+              "note": { "type": "string" },
+              "tags": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          },
+          "redacted": { "type": "boolean" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "createdBy": { "type": "string" }
+        }
+      }
+    }
+  }
+}

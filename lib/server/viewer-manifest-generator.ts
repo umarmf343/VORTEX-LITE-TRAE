@@ -5,6 +5,9 @@ import path from "path"
 import { getDataSnapshot, type StoredData } from "@/lib/server/data-store"
 import type {
   ImmersiveWalkthroughSpace,
+  MeasurementAccuracy,
+  MeasurementAnnotationMeta,
+  MeasurementKind,
   ViewerManifest,
   ViewerManifestHotspotType,
   WalkthroughNode,
@@ -391,21 +394,88 @@ const buildMeasurements = (
     scene.measurements?.forEach((measurement) => {
       if (typeof measurement !== "object" || measurement === null) return
       const unitScale = unitToMeters((measurement as Record<string, unknown>)["unit"] as string | undefined)
-      const distance = Number((measurement as Record<string, unknown>)["distance"] ?? 0) * unitScale
+      const type = ((measurement as Record<string, unknown>)["measurementType"] ?? "distance") as string
+      const rawDistance = Number((measurement as Record<string, unknown>)["distance"] ?? 0)
+      const areaSquareMeters = Number(
+        (measurement as Record<string, unknown>)["areaSquareMeters"] ?? NaN,
+      )
+
+      const points3d = Array.isArray((measurement as Record<string, unknown>)["points3d"])
+        ? ((measurement as Record<string, unknown>)["points3d"] as Array<Record<string, unknown>>)
+        : undefined
+
+      const toManifestPoint = (point: Record<string, unknown> | null | undefined, fallback: number[]): number[] => {
+        if (point && typeof point === "object") {
+          const x = Number((point as Record<string, unknown>)["x"] ?? NaN)
+          const y = Number((point as Record<string, unknown>)["y"] ?? NaN)
+          const z = Number((point as Record<string, unknown>)["z"] ?? NaN)
+          if (Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z)) {
+            return [x, y, z]
+          }
+        }
+        return fallback
+      }
+
+      const legacyPointA = [
+        Number((measurement as Record<string, unknown>)["startX"] ?? 0) / 10,
+        0,
+        Number((measurement as Record<string, unknown>)["startY"] ?? 0) / 10,
+      ]
+      const legacyPointB = [
+        Number((measurement as Record<string, unknown>)["endX"] ?? 0) / 10,
+        0,
+        Number((measurement as Record<string, unknown>)["endY"] ?? 0) / 10,
+      ]
+
+      const pointA = points3d?.[0]
+        ? toManifestPoint(points3d[0], legacyPointA)
+        : legacyPointA
+      const pointB = points3d && points3d.length > 0
+        ? toManifestPoint(points3d[points3d.length - 1], legacyPointB)
+        : legacyPointB
+
+      const manifestPoints = points3d
+        ?.map((point) => toManifestPoint(point, legacyPointA))
+        .filter((point) => point.length === 3)
+
+      const distanceMeters = Number.isFinite(rawDistance)
+        ? Number((rawDistance * unitScale).toFixed(3))
+        : null
+      const accuracyValue = (measurement as Record<string, unknown>)["accuracy"]
+      const annotation = (measurement as Record<string, unknown>)["annotation"]
+      const accuracy =
+        accuracyValue && typeof accuracyValue === "object"
+          ? (accuracyValue as MeasurementAccuracy)
+          : undefined
+      const confidence =
+        accuracy && typeof accuracy.confidence === "number" ? accuracy.confidence : undefined
+      const createdAt = (measurement as Record<string, unknown>)["createdAt"]
+      const redacted = Boolean((measurement as Record<string, unknown>)["redacted"])
+
       measurements.push({
         id: (measurement as Record<string, unknown>)["id"] as string,
-        point_a: [
-          Number((measurement as Record<string, unknown>)["startX"] ?? 0) / 10,
-          0,
-          Number((measurement as Record<string, unknown>)["startY"] ?? 0) / 10
-        ],
-        point_b: [
-          Number((measurement as Record<string, unknown>)["endX"] ?? 0) / 10,
-          0,
-          Number((measurement as Record<string, unknown>)["endY"] ?? 0) / 10
-        ],
-        distance_meters: Number.isFinite(distance) ? Number(distance.toFixed(2)) : 0,
-        created_by: author
+        type: (type as string) as MeasurementKind,
+        point_a: pointA,
+        point_b: pointB,
+        points: manifestPoints,
+        distance_meters:
+          type === "area" || type === "room" ? null : distanceMeters,
+        area_m2: Number.isFinite(areaSquareMeters) ? areaSquareMeters : undefined,
+        height_meters:
+          type === "height" || type === "volume"
+            ? Number(
+                (measurement as Record<string, unknown>)["height"] ?? NaN,
+              ) * unitScale
+            : undefined,
+        accuracy,
+        redacted: redacted || undefined,
+        annotation:
+          annotation && typeof annotation === "object"
+            ? (annotation as MeasurementAnnotationMeta)
+            : undefined,
+        confidence: typeof confidence === "number" ? confidence : undefined,
+        created_by: author,
+        created_at: typeof createdAt === "string" ? createdAt : undefined,
       })
     })
   })

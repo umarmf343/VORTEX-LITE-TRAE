@@ -239,8 +239,8 @@ const measurementRecordEqual = (
     if (!measurementA || !measurementB) return false
     if (!pointsEqual(measurementA.start, measurementB.start)) return false
     if (!pointsEqual(measurementA.end, measurementB.end)) return false
-    const pointsA = measurementA.points ?? []
-    const pointsB = measurementB.points ?? []
+    const pointsA = measurementA.points2d ?? []
+    const pointsB = measurementB.points2d ?? []
     if (!projectedArrayEqual(pointsA, pointsB)) return false
   }
   return true
@@ -315,13 +315,18 @@ const convertMeasurementValue = (
   if (fromUnit === toUnit) return value
   const fromFactor = UNIT_TO_METERS[fromUnit] ?? 1
   const toFactor = UNIT_TO_METERS[toUnit] ?? 1
-  const exponent = type === "distance" ? 1 : type === "area" ? 2 : 3
+  const exponent =
+    type === "area" || type === "room"
+      ? 2
+      : type === "volume"
+        ? 3
+        : 1
   const baseMeters = value * Math.pow(fromFactor, exponent)
   return baseMeters / Math.pow(toFactor, exponent)
 }
 
 const measurementUnitLabel = (unit: Measurement["unit"], type: Measurement["measurementType"]) => {
-  if (type === "area") {
+  if (type === "area" || type === "room") {
     return `${unit}²`
   }
   if (type === "volume") {
@@ -1001,8 +1006,8 @@ export function SceneViewer({
       const start = projectPercent(measurement.startX, measurement.startY)
       const end = projectPercent(measurement.endX, measurement.endY)
       const projected: ProjectedMeasurement = { start, end }
-      if (measurement.points && measurement.points.length > 0) {
-        projected.points = measurement.points.map((point) => projectPercent(point.x, point.y))
+      if (measurement.points2d && measurement.points2d.length > 0) {
+        projected.points = measurement.points2d.map((point) => projectPercent(point.x, point.y))
       }
       nextMeasurements[measurement.id] = projected
     }
@@ -1427,6 +1432,7 @@ export function SceneViewer({
         measurementType: "distance",
         label: getNextMeasurementLabel("distance"),
         createdAt: new Date().toISOString(),
+        accuracy: measurementsRef.current.find((existing) => existing.measurementType === "distance")?.accuracy,
       }
       addMeasurement(measurement)
     },
@@ -1439,6 +1445,7 @@ export function SceneViewer({
       const rawArea = polygonAreaPercent(points)
       if (rawArea === 0) return
       const areaFt = convertRawArea(rawArea, "ft")
+      const areaMeters = convertMeasurementValue(areaFt, "ft", "m", "area")
       const measurement: Measurement = {
         id: `measure-${Date.now()}`,
         startX: points[0].x,
@@ -1448,7 +1455,8 @@ export function SceneViewer({
         distance: Number.parseFloat(areaFt.toFixed(1)),
         unit: "ft",
         measurementType: "area",
-        points: points.map((point) => ({ ...point })),
+        points2d: points.map((point) => ({ ...point })),
+        areaSquareMeters: Number.isFinite(areaMeters) ? Number(areaMeters.toFixed(2)) : undefined,
         label: getNextMeasurementLabel("area"),
         createdAt: new Date().toISOString(),
       }
@@ -1474,7 +1482,7 @@ export function SceneViewer({
         distance: Number.parseFloat(volumeFt.toFixed(1)),
         unit: "ft",
         measurementType: "volume",
-        points: points.map((point) => ({ ...point })),
+        points2d: points.map((point) => ({ ...point })),
         height: Number.parseFloat(safeHeight.toFixed(2)),
         label: getNextMeasurementLabel("volume"),
         createdAt: new Date().toISOString(),
@@ -1731,7 +1739,7 @@ export function SceneViewer({
           heightUnit: measurement.height !== undefined ? measurementUnitLabel(displayUnit, "distance") : undefined,
           start: { x: measurement.startX, y: measurement.startY },
           end: { x: measurement.endX, y: measurement.endY },
-          points: measurement.points ?? [],
+          points: measurement.points2d ?? [],
           createdAt: measurement.createdAt ?? null,
         }
       })
@@ -2232,7 +2240,7 @@ export function SceneViewer({
           }
 
           if (measurement.measurementType === "area" || measurement.measurementType === "volume") {
-            const points = measurement.points ?? []
+            const points = measurement.points2d ?? []
             if (points.length >= 3) {
               const centroid = polygonCentroid(points)
               const polygonPoints = points.map((point) => `${point.x},${point.y}`).join(" ")
@@ -2614,8 +2622,8 @@ export function SceneViewer({
                             {measurement.measurementType === "volume" && measurement.height ? (
                               <p className="text-[11px] text-gray-500">Height {measurement.height.toFixed(1)} ft</p>
                             ) : null}
-                            {measurement.points?.length ? (
-                              <p className="text-[11px] text-gray-500">{measurement.points.length} points</p>
+                            {measurement.points2d?.length ? (
+                              <p className="text-[11px] text-gray-500">{measurement.points2d.length} points</p>
                             ) : null}
                           </div>
                           <Button

@@ -100,24 +100,100 @@ export interface Hotspot {
   clickCount?: number
 }
 
-export interface MeasurementPoint {
+export interface MeasurementPoint2D {
   x: number
   y: number
 }
 
+export interface MeasurementPoint3D {
+  x: number
+  y: number
+  z: number
+  /** Confidence score derived from the snapping source (0-1). */
+  confidence?: number
+  /** Indicates the data source used to derive the coordinate. */
+  source?: "lidar" | "photogrammetry" | "hybrid"
+}
+
+export interface MeasurementAccuracy {
+  /**
+   * Root mean square error, stored in centimeters. When calibration is not
+   * available this value represents an inferred tolerance based on capture
+   * metadata.
+   */
+  rmsErrorCm: number
+  /** Accuracy represented as 0-1 percentage. */
+  confidence: number
+  /** True when a calibration anchor has been applied in the current session. */
+  calibrated: boolean
+  /** Optional tolerance override requested by the operator (centimeters). */
+  toleranceCm?: number
+  /** Timestamp when calibration last occurred (ISO 8601). */
+  calibratedAt?: string
+  /** Source of the geometry backing the measurement. */
+  source: "lidar" | "photogrammetry" | "hybrid"
+}
+
+export type MeasurementKind =
+  | "distance"
+  | "path"
+  | "area"
+  | "height"
+  | "room"
+  | "volume"
+
+export interface MeasurementAnnotationMeta {
+  /** Display title supplied by the user. */
+  title?: string
+  /** Optional free-form user notes. */
+  note?: string
+  /** Tags for grouping or filtering saved measurements. */
+  tags?: string[]
+}
+
 export interface Measurement {
   id: string
+  /** Backwards compatibility fields for legacy 2D overlay consumers. */
   startX: number
   startY: number
   endX: number
   endY: number
+  /** Primary measurement value expressed in the persisted unit. */
   distance: number
   unit: "ft" | "m" | "in"
-  measurementType: "distance" | "area" | "volume"
+  measurementType: MeasurementKind
   label?: string
-  points?: MeasurementPoint[]
+  /** Optional collection of 2D points maintained for overlay rendering. */
+  points2d?: MeasurementPoint2D[]
+  /**
+   * Three-dimensional snapping coordinates used for precision metrics. When
+   * present they should be treated as the source of truth for exports.
+   */
+  points3d?: MeasurementPoint3D[]
+  /** Optional polygonal area (square meters) associated with the measurement. */
+  areaSquareMeters?: number
+  /**
+   * When applicable, stores computed height (meters) for vertical
+   * measurements.
+   */
   height?: number
+  /** Optional metadata describing the applied calibration/accuracy. */
+  accuracy?: MeasurementAccuracy
+  /** Indicates whether the measurement references a redacted surface. */
+  redacted?: boolean
+  /** Free-form annotation metadata persisted with the measurement. */
+  annotation?: MeasurementAnnotationMeta
   createdAt?: string
+  createdBy?: string
+}
+
+export interface SpaceCalibrationRecord {
+  rmsErrorCm: number
+  accuracyPercent: number
+  toleranceCm?: number
+  anchorDistanceMeters?: number
+  capturedAt?: string
+  operatorId?: string
 }
 
 export interface MeasurementExportRecord {
@@ -626,10 +702,19 @@ export interface ViewerManifestHotspot {
 
 export interface ViewerManifestMeasurement {
   id: string
+  type: MeasurementKind
   point_a: number[]
   point_b: number[]
-  distance_meters: number
+  points?: number[][]
+  distance_meters: number | null
+  area_m2?: number | null
+  height_meters?: number | null
+  accuracy?: MeasurementAccuracy
+  redacted?: boolean
+  annotation?: MeasurementAnnotationMeta
+  confidence?: number
   created_by: string
+  created_at?: string
 }
 
 export interface ViewerManifestAnalytics {
