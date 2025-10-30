@@ -1,69 +1,101 @@
 {
-  "space_id": "space_demo_apt_302",
-  "published_at": "2024-07-02T18:45:00Z",
-  "dollhouse_model_url": "https://cdn.immersive.example/spaces/space_demo_apt_302/dollhouse/model.glb",
-  "floorplans": [
-    {
-      "level": 1,
-      "label": "Level 1",
-      "svg_url": "https://cdn.immersive.example/spaces/space_demo_apt_302/floorplan/level1.svg"
-    }
-  ],
-  "lods": [
+  "space_id": "space_3BR_flat_01",
+  "version": "v1.0.0",
+  "owner": "user_54XF9",
+  "created_at": "2025-10-30T10:30:00Z",
+  "geometry": {
+    "lod_levels": [
+      { "level": 0, "triangle_count": 50000, "tile_size": 256, "description": "Preview geometry" },
+      { "level": 1, "triangle_count": 250000, "tile_size": 512, "description": "High detail geometry" }
+    ],
+    "mesh_tiles": [
+      {
+        "tile_id": "mesh_tile_01",
+        "url": "https://cdn.virtualtour.ai/spaces/3BR_flat_01/tiles/mesh_tile_01.glb",
+        "lod": 0,
+        "bounds": [0, 0, 0, 12, 8, 3]
+      }
+    ]
+  },
+  "textures": [
     {
       "lod": 0,
-      "tiles": "https://cdn.immersive.example/spaces/space_demo_apt_302/mesh/level_0/{x}_{y}.glb",
-      "max_triangles": 25000
-    },
-    {
-      "lod": 1,
-      "tiles": "https://cdn.immersive.example/spaces/space_demo_apt_302/mesh/level_1/{x}_{y}.glb",
-      "max_triangles": 60000
+      "url": "https://cdn.virtualtour.ai/spaces/3BR_flat_01/textures/base_diffuse.ktx2",
+      "resolution": "1024x1024",
+      "format": "ktx2"
     }
   ],
-  "camera_nodes": [
-    {
-      "id": "node_entrance",
-      "position": [1.24, 1.72, -3.11],
-      "orientation_quaternion": [0.12, 0.01, 0.88, 0.46],
-      "spline_next": "node_living",
-      "floor": 1
+  "navigation": {
+    "camera_nodes": [
+      {
+        "id": "cam_01",
+        "position": [2.3, 1.6, 1.7],
+        "rotation": [0, 90, 0],
+        "fov": 75,
+        "thumbnail": "https://cdn.virtualtour.ai/spaces/3BR_flat_01/thumbs/cam_01.jpg"
+      },
+      {
+        "id": "cam_02",
+        "position": [5.0, 1.6, 1.7],
+        "rotation": [0, 180, 0],
+        "fov": 75,
+        "thumbnail": "https://cdn.virtualtour.ai/spaces/3BR_flat_01/thumbs/cam_02.jpg"
+      }
+    ],
+    "connections": [
+      { "from": "cam_01", "to": "cam_02", "transition_type": "WALK", "distance": 3.1 }
+    ]
+  },
+  "views": {
+    "walkthrough": {
+      "default_node": "cam_01",
+      "pathfinding_enabled": true
     },
-    {
-      "id": "node_living",
-      "position": [4.02, 1.64, -1.05],
-      "orientation_quaternion": [0.03, 0.12, 0.92, 0.37],
-      "spline_next": "node_kitchen",
-      "floor": 1
+    "dollhouse": {
+      "model_url": "https://cdn.virtualtour.ai/spaces/3BR_flat_01/dollhouse.glb",
+      "scale_factor": 1.0,
+      "supports_floor_toggle": true
+    },
+    "floorplan": {
+      "projection_url": "https://cdn.virtualtour.ai/spaces/3BR_flat_01/floorplan.svg",
+      "room_polygons": [
+        {
+          "room_id": "living_room",
+          "name": "Living Room",
+          "points": [[0, 0], [6, 0], [6, 4], [0, 4]]
+        }
+      ]
     }
-  ],
+  },
   "hotspots": [
     {
-      "id": "hotspot_fireplace",
-      "type": "info",
-      "position": [4.50, 1.10, -0.75],
-      "payload": {
-        "title": "Custom Fireplace",
-        "description": "Energy-efficient insert installed in 2023",
-        "media_url": "https://cdn.immersive.example/assets/fireplace.jpg"
-      },
-      "permissions": ["viewer", "commenter"],
-      "created_at": "2024-07-02T18:45:00Z",
-      "author": "designer@baladshelter.com"
+      "id": "hs_tv",
+      "type": "INFO",
+      "title": "Smart TV",
+      "content": "55-inch 4K Smart TV with voice control",
+      "position": [3.2, 1.4, 0.2],
+      "visible_in_views": ["walkthrough"],
+      "author": "user_54XF9",
+      "created_at": "2025-10-30T10:32:00Z"
     }
   ],
-  "measurement_index": {
-    "grid_resolution_cm": 2,
-    "snapping": "surface",
-    "accuracy_score_cm": 3.4
+  "measurements": [
+    {
+      "id": "measure_wall",
+      "point_a": [0.2, 0.0, 0.2],
+      "point_b": [6.0, 0.0, 0.2],
+      "distance_meters": 5.8,
+      "created_by": "user_54XF9"
+    }
+  ],
+  "analytics": {
+    "views_count": 0,
+    "average_dwell_time": 0,
+    "click_heatmap_url": ""
   },
-  "access_policy": {
-    "token_ttl_minutes": 60,
-    "roles": {
-      "viewer": { "can_measure": true, "can_comment": false },
-      "commenter": { "can_measure": true, "can_comment": true },
-      "admin": { "can_measure": true, "can_comment": true, "can_manage_hotspots": true }
-    },
-    "audit_log_url": "https://ops.immersive.example/audit/space_demo_apt_302"
+  "access": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "permissions": ["view", "measure"],
+    "expiry": "2025-11-30T00:00:00Z"
   }
 }

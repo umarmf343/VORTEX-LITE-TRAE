@@ -14,6 +14,7 @@ import type {
   SphrHotspot,
   SphrSpaceNode,
   TourPoint,
+  ViewerManifest,
 } from "@/lib/types"
 import { SceneViewer } from "./scene-viewer"
 import { FloorPlanViewer } from "./floor-plan-viewer"
@@ -109,7 +110,7 @@ const detectWebGL2Support = () => {
 
 export function TourPlayer({
   property,
-  floorPlan,
+  floorPlan: providedFloorPlan,
   onLeadCapture,
   onEngagementTrack,
   experienceMode = "vortex",
@@ -121,6 +122,8 @@ export function TourPlayer({
   const [isFavorite, setIsFavorite] = useState(property.isFavorite ?? false)
   const [showShareMenu, setShowShareMenu] = useState(false)
   const [showFloorPlan, setShowFloorPlan] = useState(false)
+  const [viewerManifest, setViewerManifest] = useState<ViewerManifest | null>(null)
+  const [manifestError, setManifestError] = useState<string | null>(null)
   const [selectedTourId, setSelectedTourId] = useState<string>(() => property.guidedTours?.[0]?.id ?? CUSTOM_TOUR_ID)
   const [customTourPoints, setCustomTourPoints] = useState<TourPoint[]>([])
   const [isTourPlaying, setIsTourPlaying] = useState(false)
@@ -178,6 +181,97 @@ export function TourPlayer({
     }
   }, [])
   const guidedTours = property.guidedTours ?? []
+
+  useEffect(() => {
+    let cancelled = false
+
+    const fetchManifest = async () => {
+      try {
+        setManifestError(null)
+        const response = await fetch(`/cdn/spaces/${property.id}/manifest.json`, { cache: "no-store" })
+        if (!response.ok) {
+          throw new Error(`Failed to load manifest (${response.status})`)
+        }
+        const payload = (await response.json()) as ViewerManifest
+        if (!cancelled) {
+          setViewerManifest(payload)
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setManifestError((error as Error).message)
+          setViewerManifest(null)
+        }
+      }
+    }
+
+    void fetchManifest()
+
+    return () => {
+      cancelled = true
+    }
+  }, [property.id])
+
+  useEffect(() => {
+    if (!viewerManifest) {
+      return
+    }
+    const defaultNode = viewerManifest.views.walkthrough.default_node
+    if (!defaultNode) {
+      return
+    }
+    const targetIndex = property.scenes.findIndex((scene) => scene.id === defaultNode)
+    if (targetIndex >= 0) {
+      setCurrentSceneIndex((previous) => (previous === targetIndex ? previous : targetIndex))
+    }
+  }, [viewerManifest, property.scenes])
+
+  const viewerFloorPlan = useMemo<FloorPlan | null>(() => {
+    if (!viewerManifest) {
+      return null
+    }
+    const manifestFloorPlan = viewerManifest.views.floorplan
+    if (!manifestFloorPlan?.projection_url) {
+      return null
+    }
+
+    const brandColor = property.branding?.primaryColor ?? "#2563eb"
+    const rooms: Room[] = manifestFloorPlan.room_polygons.map((room, index) => {
+      const points = Array.isArray(room.points) ? room.points : []
+      const xs = points.map((point) => point?.[0] ?? 0)
+      const ys = points.map((point) => point?.[1] ?? 0)
+      const minX = xs.length ? Math.min(...xs) : 0
+      const minY = ys.length ? Math.min(...ys) : 0
+      const maxX = xs.length ? Math.max(...xs) : minX
+      const maxY = ys.length ? Math.max(...ys) : minY
+
+      return {
+        id: room.room_id ?? `manifest-room-${index}`,
+        name: room.name ?? `Room ${index + 1}`,
+        x: minX,
+        y: minY,
+        width: Math.max(0, maxX - minX),
+        height: Math.max(0, maxY - minY),
+        sceneId: room.room_id,
+        color: brandColor,
+      }
+    })
+
+    return {
+      id: `${viewerManifest.space_id}-manifest-floorplan`,
+      name: `${property.name} Floor Plan`,
+      imageUrl: manifestFloorPlan.projection_url,
+      rooms,
+      scale: 1,
+    }
+  }, [viewerManifest, property.branding?.primaryColor, property.name])
+
+  const activeFloorPlan = useMemo(() => providedFloorPlan ?? viewerFloorPlan ?? null, [providedFloorPlan, viewerFloorPlan])
+
+  useEffect(() => {
+    if (manifestError) {
+      console.warn("Viewer manifest unavailable", manifestError)
+    }
+  }, [manifestError])
 
   const handleSceneEngagement = useCallback(
     (sceneId: string, dwellTime: number) => {
@@ -1553,12 +1647,12 @@ export function TourPlayer({
             </div>
           </Card>
 
-          {floorPlan && (
+          {activeFloorPlan && (
             <Card className="p-4 bg-gray-900 border-gray-800">
               <h3 className="font-semibold text-white mb-3">Floor Plan</h3>
               <div className="space-y-3">
                 <img
-                  src={floorPlan.imageUrl || "/placeholder.svg"}
+                  src={activeFloorPlan.imageUrl || "/placeholder.svg"}
                   alt={`${property.name} floor plan`}
                   className="w-full h-32 object-cover rounded"
                 />
@@ -1711,12 +1805,12 @@ export function TourPlayer({
         </div>
       )}
 
-      {showFloorPlan && floorPlan && (
+      {showFloorPlan && activeFloorPlan && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-5xl bg-gray-900 border-gray-800">
             <div className="flex flex-col gap-3 p-4 border-b border-gray-800 sm:flex-row sm:items-start sm:justify-between">
               <div className="text-center sm:text-left">
-                <h2 className="text-lg font-semibold text-white">{floorPlan.name}</h2>
+                <h2 className="text-lg font-semibold text-white">{activeFloorPlan.name}</h2>
                 <p className="text-sm text-gray-400">Tap rooms to jump directly into their scenes.</p>
               </div>
               <Button variant="outline" onClick={() => setShowFloorPlan(false)} className="self-center sm:self-auto">
@@ -1725,7 +1819,7 @@ export function TourPlayer({
             </div>
             <div className="h-[540px]">
               <FloorPlanViewer
-                floorPlan={floorPlan}
+                floorPlan={activeFloorPlan}
                 branding={property.branding}
                 onRoomClick={handleFloorPlanRoomClick}
               />
