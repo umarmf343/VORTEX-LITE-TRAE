@@ -14,13 +14,17 @@ import type {
   SphrHotspot,
   SphrSpaceNode,
   TourPoint,
+  ViewerManifest,
+  HDPhotoResolutionPreset,
 } from "@/lib/types"
 import { SceneViewer } from "./scene-viewer"
 import { FloorPlanViewer } from "./floor-plan-viewer"
 import { SphrViewer } from "./sphr-viewer"
+import { PhotoGallery } from "./photo-gallery"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
+import { Badge } from "@/components/ui/badge"
 import {
   Select,
   SelectContent,
@@ -52,6 +56,7 @@ import {
   Layers,
 } from "@/lib/icons"
 import { ZoomControls } from "./zoom-controls"
+import { useHdPhotoModule } from "@/hooks/use-hd-photo-module"
 
 type SharePlatform = "facebook" | "twitter" | "linkedin" | "email"
 
@@ -109,7 +114,7 @@ const detectWebGL2Support = () => {
 
 export function TourPlayer({
   property,
-  floorPlan,
+  floorPlan: providedFloorPlan,
   onLeadCapture,
   onEngagementTrack,
   experienceMode = "vortex",
@@ -121,6 +126,10 @@ export function TourPlayer({
   const [isFavorite, setIsFavorite] = useState(property.isFavorite ?? false)
   const [showShareMenu, setShowShareMenu] = useState(false)
   const [showFloorPlan, setShowFloorPlan] = useState(false)
+  const [showGallery, setShowGallery] = useState(false)
+  const [activeExperienceTab, setActiveExperienceTab] = useState<"walkthrough" | "floorplan" | "gallery">("walkthrough")
+  const [viewerManifest, setViewerManifest] = useState<ViewerManifest | null>(null)
+  const [manifestError, setManifestError] = useState<string | null>(null)
   const [selectedTourId, setSelectedTourId] = useState<string>(() => property.guidedTours?.[0]?.id ?? CUSTOM_TOUR_ID)
   const [customTourPoints, setCustomTourPoints] = useState<TourPoint[]>([])
   const [isTourPlaying, setIsTourPlaying] = useState(false)
@@ -167,6 +176,19 @@ export function TourPlayer({
   const [is3DEnabled, setIs3DEnabled] = useState(false)
   const [isWebGLSupported, setIsWebGLSupported] = useState<boolean | null>(null)
   const showSphrViewer = experienceMode === "sphr" && Boolean(property.sphrSpace)
+  const {
+    collection: hdPhotoCollection,
+    captureStill: captureHdStill,
+    capturePreview,
+    queueAutoGeneration,
+    queueExport,
+    queueIssues: hdQueueIssues,
+  } = useHdPhotoModule({
+    collection: property.hdPhotoCollection ?? null,
+    spaceId: property.id,
+    captureNodes: property.captureNodes,
+    suggestions: property.hdPhotoCollection?.suggestions,
+  })
   const sceneEngagement = useRef<Record<string, number>>({})
   const tourTimeoutRef = useRef<number | null>(null)
   const sphrActiveNodeRef = useRef<string | null>(null)
@@ -178,6 +200,122 @@ export function TourPlayer({
     }
   }, [])
   const guidedTours = property.guidedTours ?? []
+
+  useEffect(() => {
+    let cancelled = false
+
+    const fetchManifest = async () => {
+      try {
+        setManifestError(null)
+        const response = await fetch(`/cdn/spaces/${property.id}/manifest.json`, { cache: "no-store" })
+        if (!response.ok) {
+          throw new Error(`Failed to load manifest (${response.status})`)
+        }
+        const payload = (await response.json()) as ViewerManifest
+        if (!cancelled) {
+          setViewerManifest(payload)
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setManifestError((error as Error).message)
+          setViewerManifest(null)
+        }
+      }
+    }
+
+    void fetchManifest()
+
+    return () => {
+      cancelled = true
+    }
+  }, [property.id])
+
+  useEffect(() => {
+    if (activeExperienceTab === "floorplan") {
+      if (!showFloorPlan) {
+        setShowFloorPlan(true)
+      }
+      if (showGallery) {
+        setShowGallery(false)
+      }
+    } else if (activeExperienceTab === "gallery") {
+      if (!showGallery) {
+        setShowGallery(true)
+      }
+      if (showFloorPlan) {
+        setShowFloorPlan(false)
+      }
+    } else {
+      if (showFloorPlan) {
+        setShowFloorPlan(false)
+      }
+      if (showGallery) {
+        setShowGallery(false)
+      }
+    }
+  }, [activeExperienceTab, showFloorPlan, showGallery])
+
+  useEffect(() => {
+    if (!viewerManifest) {
+      return
+    }
+    const defaultNode = viewerManifest.views.walkthrough.default_node
+    if (!defaultNode) {
+      return
+    }
+    const targetIndex = property.scenes.findIndex((scene) => scene.id === defaultNode)
+    if (targetIndex >= 0) {
+      setCurrentSceneIndex((previous) => (previous === targetIndex ? previous : targetIndex))
+    }
+  }, [viewerManifest, property.scenes])
+
+  const viewerFloorPlan = useMemo<FloorPlan | null>(() => {
+    if (!viewerManifest) {
+      return null
+    }
+    const manifestFloorPlan = viewerManifest.views.floorplan
+    if (!manifestFloorPlan?.projection_url) {
+      return null
+    }
+
+    const brandColor = property.branding?.primaryColor ?? "#2563eb"
+    const rooms: Room[] = manifestFloorPlan.room_polygons.map((room, index) => {
+      const points = Array.isArray(room.points) ? room.points : []
+      const xs = points.map((point) => point?.[0] ?? 0)
+      const ys = points.map((point) => point?.[1] ?? 0)
+      const minX = xs.length ? Math.min(...xs) : 0
+      const minY = ys.length ? Math.min(...ys) : 0
+      const maxX = xs.length ? Math.max(...xs) : minX
+      const maxY = ys.length ? Math.max(...ys) : minY
+
+      return {
+        id: room.room_id ?? `manifest-room-${index}`,
+        name: room.name ?? `Room ${index + 1}`,
+        x: minX,
+        y: minY,
+        width: Math.max(0, maxX - minX),
+        height: Math.max(0, maxY - minY),
+        sceneId: room.room_id,
+        color: brandColor,
+      }
+    })
+
+    return {
+      id: `${viewerManifest.space_id}-manifest-floorplan`,
+      name: `${property.name} Floor Plan`,
+      imageUrl: manifestFloorPlan.projection_url,
+      rooms,
+      scale: 1,
+    }
+  }, [viewerManifest, property.branding?.primaryColor, property.name])
+
+  const activeFloorPlan = useMemo(() => providedFloorPlan ?? viewerFloorPlan ?? null, [providedFloorPlan, viewerFloorPlan])
+
+  useEffect(() => {
+    if (manifestError) {
+      console.warn("Viewer manifest unavailable", manifestError)
+    }
+  }, [manifestError])
 
   const handleSceneEngagement = useCallback(
     (sceneId: string, dwellTime: number) => {
@@ -205,6 +343,8 @@ export function TourPlayer({
 
   useEffect(() => {
     setShowFloorPlan(false)
+    setShowGallery(false)
+    setActiveExperienceTab("walkthrough")
     setCurrentSceneIndex(0)
     setSessionStart(Date.now())
     setIsFavorite(property.isFavorite ?? false)
@@ -261,6 +401,18 @@ export function TourPlayer({
   }, [fallbackOffset])
 
   const currentScene = property.scenes[currentSceneIndex]
+  const capturePreviewCard = useMemo(() => {
+    if (!capturePreview) {
+      return null
+    }
+    return {
+      url: capturePreview.asset.previewUrl,
+      label: capturePreview.asset.label,
+      resolution: capturePreview.asset.metadata.resolution,
+      timestamp: capturePreview.createdAt,
+      format: capturePreview.asset.format.toUpperCase(),
+    }
+  }, [capturePreview])
 
   useEffect(() => {
     setFallbackZoom(1)
@@ -538,6 +690,22 @@ export function TourPlayer({
       }
     })
   }, [])
+  const handleHdCapture = useCallback(
+    (options: { kind: "panorama" | "still" }) => {
+      void captureHdStill({
+        sceneId: currentScene.id,
+        nodeId: currentScene.captureNodeId ?? property.captureNodes?.[0]?.id,
+        kind: options.kind,
+        resolution: options.kind === "panorama" ? "ultra-8k" : "ultra-4k",
+        dpi: 300,
+        backgroundMode: "hdr",
+        format: options.kind === "panorama" ? "tiff" : "jpg",
+        includeBranding: true,
+        includeWatermark: false,
+      })
+    },
+    [captureHdStill, currentScene.captureNodeId, currentScene.id, property.captureNodes],
+  )
 
   const updateDataLayerVisibility = useCallback(
     (sceneId: string, layerId: string, visible: boolean) => {
@@ -826,6 +994,46 @@ export function TourPlayer({
     }
   }
 
+  const handleGalleryExport = useCallback(
+    (assetIds: string[]) => {
+      if (assetIds.length === 0) return
+      void queueExport({
+        assets: assetIds,
+        format: assetIds.length > 1 ? "zip" : "jpg",
+        resolution: assetIds.length > 1 ? "ultra-4k" : "ultra-8k",
+        dpi: 300,
+        backgroundMode: "hdr",
+        includeBrandingOverlay: true,
+        includeWatermark: false,
+        iccProfile: "sRGB",
+      })
+    },
+    [queueExport],
+  )
+
+  const handleGeneratePrintPack = useCallback(() => {
+    const heroAssets = hdPhotoCollection?.heroShots ?? []
+    if (heroAssets.length === 0) return
+    const assetIds = heroAssets.slice(0, Math.min(heroAssets.length, 6)).map((asset) => asset.id)
+    void queueExport({
+      assets: assetIds,
+      format: "pdf",
+      resolution: "ultra-4k",
+      dpi: 300,
+      backgroundMode: "studio",
+      includeBrandingOverlay: true,
+      includeWatermark: false,
+      iccProfile: "CMYK",
+    })
+  }, [hdPhotoCollection?.heroShots, queueExport])
+
+  const handleGalleryAutoGenerate = useCallback(
+    (resolution?: HDPhotoResolutionPreset) => {
+      void queueAutoGeneration(resolution)
+    },
+    [queueAutoGeneration],
+  )
+
   const handleFloorPlanRoomClick = (room: Room) => {
     if (!room.sceneId) return
     const sceneIndex = property.scenes.findIndex((scene) => scene.id === room.sceneId)
@@ -858,6 +1066,49 @@ export function TourPlayer({
               {property.bedrooms} bed • {property.bathrooms} bath • {property.sqft.toLocaleString()} sqft
             </div>
           </div>
+        </div>
+        <div className="max-w-7xl mx-auto mt-4 flex flex-wrap items-center gap-2">
+          <Button
+            size="sm"
+            variant={activeExperienceTab === "walkthrough" ? "default" : "outline"}
+            className={
+              activeExperienceTab === "walkthrough"
+                ? "bg-blue-600 text-white"
+                : "border-gray-700 text-gray-300 hover:text-white"
+            }
+            onClick={() => setActiveExperienceTab("walkthrough")}
+          >
+            <Navigation className="mr-2 h-4 w-4" /> Walkthrough
+          </Button>
+          <Button
+            size="sm"
+            variant={activeExperienceTab === "floorplan" ? "default" : "outline"}
+            className={
+              activeExperienceTab === "floorplan"
+                ? "bg-blue-600 text-white"
+                : "border-gray-700 text-gray-300 hover:text-white"
+            }
+            onClick={() => setActiveExperienceTab("floorplan")}
+          >
+            <MapPin className="mr-2 h-4 w-4" /> Floorplan
+          </Button>
+          <Button
+            size="sm"
+            variant={activeExperienceTab === "gallery" ? "default" : "outline"}
+            className={
+              activeExperienceTab === "gallery"
+                ? "bg-blue-600 text-white"
+                : "border-gray-700 text-gray-300 hover:text-white"
+            }
+            onClick={() => setActiveExperienceTab("gallery")}
+          >
+            <Image className="mr-2 h-4 w-4" /> Gallery
+          </Button>
+          {hdPhotoCollection ? (
+            <Badge variant="secondary" className="bg-emerald-600/20 text-emerald-200">
+              HD module active
+            </Badge>
+          ) : null}
         </div>
       </div>
 
@@ -912,6 +1163,9 @@ export function TourPlayer({
               walkthroughMeta={walkthroughMeta}
               dollhouseModel={property.dollhouseModel}
               onDollhouseNavigate={handleDollhouseNavigate}
+              immersiveWalkthrough={property.immersiveWalkthrough}
+              onCaptureStill={handleHdCapture}
+              capturePreview={capturePreviewCard}
             />
           ) : (
             <div className="relative h-full min-h-[55vh] sm:min-h-[65vh] md:min-h-[70vh] overflow-hidden rounded-xl border border-gray-800 bg-gray-900/60">
@@ -1030,6 +1284,50 @@ export function TourPlayer({
               ))}
             </div>
           </Card>
+
+          {hdPhotoCollection ? (
+            <Card className="p-4 bg-gray-900 border-gray-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-white">HD Marketing Photos</h3>
+                <Badge variant="secondary" className="bg-emerald-600/20 text-emerald-200 text-[10px]">
+                  4K+
+                </Badge>
+              </div>
+              <p className="text-xs text-gray-400">
+                Access curated hero stills and panoramas rendered at 300 DPI for print-ready delivery.
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {hdPhotoCollection.heroShots.slice(0, 2).map((asset) => (
+                  <div key={asset.id} className="overflow-hidden rounded-lg border border-gray-800">
+                    <img src={asset.previewUrl} alt={asset.label} className="h-20 w-full object-cover" />
+                    <div className="p-2 text-[11px] text-gray-300">
+                      <p className="font-medium text-white truncate">{asset.label}</p>
+                      <p className="text-gray-400">{asset.metadata.resolution}</p>
+                    </div>
+                  </div>
+                ))}
+                {hdPhotoCollection.heroShots.length === 0 ? (
+                  <div className="col-span-2 rounded-lg border border-dashed border-gray-800 bg-gray-900/50 p-4 text-center text-xs text-gray-400">
+                    Capture a still from the viewer to populate hero imagery.
+                  </div>
+                ) : null}
+              </div>
+              <div className="flex flex-col gap-2">
+                <Button size="sm" className="w-full" onClick={() => setActiveExperienceTab("gallery")}>
+                  Open Gallery
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => handleGalleryExport(hdPhotoCollection.heroShots.map((asset) => asset.id))}
+                  disabled={hdPhotoCollection.heroShots.length === 0}
+                >
+                  Export Hero Pack
+                </Button>
+              </div>
+            </Card>
+          ) : null}
 
           {/* Immersive Highlights */}
           <Card className="p-4 bg-gradient-to-br from-gray-900 to-gray-950 border-gray-800">
@@ -1553,16 +1851,16 @@ export function TourPlayer({
             </div>
           </Card>
 
-          {floorPlan && (
+          {activeFloorPlan && (
             <Card className="p-4 bg-gray-900 border-gray-800">
               <h3 className="font-semibold text-white mb-3">Floor Plan</h3>
               <div className="space-y-3">
                 <img
-                  src={floorPlan.imageUrl || "/placeholder.svg"}
+                  src={activeFloorPlan.imageUrl || "/placeholder.svg"}
                   alt={`${property.name} floor plan`}
                   className="w-full h-32 object-cover rounded"
                 />
-                <Button variant="outline" className="w-full gap-2" onClick={() => setShowFloorPlan(true)}>
+                <Button variant="outline" className="w-full gap-2" onClick={() => setActiveExperienceTab("floorplan")}>
                   View Interactive Floor Plan
                 </Button>
               </div>
@@ -1711,23 +2009,61 @@ export function TourPlayer({
         </div>
       )}
 
-      {showFloorPlan && floorPlan && (
+      {showFloorPlan && activeFloorPlan && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-5xl bg-gray-900 border-gray-800">
             <div className="flex flex-col gap-3 p-4 border-b border-gray-800 sm:flex-row sm:items-start sm:justify-between">
               <div className="text-center sm:text-left">
-                <h2 className="text-lg font-semibold text-white">{floorPlan.name}</h2>
+                <h2 className="text-lg font-semibold text-white">{activeFloorPlan.name}</h2>
                 <p className="text-sm text-gray-400">Tap rooms to jump directly into their scenes.</p>
               </div>
-              <Button variant="outline" onClick={() => setShowFloorPlan(false)} className="self-center sm:self-auto">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setActiveExperienceTab("walkthrough")
+                }}
+                className="self-center sm:self-auto"
+              >
                 Close
               </Button>
             </div>
             <div className="h-[540px]">
               <FloorPlanViewer
-                floorPlan={floorPlan}
+                floorPlan={activeFloorPlan}
                 branding={property.branding}
                 onRoomClick={handleFloorPlanRoomClick}
+              />
+            </div>
+          </Card>
+        </div>
+      )}
+      {showGallery && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-6xl bg-gray-950 border-gray-800">
+            <div className="flex flex-col gap-3 border-b border-gray-800 p-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="space-y-1">
+                <h2 className="text-lg font-semibold text-white">HD Media Gallery</h2>
+                <p className="text-sm text-gray-400">
+                  Generate, review, and export high-definition panoramas, hero stills, and print packs for marketing.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setActiveExperienceTab("walkthrough")}
+                  className="self-center"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+            <div className="max-h-[70vh] overflow-y-auto p-4">
+              <PhotoGallery
+                collection={hdPhotoCollection}
+                onQueueExport={handleGalleryExport}
+                onGeneratePrintPack={handleGeneratePrintPack}
+                onRunAutoGeneration={handleGalleryAutoGenerate}
+                queueIssues={hdQueueIssues}
               />
             </div>
           </Card>

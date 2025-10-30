@@ -29,12 +29,37 @@ describe("measurement-store", () => {
           distance: 10,
           unit: "ft",
           measurementType: "distance",
+          points3d: [
+            { x: 1.1, y: 0.2, z: 3.4, confidence: 0.92, source: "lidar" },
+            { x: 4.4, y: 0.8, z: 6.2, confidence: 0.91, source: "lidar" },
+          ],
+          accuracy: {
+            rmsErrorCm: 2.4,
+            confidence: 0.98,
+            calibrated: true,
+            toleranceCm: 3,
+            source: "lidar",
+          },
+          annotation: {
+            title: "Calibration baseline",
+            note: "Auto-generated during QA",
+            tags: ["baseline", "qa"],
+          },
+          redacted: false,
         },
       ],
     })
 
     expect(record.sessionId).toBe("session-123")
     expect(record.measurements).toHaveLength(1)
+    expect(record.measurements[0].points3d).toEqual([
+      { x: 1.1, y: 0.2, z: 3.4, confidence: 0.92, source: "lidar" },
+      { x: 4.4, y: 0.8, z: 6.2, confidence: 0.91, source: "lidar" },
+    ])
+    expect(record.measurements[0].accuracy).toEqual(
+      expect.objectContaining({ rmsErrorCm: 2.4, confidence: 0.98, calibrated: true, source: "lidar" }),
+    )
+    expect(record.measurements[0].annotation?.tags).toEqual(["baseline", "qa"])
 
     const file = JSON.parse(await fs.readFile(EXPORT_FILE, "utf8"))
     expect(file["session-123"]).toHaveLength(1)

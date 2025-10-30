@@ -15,6 +15,7 @@ import type {
   DollhouseModel,
   DollhouseFloorMetadata,
   DollhouseRoomMetadata,
+  ImmersiveWalkthroughSpace,
 } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import {
@@ -43,6 +44,8 @@ import {
   Trash2,
   Undo2,
   Building2,
+  Camera,
+  Globe,
 } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 import {
@@ -64,6 +67,7 @@ import WebGLCapabilities from "three/examples/jsm/capabilities/WebGL.js"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 import { ZoomControls } from "./zoom-controls"
 import { DollhouseViewer } from "./dollhouse-viewer"
+import { ImmersiveWalkthrough } from "./immersive-walkthrough"
 
 type WebGLContextType = "webgl2" | "webgl" | "experimental-webgl"
 
@@ -162,7 +166,7 @@ const allViewModes: SceneViewMode[] = [
   "dollhouse",
   "floor-plan",
 ]
-const sphericalViewModes: SceneViewMode[] = ["360", "first-person", "walkthrough", "orbit"]
+const sphericalViewModes: SceneViewMode[] = ["360", "first-person", "orbit"]
 const immersiveViewModes: SceneViewMode[] = ["first-person", "walkthrough"]
 
 const DEFAULT_FOV = 75
@@ -237,8 +241,8 @@ const measurementRecordEqual = (
     if (!measurementA || !measurementB) return false
     if (!pointsEqual(measurementA.start, measurementB.start)) return false
     if (!pointsEqual(measurementA.end, measurementB.end)) return false
-    const pointsA = measurementA.points ?? []
-    const pointsB = measurementB.points ?? []
+    const pointsA = measurementA.points2d ?? []
+    const pointsB = measurementB.points2d ?? []
     if (!projectedArrayEqual(pointsA, pointsB)) return false
   }
   return true
@@ -313,13 +317,18 @@ const convertMeasurementValue = (
   if (fromUnit === toUnit) return value
   const fromFactor = UNIT_TO_METERS[fromUnit] ?? 1
   const toFactor = UNIT_TO_METERS[toUnit] ?? 1
-  const exponent = type === "distance" ? 1 : type === "area" ? 2 : 3
+  const exponent =
+    type === "area" || type === "room"
+      ? 2
+      : type === "volume"
+        ? 3
+        : 1
   const baseMeters = value * Math.pow(fromFactor, exponent)
   return baseMeters / Math.pow(toFactor, exponent)
 }
 
 const measurementUnitLabel = (unit: Measurement["unit"], type: Measurement["measurementType"]) => {
-  if (type === "area") {
+  if (type === "area" || type === "room") {
     return `${unit}²`
   }
   if (type === "volume") {
@@ -361,6 +370,15 @@ interface SceneViewerProps {
     sceneId: string,
     metadata?: { floor: number; roomId: string; roomName: string },
   ) => void
+  immersiveWalkthrough?: ImmersiveWalkthroughSpace | null
+  onCaptureStill?: (options: { kind: "panorama" | "still" }) => void
+  capturePreview?: {
+    url: string
+    label: string
+    resolution: string
+    timestamp: string
+    format: string
+  } | null
 }
 
 export function SceneViewer({
@@ -386,6 +404,9 @@ export function SceneViewer({
   walkthroughMeta,
   dollhouseModel,
   onDollhouseNavigate,
+  immersiveWalkthrough,
+  onCaptureStill,
+  capturePreview,
 }: SceneViewerProps) {
   const [measuring, setMeasuringState] = useState<boolean>(measurementMode ?? false)
   const [measureStart, setMeasureStart] = useState<{ x: number; y: number } | null>(null)
@@ -474,6 +495,79 @@ export function SceneViewer({
     [activeDataLayers, onDataLayerToggle, visibleLayerIds],
   )
   const effectiveDollhouseModel = scene.dollhouseModel ?? dollhouseModel ?? null
+  const effectiveWalkthroughSpace = useMemo<ImmersiveWalkthroughSpace | null>(() => {
+    const base = immersiveWalkthrough ?? null
+    const override = scene.immersiveWalkthroughOverride
+    if (!base && !override) {
+      return null
+    }
+    if (!base && override) {
+      if (!override.nodes || !override.spatialMeshUrl) {
+        return null
+      }
+      const nodes = override.nodes
+      const defaultNodeId = override.defaultNodeId ?? nodes[0]?.id ?? `${scene.id}-origin`
+      return {
+        spaceId: override.spaceId ?? `${scene.id}-immersive`,
+        defaultNodeId,
+        nodes,
+        hotspots: override.hotspots ?? [],
+        spatialMeshUrl: override.spatialMeshUrl,
+        textureSetUrl: override.textureSetUrl,
+        hdrEnvironmentUrl: override.hdrEnvironmentUrl,
+        navigationMeshUrl: override.navigationMeshUrl,
+        dracoDecoderPath: override.dracoDecoderPath,
+        materialBoost: override.materialBoost,
+        pointerSensitivity: override.pointerSensitivity,
+        eyeHeight: override.eyeHeight,
+        manualWalkEnabled: override.manualWalkEnabled,
+        autoTour: override.autoTour,
+        captureMetadata: override.captureMetadata,
+        bounds: override.bounds,
+        lighting: override.lighting,
+      }
+    }
+    if (!base) {
+      return null
+    }
+    if (!override) {
+      return base
+    }
+    const overridesById = new Map((override.nodes ?? []).map((node) => [node.id, node]))
+    const mergedNodes = base.nodes.map((node) => {
+      const patch = overridesById.get(node.id)
+      if (!patch) return node
+      return {
+        ...node,
+        ...patch,
+        position: patch.position ?? node.position,
+        orientation: patch.orientation ?? node.orientation,
+        connectedTo: patch.connectedTo ?? node.connectedTo,
+      }
+    })
+    return {
+      ...base,
+      ...override,
+      nodes: mergedNodes,
+      hotspots: override.hotspots ?? base.hotspots,
+      spatialMeshUrl: override.spatialMeshUrl ?? base.spatialMeshUrl,
+      textureSetUrl: override.textureSetUrl ?? base.textureSetUrl,
+      hdrEnvironmentUrl: override.hdrEnvironmentUrl ?? base.hdrEnvironmentUrl,
+      navigationMeshUrl: override.navigationMeshUrl ?? base.navigationMeshUrl,
+      dracoDecoderPath: override.dracoDecoderPath ?? base.dracoDecoderPath,
+      materialBoost: override.materialBoost ?? base.materialBoost,
+      pointerSensitivity: override.pointerSensitivity ?? base.pointerSensitivity,
+      eyeHeight: override.eyeHeight ?? base.eyeHeight,
+      manualWalkEnabled: override.manualWalkEnabled ?? base.manualWalkEnabled,
+      autoTour: override.autoTour ?? base.autoTour,
+      captureMetadata: override.captureMetadata ?? base.captureMetadata,
+      bounds: override.bounds ?? base.bounds,
+      lighting: override.lighting ?? base.lighting,
+    }
+  }, [immersiveWalkthrough, scene.immersiveWalkthroughOverride, scene.id])
+  const immersiveWalkthroughActive =
+    currentViewMode === "walkthrough" && Boolean(effectiveWalkthroughSpace)
+  const sphericalRendererActive = sphericalViewModes.includes(currentViewMode) && !immersiveWalkthroughActive
   const resolvedViewModes = useMemo<SceneViewMode[]>(() => {
     const baseModes = availableViewModes?.length ? availableViewModes : allViewModes
     return baseModes.filter((mode) => (mode === "dollhouse" ? Boolean(effectiveDollhouseModel) : true))
@@ -832,7 +926,7 @@ export function SceneViewer({
   }, [saveFeedback])
 
   useEffect(() => {
-    if (!immersiveModeActive) {
+    if (!immersiveModeActive || immersiveWalkthroughActive) {
       keyStateRef.current = {}
       return
     }
@@ -862,7 +956,7 @@ export function SceneViewer({
       window.removeEventListener("keyup", handleKeyUp)
       keyStateRef.current = {}
     }
-  }, [immersiveModeActive, currentViewMode, onWalkthroughStep])
+  }, [immersiveModeActive, immersiveWalkthroughActive, currentViewMode, onWalkthroughStep])
 
   useEffect(() => {
     if (!enableGyroscope || !vrMode || !sphericalViewModes.includes(currentViewMode)) return
@@ -924,8 +1018,8 @@ export function SceneViewer({
       const start = projectPercent(measurement.startX, measurement.startY)
       const end = projectPercent(measurement.endX, measurement.endY)
       const projected: ProjectedMeasurement = { start, end }
-      if (measurement.points && measurement.points.length > 0) {
-        projected.points = measurement.points.map((point) => projectPercent(point.x, point.y))
+      if (measurement.points2d && measurement.points2d.length > 0) {
+        projected.points = measurement.points2d.map((point) => projectPercent(point.x, point.y))
       }
       nextMeasurements[measurement.id] = projected
     }
@@ -1350,6 +1444,7 @@ export function SceneViewer({
         measurementType: "distance",
         label: getNextMeasurementLabel("distance"),
         createdAt: new Date().toISOString(),
+        accuracy: measurementsRef.current.find((existing) => existing.measurementType === "distance")?.accuracy,
       }
       addMeasurement(measurement)
     },
@@ -1362,6 +1457,7 @@ export function SceneViewer({
       const rawArea = polygonAreaPercent(points)
       if (rawArea === 0) return
       const areaFt = convertRawArea(rawArea, "ft")
+      const areaMeters = convertMeasurementValue(areaFt, "ft", "m", "area")
       const measurement: Measurement = {
         id: `measure-${Date.now()}`,
         startX: points[0].x,
@@ -1371,7 +1467,8 @@ export function SceneViewer({
         distance: Number.parseFloat(areaFt.toFixed(1)),
         unit: "ft",
         measurementType: "area",
-        points: points.map((point) => ({ ...point })),
+        points2d: points.map((point) => ({ ...point })),
+        areaSquareMeters: Number.isFinite(areaMeters) ? Number(areaMeters.toFixed(2)) : undefined,
         label: getNextMeasurementLabel("area"),
         createdAt: new Date().toISOString(),
       }
@@ -1397,7 +1494,7 @@ export function SceneViewer({
         distance: Number.parseFloat(volumeFt.toFixed(1)),
         unit: "ft",
         measurementType: "volume",
-        points: points.map((point) => ({ ...point })),
+        points2d: points.map((point) => ({ ...point })),
         height: Number.parseFloat(safeHeight.toFixed(2)),
         label: getNextMeasurementLabel("volume"),
         createdAt: new Date().toISOString(),
@@ -1654,7 +1751,7 @@ export function SceneViewer({
           heightUnit: measurement.height !== undefined ? measurementUnitLabel(displayUnit, "distance") : undefined,
           start: { x: measurement.startX, y: measurement.startY },
           end: { x: measurement.endX, y: measurement.endY },
-          points: measurement.points ?? [],
+          points: measurement.points2d ?? [],
           createdAt: measurement.createdAt ?? null,
         }
       })
@@ -1921,16 +2018,18 @@ export function SceneViewer({
   }
 
   const viewerCursorClass =
-    renderError && sphericalViewModes.includes(currentViewMode)
+    renderError && sphericalRendererActive
       ? "cursor-not-allowed"
       : measuring || showAnnotationInput
         ? "cursor-crosshair"
-        : sphericalViewModes.includes(currentViewMode)
+        : sphericalRendererActive
           ? "cursor-grab"
           : isDollhouseMode
             ? "cursor-grab"
-            : "cursor-crosshair"
-  const viewerFlexClass = !sphericalViewModes.includes(currentViewMode) && vrMode ? "flex" : ""
+            : immersiveWalkthroughActive
+              ? "cursor-default"
+              : "cursor-crosshair"
+  const viewerFlexClass = !sphericalRendererActive && !immersiveWalkthroughActive && vrMode ? "flex" : ""
 
   return (
     <div className="w-full h-full flex flex-col bg-black">
@@ -1938,14 +2037,54 @@ export function SceneViewer({
       <div
         ref={viewerRef}
         className={`flex-1 relative overflow-hidden min-h-[55vh] sm:min-h-[65vh] lg:min-h-0 ${viewerCursorClass} ${viewerFlexClass} ${
-          sphericalViewModes.includes(currentViewMode) ? "bg-black" : ""
+          sphericalRendererActive || immersiveWalkthroughActive ? "bg-black" : ""
         }`}
-        onClick={handleImageClick}
-        onDoubleClick={handleViewerDoubleClick}
-        onMouseMove={handlePointerMove}
-        onMouseLeave={handlePointerLeave}
+        onClick={immersiveWalkthroughActive ? undefined : handleImageClick}
+        onDoubleClick={immersiveWalkthroughActive ? undefined : handleViewerDoubleClick}
+        onMouseMove={immersiveWalkthroughActive ? undefined : handlePointerMove}
+        onMouseLeave={immersiveWalkthroughActive ? undefined : handlePointerLeave}
       >
-        {renderError && sphericalViewModes.includes(currentViewMode) ? (
+        {onCaptureStill ? (
+          <div className="pointer-events-none absolute top-4 right-4 z-30 flex w-full max-w-xs flex-col items-end gap-3">
+            <div className="pointer-events-auto flex flex-wrap items-center justify-end gap-2">
+              <Button
+                size="sm"
+                className="gap-2 bg-emerald-600/90 text-white hover:bg-emerald-500"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onCaptureStill({ kind: "still" })
+                }}
+              >
+                <Camera className="h-4 w-4" /> Capture Still
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-2 border-blue-500/60 text-blue-100"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onCaptureStill({ kind: "panorama" })
+                }}
+              >
+                <Globe className="h-4 w-4" /> Capture 360°
+              </Button>
+            </div>
+            {capturePreview ? (
+              <div className="pointer-events-auto w-full overflow-hidden rounded-lg border border-emerald-500/40 bg-black/80 shadow-xl">
+                <div className="relative h-24 w-full overflow-hidden">
+                  <img src={capturePreview.url} alt={capturePreview.label} className="h-full w-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+                </div>
+                <div className="space-y-1 p-3 text-xs text-gray-200">
+                  <p className="font-semibold text-white">{capturePreview.label}</p>
+                  <p className="text-[11px] text-gray-400">{capturePreview.resolution} • {capturePreview.format}</p>
+                  <p className="text-[10px] text-emerald-300">Captured {new Date(capturePreview.timestamp).toLocaleTimeString()}</p>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+        {renderError && sphericalRendererActive ? (
           <>
             <img
               src={currentImageUrl || "/placeholder.svg"}
@@ -1961,7 +2100,9 @@ export function SceneViewer({
           </>
         ) : (
           <>
-            {!sphericalViewModes.includes(currentViewMode) ? (
+            {immersiveWalkthroughActive && effectiveWalkthroughSpace ? (
+              <ImmersiveWalkthrough space={effectiveWalkthroughSpace} />
+            ) : !sphericalRendererActive ? (
               vrMode ? (
                 <div className="flex w-full h-full">
                   <div className="w-1/2 overflow-hidden">{renderViewMode()}</div>
@@ -1981,7 +2122,7 @@ export function SceneViewer({
               />
             )}
 
-            {isWalkthroughMode && (
+            {isWalkthroughMode && !immersiveWalkthroughActive && (
               <>
                 <div className="absolute top-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full bg-black/70 px-4 py-2 text-xs font-medium text-white shadow-lg backdrop-blur">
                   <Navigation className="h-4 w-4 text-emerald-300" />
@@ -2024,7 +2165,7 @@ export function SceneViewer({
             )}
 
             {/* Hotspots */}
-            {scene.hotspots.map((hotspot) => {
+            {!immersiveWalkthroughActive && scene.hotspots.map((hotspot) => {
               const projected = projectedHotspots[hotspot.id]
               if (sphericalViewModes.includes(currentViewMode) && (!projected || !projected.visible)) {
                 return null
@@ -2151,7 +2292,7 @@ export function SceneViewer({
           }
 
           if (measurement.measurementType === "area" || measurement.measurementType === "volume") {
-            const points = measurement.points ?? []
+            const points = measurement.points2d ?? []
             if (points.length >= 3) {
               const centroid = polygonCentroid(points)
               const polygonPoints = points.map((point) => `${point.x},${point.y}`).join(" ")
@@ -2533,8 +2674,8 @@ export function SceneViewer({
                             {measurement.measurementType === "volume" && measurement.height ? (
                               <p className="text-[11px] text-gray-500">Height {measurement.height.toFixed(1)} ft</p>
                             ) : null}
-                            {measurement.points?.length ? (
-                              <p className="text-[11px] text-gray-500">{measurement.points.length} points</p>
+                            {measurement.points2d?.length ? (
+                              <p className="text-[11px] text-gray-500">{measurement.points2d.length} points</p>
                             ) : null}
                           </div>
                           <Button

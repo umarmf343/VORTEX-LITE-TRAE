@@ -5,6 +5,7 @@ import path from "path"
 import { NextRequest, NextResponse } from "next/server"
 
 import { ensureIngestControlPlane } from "@/lib/server/ingest-control-plane"
+import { generateManifestForSpace } from "@/lib/server/viewer-manifest-generator"
 import type { IngestJobStatus } from "@/lib/types"
 
 const DATA_DIRECTORY = path.join(process.cwd(), "data")
@@ -234,6 +235,14 @@ export async function POST(request: NextRequest) {
     await saveJobs(jobs)
 
     await ensureProcessedDestination(spaceId, jobId)
+
+    if (status === "PUBLISHED") {
+      try {
+        await generateManifestForSpace(spaceId)
+      } catch (manifestError) {
+        console.error("Failed to generate viewer manifest", manifestError)
+      }
+    }
 
     return NextResponse.json({ job_id: jobId, status }, { status: 202 })
   } catch (error: unknown) {

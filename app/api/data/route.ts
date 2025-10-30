@@ -22,6 +22,8 @@ import {
   upsertShare,
 } from "@/lib/server/data-store"
 import { ensureIngestControlPlane } from "@/lib/server/ingest-control-plane"
+import { ensureViewerManifestControlPlane } from "@/lib/server/viewer-manifest-control-plane"
+import { ensureVideoPipelineControlPlane } from "@/lib/server/video-pipeline-control-plane"
 import type {
   CaptureService,
   CrossPlatformShare,
@@ -36,10 +38,15 @@ import type {
 export const dynamic = "force-dynamic"
 
 void ensureIngestControlPlane()
+void ensureViewerManifestControlPlane()
+void ensureVideoPipelineControlPlane()
 
 export async function GET() {
-  const data = await getDataSnapshot()
-  return NextResponse.json({ data })
+  const [data, videoPipeline] = await Promise.all([
+    getDataSnapshot(),
+    ensureVideoPipelineControlPlane(),
+  ])
+  return NextResponse.json({ data, videoPipeline })
 }
 
 interface ActionRequest {
