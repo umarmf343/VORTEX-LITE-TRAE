@@ -1,0 +1,10 @@
+component,status,owner
+OutdoorCaptureGuidance,needs build,Reality Lab
+GroundsLiDARPipeline,needs build,Platform Eng
+ZoneNetworkingService,needs build,Platform Eng
+CampusViewerUI,exists,Frontend Guild
+ViewerZoneSelector,needs build,Frontend Guild
+ZoneAwareManifest,needs build,Reality Lab
+OutdoorCalibrationToolkit,needs build,Field Ops
+ZoneAnalyticsPipeline,needs build,Data Platform
+OutdoorPerformanceTuning,needs build,Rendering Team

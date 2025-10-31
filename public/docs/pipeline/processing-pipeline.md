@@ -42,3 +42,30 @@ Raw Capture Upload
 - Reserve **object storage** bucket `immersive-raw` (hot tier) and `immersive-archive` (cold tier) with lifecycle policy (90-day transition).
 - Configure **message broker namespaces** listed in the schema and provision dead-letter queues for retries.
 - Enable **observability stack** (Prometheus + Grafana) for worker metrics and queue depth alerting.
+
+## Outdoor & Multi-Zone Extensions
+
+- **Capture Contract Updates**
+  - Ingest payloads now accept `capture_inputs`, `metadata.outdoor`, `metadata.zone`, `sun_orientation`, `weather`, `gps_track`, and `ground_control_points` to describe exterior datasets.
+  - Drone flight metadata (`metadata.drone_flight_plan`) is persisted alongside ground-control tolerances for QA.
+  - Zone identifiers must be stable across capture campaigns so campus manifests can reconcile multi-building tours.
+
+- **Processing Flow**
+  - New `outdoor-preprocess` step normalizes GPS track, builds global alignment, and feeds LiDAR+photo fusion with horizon-aware tone mapping.
+  - Zone-aware meshing emits per-zone meshes (`processed/<space>/zones/<zone_id>/mesh.glb`) and writes `zone_manifest.json` summarizing connections.
+  - Fusion service tags navigation nodes with `zone_id` and records cross-zone transitions for analytics.
+
+- **Manifest & Viewer Output**
+  - Viewer manifest version bumped to **v1.1.0** with `zones`, `zone_connections`, `campus_map`, `outdoor_flag`, and `performance` blocks.
+  - Campus map tiles (256px PNG or vector) deployed under `cdn/spaces/<space>/maps/` and referenced by manifest.
+  - Performance profile communicates LOD triangle budgets (350k for large outdoor scenes) and streaming chunk size (4 MB on exterior tours).
+
+- **Analytics & QA**
+  - Viewer emits `zone_enter`, `zone_exit`, and `zone_transition` events with dwell metrics and outdoor indicator for downstream analysis.
+  - Automated QA `QA-09` & `QA-10` validate multi-zone navigation and outdoor calibration tolerances before publish.
+  - Campus navigation data stored in analytics warehouse table `fact_zone_transition` with GPS bounds for BI overlays.
+
+- **Resource Notes**
+  - Outdoor photogrammetry jobs reserve +30% GPU memory headroom to accommodate higher triangle counts.
+  - CDN edge cache rules pin campus map tiles with 14-day TTL and lower priority for interior-only models.
+  - GPS-backed calibration artifacts archived in `processed/<space>/calibration/` with 1-year retention for audit.

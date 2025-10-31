@@ -4,7 +4,7 @@
   "title": "VirtualTour Ingest Job Schema",
   "type": "object",
   "x-model": "virtualtour.ingest.job",
-  "x-version": "v1.0.0",
+  "x-version": "v1.1.0",
   "required": [
     "job_id",
     "space_id",
@@ -31,6 +31,25 @@
       "type": "string",
       "enum": ["PHOTOGRAMMETRY", "LIDAR", "HYBRID", "PANO_360"],
       "description": "Capture method used for generating the digital twin."
+    },
+    "capture_inputs": {
+      "type": "array",
+      "description": "Detailed list of capture inputs used for this job (e.g., tripod, drone, rover).",
+      "items": {
+        "type": "string",
+        "enum": [
+          "TRIPOD_RGB",
+          "TRIPOD_LIDAR",
+          "GROUND_LIDAR",
+          "HANDHELD_RGB",
+          "HANDHELD_LIDAR",
+          "DRONE_RGB",
+          "DRONE_LIDAR",
+          "MOBILE_MAPPING",
+          "STATIC_PANORAMA"
+        ]
+      },
+      "minItems": 1
     },
     "raw_assets": {
       "type": "array",
@@ -85,9 +104,108 @@
           "type": "number",
           "description": "Meters of GPS precision reported by the device"
         },
+        "outdoor": {
+          "type": "boolean",
+          "description": "Indicates whether the capture occurred outdoors or includes exterior facades."
+        },
+        "zone": {
+          "type": "object",
+          "description": "Zone context for multi-building or campus captures.",
+          "properties": {
+            "zone_id": { "type": "string" },
+            "zone_name": { "type": "string" },
+            "site_zone_identifier": { "type": "string" },
+            "parent_tour_id": { "type": "string" }
+          },
+          "required": ["zone_id"],
+          "additionalProperties": false
+        },
         "lighting_condition": {
           "type": "string",
           "enum": ["DAYLIGHT", "LOW_LIGHT", "MIXED"]
+        },
+        "sun_orientation": {
+          "type": "object",
+          "description": "Solar azimuth/elevation readings captured during scan start.",
+          "properties": {
+            "azimuth_degrees": { "type": "number", "minimum": 0, "maximum": 360 },
+            "elevation_degrees": { "type": "number", "minimum": -90, "maximum": 90 },
+            "captured_at": { "type": "string", "format": "date-time" }
+          },
+          "required": ["azimuth_degrees", "elevation_degrees"],
+          "additionalProperties": false
+        },
+        "weather": {
+          "type": "string",
+          "description": "Weather conditions observed during capture.",
+          "enum": [
+            "CLEAR",
+            "PARTLY_CLOUDY",
+            "OVERCAST",
+            "RAIN",
+            "SNOW",
+            "FOG",
+            "WINDY"
+          ]
+        },
+        "gps_track": {
+          "type": "array",
+          "description": "Breadcrumb GPS track recorded during capture sweep for alignment validation.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "timestamp": { "type": "string", "format": "date-time" },
+              "latitude": { "type": "number" },
+              "longitude": { "type": "number" },
+              "altitude": { "type": "number" }
+            },
+            "required": ["timestamp", "latitude", "longitude"],
+            "additionalProperties": false
+          }
+        },
+        "ground_control_points": {
+          "type": "array",
+          "description": "Surveyed ground control points used for outdoor calibration.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "latitude": { "type": "number" },
+              "longitude": { "type": "number" },
+              "elevation": { "type": "number" },
+              "accuracy_cm": { "type": "number" }
+            },
+            "required": ["label", "latitude", "longitude"],
+            "additionalProperties": false
+          }
+        },
+        "measurement_tolerance_cm": {
+          "type": "number",
+          "description": "Expected measurement tolerance for this outdoor capture expressed in centimeters.",
+          "minimum": 0
+        },
+        "capture_height_meters": {
+          "type": "number",
+          "description": "Average sensor height during outdoor scan."
+        },
+        "drone_flight_plan": {
+          "type": "object",
+          "description": "Metadata for drone-based exterior capture sweeps.",
+          "properties": {
+            "takeoff_point": {
+              "type": "object",
+              "properties": {
+                "latitude": { "type": "number" },
+                "longitude": { "type": "number" },
+                "altitude": { "type": "number" }
+              },
+              "required": ["latitude", "longitude"],
+              "additionalProperties": false
+            },
+            "max_altitude_meters": { "type": "number" },
+            "path_url": { "type": "string", "format": "uri" }
+          },
+          "additionalProperties": false
         },
         "notes": { "type": "string" }
       },

@@ -199,6 +199,8 @@ export const createProperty = async (input: CreatePropertyInput): Promise<RawPro
     matterportExperienceLabel: undefined,
     guidedTours: [],
     sphrSpace: undefined,
+    zones: [],
+    campusMap: undefined,
   }
 
   await updateState((state) => {

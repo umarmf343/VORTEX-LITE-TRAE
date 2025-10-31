@@ -13,7 +13,7 @@ import type {
   WalkthroughNode,
 } from "@/lib/types"
 
-const MANIFEST_VERSION = "v1.0.0"
+const MANIFEST_VERSION = "v1.1.0"
 const CDN_ROOT = path.join(process.cwd(), "public", "cdn", "spaces")
 
 const ensureDirectory = async (directory: string) => {
@@ -157,6 +157,12 @@ const buildNavigation = (
   const connections: ViewerManifest["navigation"]["connections"] = []
 
   const scenes = property.scenes ?? []
+  const sceneZoneMap = new Map<string, string | undefined>()
+  scenes.forEach((scene) => {
+    if (scene.id) {
+      sceneZoneMap.set(scene.id, scene.zoneId ?? undefined)
+    }
+  })
   scenes.forEach((scene, index) => {
     const yaw = toRadians((index / Math.max(1, scenes.length)) * 360)
     cameraNodes.push({
@@ -164,7 +170,8 @@ const buildNavigation = (
       position: [index * 2.5, 1.6, 0],
       rotation: [0, yaw, 0],
       fov: 75,
-      thumbnail: ensureAbsoluteUrl(scene.thumbnail ?? scene.imageUrl, property.id)
+      thumbnail: ensureAbsoluteUrl(scene.thumbnail ?? scene.imageUrl, property.id),
+      zone_id: scene.zoneId ?? undefined
     })
 
     scene.hotspots?.forEach((hotspot) => {
@@ -172,11 +179,14 @@ const buildNavigation = (
       if ((hotspot.type ?? "").toString().toLowerCase() !== "link") return
       const target = (hotspot as Record<string, unknown>)["targetSceneId"]
       if (typeof target !== "string") return
+      const fromZone = sceneZoneMap.get(scene.id ?? `scene_${index}`)
+      const toZone = sceneZoneMap.get(target)
       connections.push({
         from: scene.id ?? `scene_${index}`,
         to: target,
         transition_type: "WALK",
-        distance: 3.0
+        distance: 3.0,
+        zone_transition: Boolean(fromZone && toZone && fromZone !== toZone)
       })
     })
   })
@@ -281,6 +291,8 @@ const buildImmersiveSpace = (
       } satisfies ImmersiveWalkthroughSpace["captureMetadata"]),
     bounds: base?.bounds,
     lighting: base?.lighting,
+    zoneId: base?.zoneId ?? property.zones?.find((zone) => zone.spaceIds.includes(property.id))?.zoneId,
+    outdoor: base?.outdoor ?? property.zones?.some((zone) => zone.outdoor) ?? false,
   }
 
   return immersiveSpace
@@ -363,6 +375,108 @@ const buildHotspots = (
   })
 
   return hotspots
+}
+
+const buildZones = (
+  property: StoredData["properties"][number]
+): ViewerManifest["zones"] | undefined => {
+  const zones = property.zones ?? []
+  if (!zones.length) {
+    return undefined
+  }
+
+  const manifestZones: NonNullable<ViewerManifest["zones"]> = zones.map((zone) => ({
+    zone_id: zone.zoneId,
+    name: zone.name,
+    space_ids: zone.spaceIds,
+    default_space_id: zone.defaultSpaceId ?? zone.spaceIds[0],
+    outdoor: zone.outdoor,
+    site_zone_identifier: zone.siteZoneIdentifier,
+    campus_map_icon_url: zone.campusMapIconUrl
+      ? ensureAbsoluteUrl(zone.campusMapIconUrl, property.id)
+      : undefined,
+    gps_bounds: zone.gpsBounds
+      ? {
+          sw: zone.gpsBounds.sw,
+          ne: zone.gpsBounds.ne,
+          altitude_meters: zone.gpsBounds.altitudeMeters,
+        }
+      : undefined,
+    capture_metadata: zone.captureMetadata
+      ? {
+          captureDate: zone.captureMetadata.captureDate,
+          captureCrew: zone.captureMetadata.captureCrew,
+          sunOrientation: zone.captureMetadata.sunOrientation
+            ? {
+                azimuthDegrees: zone.captureMetadata.sunOrientation.azimuthDegrees,
+                elevationDegrees: zone.captureMetadata.sunOrientation.elevationDegrees,
+                capturedAt: zone.captureMetadata.sunOrientation.capturedAt,
+              }
+            : undefined,
+          weather: zone.captureMetadata.weather,
+          gpsTrackUrl: zone.captureMetadata.gpsTrackUrl,
+          measurementToleranceCm: zone.captureMetadata.measurementToleranceCm,
+          calibrationMethod: zone.captureMetadata.calibrationMethod,
+        }
+      : undefined,
+  }))
+
+  return manifestZones
+}
+
+const buildZoneConnections = (
+  property: StoredData["properties"][number]
+): ViewerManifest["zone_connections"] | undefined => {
+  const zones = property.zones ?? []
+  if (!zones.length) {
+    return undefined
+  }
+
+  const manifestConnections: NonNullable<ViewerManifest["zone_connections"]> = []
+  zones.forEach((zone) => {
+    zone.connections?.forEach((connection) => {
+      manifestConnections.push({
+        from_zone_id: zone.zoneId,
+        to_zone_id: connection.targetZoneId,
+        transition_type: connection.transitionType,
+        description: connection.description,
+        estimated_seconds: connection.estimatedSeconds,
+        distance_meters: connection.distanceMeters,
+      })
+    })
+  })
+
+  return manifestConnections.length ? manifestConnections : undefined
+}
+
+const buildCampusMap = (
+  property: StoredData["properties"][number]
+): ViewerManifest["campus_map"] | undefined => {
+  const campusMap = property.campusMap
+  if (!campusMap) {
+    return undefined
+  }
+
+  return {
+    image_url: ensureAbsoluteUrl(campusMap.imageUrl, property.id),
+    tile_url_template: campusMap.tileUrlTemplate
+      ? ensureAbsoluteUrl(campusMap.tileUrlTemplate, property.id)
+      : undefined,
+    default_zone_id: campusMap.defaultZoneId,
+    gps_bounds: campusMap.gpsBounds,
+  }
+}
+
+const buildPerformanceProfile = (
+  property: StoredData["properties"][number]
+): ViewerManifest["performance"] => {
+  const hasOutdoorZone = (property.zones ?? []).some((zone) => zone.outdoor)
+  return {
+    lod_target_triangle_budget: hasOutdoorZone ? 350_000 : 180_000,
+    max_texture_resolution: hasOutdoorZone ? 8192 : 4096,
+    mobile_max_texture_resolution: hasOutdoorZone ? 4096 : 2048,
+    streaming_chunk_bytes: hasOutdoorZone ? 4 * 1024 * 1024 : 2 * 1024 * 1024,
+  }
 }
 
 const unitToMeters = (unit: string | undefined) => {
@@ -530,6 +644,11 @@ const buildManifest = (
   const analytics = buildAnalytics(property)
   const access = buildAccess(property, owner)
   const textures = buildTextures(property, state)
+  const zones = buildZones(property)
+  const zoneConnections = buildZoneConnections(property)
+  const campusMap = buildCampusMap(property)
+  const outdoorFlag = (property.zones ?? []).some((zone) => zone.outdoor)
+  const performance = buildPerformanceProfile(property)
 
   return {
     space_id: property.id,
@@ -543,7 +662,12 @@ const buildManifest = (
     hotspots,
     measurements,
     analytics,
-    access
+    access,
+    zones,
+    zone_connections: zoneConnections,
+    campus_map: campusMap,
+    outdoor_flag: outdoorFlag,
+    performance
   }
 }
 
