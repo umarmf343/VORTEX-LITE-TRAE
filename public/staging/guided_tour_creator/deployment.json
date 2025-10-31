@@ -1,0 +1,21 @@
+{
+  "deployment": "guided_tour_creator",
+  "pipeline": "guided_tour",
+  "environment": "staging",
+  "version": "2025.11.04-preview.0",
+  "deployed_at": "2025-11-04T09:25:00Z",
+  "commit_ref": "d4c7f12",
+  "build_id": "gtc-20251104-0925",
+  "viewer_url": "https://staging.virtualtour.ai/preview/guided-tour/space_3BR_flat_01",
+  "features": [
+    "guided_tour_timeline",
+    "branding_overlay_editor",
+    "voice_over_uploader",
+    "analytics_event_stream"
+  ],
+  "assets": {
+    "preset_catalog": "/pipelines/guided_tour/v1/guided_tour_variant_presets.json",
+    "job_manifest": "/pipelines/guided_tour/v1/guided_tour_job_manifest.json"
+  },
+  "notes": "Deploy staging guided tour creator for highlight reel validation."
+}

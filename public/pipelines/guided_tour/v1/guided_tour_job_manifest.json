@@ -1,0 +1,51 @@
+{
+  "job_id": "guided_tour_job_space_3BR_flat_01",
+  "pipeline": "guided_tour",
+  "version": "v1",
+  "space_id": "space_3BR_flat_01",
+  "mode": "auto",
+  "target_duration_seconds": 75,
+  "queued_at": "2025-11-04T09:20:00Z",
+  "priority": "high",
+  "requested_by": "agent_cassie",
+  "deliverables": [
+    {
+      "preset_id": "guided-60s-reel-4k",
+      "destination": "s3://immersive-processed/guided_tour/space_3BR_flat_01/marketing/",
+      "retention_days": 120
+    },
+    {
+      "preset_id": "guided-30s-vertical-9x16",
+      "destination": "s3://immersive-processed/guided_tour/space_3BR_flat_01/social/",
+      "retention_days": 90
+    }
+  ],
+  "highlight_strategy": {
+    "source": "auto",
+    "ranker": "scene_saliency_v2",
+    "filters": {
+      "min_confidence": 0.72,
+      "exclude_tags": ["utility_room", "storage"]
+    },
+    "branding_overlay": {
+      "logo_asset": "s3://immersive-branding/logos/virtualtour-ai.png",
+      "cta_text": "Schedule a Private Tour",
+      "cta_url": "https://virtualtour.ai/spaces/space_3BR_flat_01/book"
+    }
+  },
+  "audio": {
+    "music_track": "s3://immersive-audio/library/calm_piano_mix.mp3",
+    "voice_over": null,
+    "mix_level_db": -12
+  },
+  "webhook": {
+    "on_complete": "https://ops.virtualtour.ai/hooks/guided-tour/job-complete",
+    "on_failure": "https://ops.virtualtour.ai/hooks/guided-tour/job-failed"
+  },
+  "qa_config": {
+    "validate_duration": true,
+    "validate_transition_smoothness": true,
+    "max_camera_acceleration": 1.5,
+    "render_tolerance_seconds": 5
+  }
+}

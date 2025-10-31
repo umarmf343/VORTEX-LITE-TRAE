@@ -1,0 +1,125 @@
+{
+  "pipeline": "guided_tour",
+  "version": "v1",
+  "generated_at": "2025-11-04T09:15:00Z",
+  "maintainer": "Immersive Media Platform",
+  "notes": "Preset catalogue for linear guided tour and highlight reel exports across marketing channels.",
+  "presets": [
+    {
+      "id": "guided-60s-reel-4k",
+      "label": "60s Highlight Reel 16x9 (4K)",
+      "resolution": "3840x2160",
+      "aspect_ratio": "16:9",
+      "frame_rate": 30,
+      "bitrate_mbps": 80,
+      "delivery_format": "mp4",
+      "video_codec": "HEVC Main 10",
+      "audio": {
+        "codec": "AAC-LC",
+        "channels": "stereo",
+        "bitrate_kbps": 256,
+        "sample_rate_hz": 48000
+      },
+      "max_duration_seconds": 90,
+      "profile": "marketing_reel",
+      "intended_use": [
+        "email",
+        "website",
+        "showroom_loop"
+      ],
+      "metadata": {
+        "color_space": "Rec.709",
+        "dynamic_range": "SDR",
+        "transition_pack": "cinematic",
+        "include_branding_overlay": true
+      }
+    },
+    {
+      "id": "guided-120s-tour-1080p",
+      "label": "120s Guided Tour 16x9 (1080p)",
+      "resolution": "1920x1080",
+      "aspect_ratio": "16:9",
+      "frame_rate": 30,
+      "bitrate_mbps": 35,
+      "delivery_format": "mp4",
+      "video_codec": "H.264 High",
+      "audio": {
+        "codec": "AAC-LC",
+        "channels": "stereo",
+        "bitrate_kbps": 192,
+        "sample_rate_hz": 48000
+      },
+      "max_duration_seconds": 150,
+      "profile": "guided_tour",
+      "intended_use": [
+        "web",
+        "listing_portal",
+        "connected_tv"
+      ],
+      "metadata": {
+        "color_space": "Rec.709",
+        "dynamic_range": "SDR",
+        "transition_pack": "smooth",
+        "include_branding_overlay": true
+      }
+    },
+    {
+      "id": "guided-30s-vertical-9x16",
+      "label": "30s Social Spotlight 9x16 (Vertical)",
+      "resolution": "1080x1920",
+      "aspect_ratio": "9:16",
+      "frame_rate": 60,
+      "bitrate_mbps": 24,
+      "delivery_format": "mp4",
+      "video_codec": "H.264 High",
+      "audio": {
+        "codec": "AAC-LC",
+        "channels": "stereo",
+        "bitrate_kbps": 160,
+        "sample_rate_hz": 44100
+      },
+      "max_duration_seconds": 45,
+      "profile": "social",
+      "intended_use": [
+        "instagram_reels",
+        "tiktok",
+        "facebook_stories"
+      ],
+      "metadata": {
+        "color_space": "Rec.709",
+        "dynamic_range": "SDR",
+        "transition_pack": "snappy",
+        "include_branding_overlay": false
+      }
+    },
+    {
+      "id": "guided-180s-tour-master",
+      "label": "180s Guided Tour Master 4K",
+      "resolution": "3840x2160",
+      "aspect_ratio": "16:9",
+      "frame_rate": 30,
+      "bitrate_mbps": 120,
+      "delivery_format": "mov",
+      "video_codec": "Apple ProRes 422 LT",
+      "audio": {
+        "codec": "Linear PCM",
+        "channels": "stereo",
+        "bitrate_kbps": 1536,
+        "sample_rate_hz": 48000
+      },
+      "max_duration_seconds": 240,
+      "profile": "master",
+      "intended_use": [
+        "broadcast",
+        "archive",
+        "kiosk"
+      ],
+      "metadata": {
+        "color_space": "Rec.709",
+        "dynamic_range": "SDR",
+        "transition_pack": "cinematic",
+        "include_branding_overlay": false
+      }
+    }
+  ]
+}

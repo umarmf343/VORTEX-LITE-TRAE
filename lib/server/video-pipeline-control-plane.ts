@@ -14,18 +14,63 @@ import type {
 const DATA_DIRECTORY = path.join(process.cwd(), "data")
 const CONTROL_PLANE_FILE = path.join(DATA_DIRECTORY, "video-pipeline-control-plane.json")
 
-const PUBLIC_PIPELINE_DIR = path.join(process.cwd(), "public", "pipelines", "video360", "v1")
-const PUBLIC_STAGING_DIR = path.join(process.cwd(), "public", "staging", "video_preview_player")
+type PipelineConfig = {
+  id: string
+  version: string
+  pipelineDir: string
+  stagingDir: string
+  presetFileName: string
+  jobManifestFileName: string
+  deploymentFileName?: string
+  qaFileName?: string
+  presetPublicPath: string
+  jobManifestPublicPath: string
+  deploymentPublicPath?: string
+  qaPublicPath?: string
+  fallbackRegisteredAt: string
+  fallbackQueuedAt: string
+  fallbackDeployedAt?: string
+  fallbackQaAt?: string
+}
 
-const PRESETS_FILE = path.join(PUBLIC_PIPELINE_DIR, "video_export_presets.json")
-const JOB_MANIFEST_FILE = path.join(PUBLIC_PIPELINE_DIR, "video_job_manifest.json")
-const DEPLOYMENT_FILE = path.join(PUBLIC_STAGING_DIR, "deployment.json")
-const QA_RUN_FILE = path.join(PUBLIC_STAGING_DIR, "qa_space_3BR_flat_01.json")
-
-const PRESETS_PUBLIC_PATH = "/pipelines/video360/v1/video_export_presets.json"
-const JOB_MANIFEST_PUBLIC_PATH = "/pipelines/video360/v1/video_job_manifest.json"
-const DEPLOYMENT_PUBLIC_PATH = "/staging/video_preview_player/deployment.json"
-const QA_PUBLIC_PATH = "/staging/video_preview_player/qa_space_3BR_flat_01.json"
+const PIPELINE_CONFIGS: PipelineConfig[] = [
+  {
+    id: "video360",
+    version: "v1",
+    pipelineDir: path.join(process.cwd(), "public", "pipelines", "video360", "v1"),
+    stagingDir: path.join(process.cwd(), "public", "staging", "video_preview_player"),
+    presetFileName: "video_export_presets.json",
+    jobManifestFileName: "video_job_manifest.json",
+    deploymentFileName: "deployment.json",
+    qaFileName: "qa_space_3BR_flat_01.json",
+    presetPublicPath: "/pipelines/video360/v1/video_export_presets.json",
+    jobManifestPublicPath: "/pipelines/video360/v1/video_job_manifest.json",
+    deploymentPublicPath: "/staging/video_preview_player/deployment.json",
+    qaPublicPath: "/staging/video_preview_player/qa_space_3BR_flat_01.json",
+    fallbackRegisteredAt: "2025-10-30T10:45:00Z",
+    fallbackQueuedAt: "2025-10-30T11:05:00Z",
+    fallbackDeployedAt: "2025-10-30T11:20:00Z",
+    fallbackQaAt: "2025-10-30T11:40:00Z",
+  },
+  {
+    id: "guided_tour",
+    version: "v1",
+    pipelineDir: path.join(process.cwd(), "public", "pipelines", "guided_tour", "v1"),
+    stagingDir: path.join(process.cwd(), "public", "staging", "guided_tour_creator"),
+    presetFileName: "guided_tour_variant_presets.json",
+    jobManifestFileName: "guided_tour_job_manifest.json",
+    deploymentFileName: "deployment.json",
+    qaFileName: "qa_space_3BR_flat_01.json",
+    presetPublicPath: "/pipelines/guided_tour/v1/guided_tour_variant_presets.json",
+    jobManifestPublicPath: "/pipelines/guided_tour/v1/guided_tour_job_manifest.json",
+    deploymentPublicPath: "/staging/guided_tour_creator/deployment.json",
+    qaPublicPath: "/staging/guided_tour_creator/qa_space_3BR_flat_01.json",
+    fallbackRegisteredAt: "2025-11-04T09:15:00Z",
+    fallbackQueuedAt: "2025-11-04T09:20:00Z",
+    fallbackDeployedAt: "2025-11-04T09:25:00Z",
+    fallbackQaAt: "2025-11-04T09:40:00Z",
+  },
+]
 
 const ensureDirectory = async () => {
   await fs.mkdir(DATA_DIRECTORY, { recursive: true })
@@ -58,7 +103,10 @@ const writeState = async (state: VideoPipelineControlPlaneState) => {
   await fs.writeFile(CONTROL_PLANE_FILE, JSON.stringify(state, null, 2), "utf8")
 }
 
-const buildPresetRegistration = async (): Promise<VideoPresetRegistration> => {
+const buildPresetRegistration = async (
+  config: PipelineConfig,
+): Promise<VideoPresetRegistration> => {
+  const presetFile = path.join(config.pipelineDir, config.presetFileName)
   const data = await readJson<{
     pipeline?: string
     version?: string
@@ -66,14 +114,14 @@ const buildPresetRegistration = async (): Promise<VideoPresetRegistration> => {
     maintainer?: string
     notes?: string
     presets?: VideoPresetRegistration["presets"]
-  }>(PRESETS_FILE)
-  const checksum = await hashFile(PRESETS_FILE)
+  }>(presetFile)
+  const checksum = await hashFile(presetFile)
 
   return {
-    pipelineId: data.pipeline ?? "video360",
-    version: data.version ?? "v1",
-    sourcePath: PRESETS_PUBLIC_PATH,
-    registeredAt: data.generated_at ?? "2025-10-30T10:45:00Z",
+    pipelineId: data.pipeline ?? config.id,
+    version: data.version ?? config.version,
+    sourcePath: config.presetPublicPath,
+    registeredAt: data.generated_at ?? config.fallbackRegisteredAt,
     checksum,
     maintainer: data.maintainer ?? "Immersive Media Platform",
     notes: data.notes ?? "",
@@ -81,7 +129,8 @@ const buildPresetRegistration = async (): Promise<VideoPresetRegistration> => {
   }
 }
 
-const buildQueuedJob = async (): Promise<VideoProcessingJob> => {
+const buildQueuedJob = async (config: PipelineConfig): Promise<VideoProcessingJob> => {
+  const jobManifestFile = path.join(config.pipelineDir, config.jobManifestFileName)
   const manifest = await readJson<{
     job_id: string
     pipeline?: string
@@ -95,18 +144,18 @@ const buildQueuedJob = async (): Promise<VideoProcessingJob> => {
     qa_config?: VideoProcessingJob["qaConfig"]
     source_capture?: VideoProcessingJob["sourceCapture"]
     webhook?: VideoProcessingJob["webhook"]
-  }>(JOB_MANIFEST_FILE)
+  }>(jobManifestFile)
 
   return {
     jobId: manifest.job_id,
-    pipelineId: manifest.pipeline ?? "video360",
-    version: manifest.version ?? "v1",
+    pipelineId: manifest.pipeline ?? config.id,
+    version: manifest.version ?? config.version,
     spaceId: manifest.space_id,
     status: (manifest.status ?? "QUEUED").toLowerCase() as VideoProcessingJob["status"],
-    queuedAt: manifest.queued_at ?? "2025-10-30T11:05:00Z",
+    queuedAt: manifest.queued_at ?? config.fallbackQueuedAt,
     priority: manifest.priority ?? "standard",
     requestedBy: manifest.requested_by ?? "",
-    manifestPath: JOB_MANIFEST_PUBLIC_PATH,
+    manifestPath: config.jobManifestPublicPath,
     deliverables: manifest.deliverables ?? [],
     qaConfig: manifest.qa_config,
     sourceCapture: manifest.source_capture,
@@ -114,7 +163,14 @@ const buildQueuedJob = async (): Promise<VideoProcessingJob> => {
   }
 }
 
-const buildDeployment = async (): Promise<VideoPlayerDeployment> => {
+const buildDeployment = async (
+  config: PipelineConfig,
+): Promise<VideoPlayerDeployment | null> => {
+  if (!config.deploymentFileName || !config.deploymentPublicPath) {
+    return null
+  }
+
+  const deploymentFile = path.join(config.stagingDir, config.deploymentFileName)
   const deployment = await readJson<{
     deployment?: string
     environment?: string
@@ -127,13 +183,16 @@ const buildDeployment = async (): Promise<VideoPlayerDeployment> => {
     features?: string[]
     assets?: Record<string, string>
     notes?: string
-  }>(DEPLOYMENT_FILE)
+  }>(deploymentFile)
+
+  const publicPath = config.deploymentPublicPath.replace(/\\/g, "/")
+  const deploymentPath = publicPath.substring(0, publicPath.lastIndexOf("/")) || publicPath
 
   return {
-    path: "/staging/video_preview_player",
-    pipelineId: deployment.pipeline ?? "video360",
+    path: deploymentPath,
+    pipelineId: deployment.pipeline ?? config.id,
     environment: deployment.environment ?? "staging",
-    deployedAt: deployment.deployed_at ?? "2025-10-30T11:20:00Z",
+    deployedAt: deployment.deployed_at ?? config.fallbackDeployedAt ?? config.fallbackQueuedAt,
     version: deployment.version ?? "",
     buildId: deployment.build_id,
     commitRef: deployment.commit_ref,
@@ -141,11 +200,16 @@ const buildDeployment = async (): Promise<VideoPlayerDeployment> => {
     features: deployment.features ?? [],
     assets: deployment.assets ?? {},
     notes: deployment.notes,
-    manifestPath: DEPLOYMENT_PUBLIC_PATH,
+    manifestPath: config.deploymentPublicPath,
   }
 }
 
-const buildQaRun = async (): Promise<VideoQaSuiteResult> => {
+const buildQaRun = async (config: PipelineConfig): Promise<VideoQaSuiteResult | null> => {
+  if (!config.qaFileName || !config.qaPublicPath) {
+    return null
+  }
+
+  const qaFile = path.join(config.stagingDir, config.qaFileName)
   const qa = await readJson<{
     space_id: string
     pipeline?: string
@@ -155,49 +219,62 @@ const buildQaRun = async (): Promise<VideoQaSuiteResult> => {
     status?: VideoQaSuiteResult["status"]
     summary?: string
     checks?: VideoQaSuiteResult["checks"]
-  }>(QA_RUN_FILE)
+  }>(qaFile)
 
   return {
     spaceId: qa.space_id,
-    pipelineId: qa.pipeline ?? "video360",
+    pipelineId: qa.pipeline ?? config.id,
     suite: qa.suite ?? "staging_smoke",
-    runAt: qa.run_at ?? "2025-10-30T11:40:00Z",
+    runAt: qa.run_at ?? config.fallbackQaAt ?? config.fallbackQueuedAt,
     environment: qa.environment ?? "staging",
     status: qa.status ?? "passed_with_warnings",
     summary: qa.summary ?? "",
     checks: qa.checks ?? [],
-    reportPath: QA_PUBLIC_PATH,
+    reportPath: config.qaPublicPath,
   }
 }
 
 const pipelinesKey = (pipelines: VideoPipelineState[]) =>
   pipelines
-    .map((pipeline) => `${pipeline.id}:${pipeline.version}:${pipeline.presets.checksum}:${pipeline.jobs[0]?.jobId ?? "none"}`)
+    .map((pipeline) => {
+      const latestJob = pipeline.jobs[0]?.jobId ?? "none"
+      return `${pipeline.id}:${pipeline.version}:${pipeline.presets.checksum}:${latestJob}`
+    })
     .sort()
     .join("|")
 
 export const registerVideoPipelineControlPlane = async (): Promise<VideoPipelineControlPlaneState> => {
-  const [presets, job, deployment, qaRun] = await Promise.all([
-    buildPresetRegistration(),
-    buildQueuedJob(),
-    buildDeployment(),
-    buildQaRun(),
-  ])
+  const pipelines: VideoPipelineState[] = []
+  let updatedAt = "1970-01-01T00:00:00Z"
 
-  const pipeline: VideoPipelineState = {
-    id: presets.pipelineId,
-    version: presets.version,
-    presets,
-    jobs: [job],
-    deployments: [deployment],
-    qaRuns: [qaRun],
+  for (const config of PIPELINE_CONFIGS) {
+    const [presets, job, deployment, qaRun] = await Promise.all([
+      buildPresetRegistration(config),
+      buildQueuedJob(config),
+      buildDeployment(config),
+      buildQaRun(config),
+    ])
+
+    const pipeline: VideoPipelineState = {
+      id: presets.pipelineId,
+      version: presets.version,
+      presets,
+      jobs: [job],
+      deployments: deployment ? [deployment] : [],
+      qaRuns: qaRun ? [qaRun] : [],
+    }
+
+    pipelines.push(pipeline)
+
+    const pipelineUpdatedAt = qaRun?.runAt ?? deployment?.deployedAt ?? job.queuedAt ?? presets.registeredAt
+    if (pipelineUpdatedAt && pipelineUpdatedAt > updatedAt) {
+      updatedAt = pipelineUpdatedAt
+    }
   }
-
-  const updatedAt = qaRun.runAt ?? job.queuedAt ?? presets.registeredAt
 
   const state: VideoPipelineControlPlaneState = {
     updatedAt,
-    pipelines: [pipeline],
+    pipelines,
   }
 
   const existing = await loadExistingState()

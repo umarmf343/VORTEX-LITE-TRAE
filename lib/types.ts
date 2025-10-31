@@ -1240,6 +1240,47 @@ export interface ViewerManifestAccess {
   expiry: string
 }
 
+export interface ViewerManifestHighlightPoint {
+  node_id: string
+  label: string
+  description?: string
+  thumbnail_url?: string
+  tags?: string[]
+  recommended_duration_seconds?: number
+}
+
+export type ViewerManifestVideoAssetType = "highlight_reel" | "guided_tour"
+
+export interface ViewerManifestVideoAssetDistributionVariant {
+  preset_id: string
+  url: string
+}
+
+export interface ViewerManifestVideoAssetDistribution {
+  download_url?: string
+  streaming_url?: string
+  social_variants?: ViewerManifestVideoAssetDistributionVariant[]
+}
+
+export interface ViewerManifestVideoAssetBranding {
+  logo_url?: string
+  tagline?: string
+  agent_contact?: string
+  call_to_action?: string
+}
+
+export interface ViewerManifestVideoAsset {
+  video_id: string
+  type: ViewerManifestVideoAssetType
+  url: string
+  resolution: string
+  duration_secs: number
+  created_at: string
+  presets_used?: string[]
+  branding_overlay?: ViewerManifestVideoAssetBranding
+  distribution?: ViewerManifestVideoAssetDistribution
+}
+
 export interface ViewerManifest {
   space_id: string
   version: string
@@ -1261,6 +1302,8 @@ export interface ViewerManifest {
   campus_map?: ViewerManifestCampusMap
   outdoor_flag?: boolean
   performance?: ViewerManifestPerformanceProfile
+  highlight_points?: ViewerManifestHighlightPoint[]
+  video_assets?: ViewerManifestVideoAsset[]
 }
 
 export interface AdvancedAnalyticsReport {
