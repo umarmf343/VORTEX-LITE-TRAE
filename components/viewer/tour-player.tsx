@@ -56,6 +56,7 @@ import {
   MousePointerClick,
   Ruler,
   Layers,
+  Globe,
 } from "@/lib/icons"
 import { ZoomControls } from "./zoom-controls"
 import { useHdPhotoModule } from "@/hooks/use-hd-photo-module"
