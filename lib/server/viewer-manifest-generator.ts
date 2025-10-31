@@ -4,6 +4,7 @@ import path from "path"
 
 import { getDataSnapshot, type StoredData } from "@/lib/server/data-store"
 import type {
+  Hotspot,
   ImmersiveWalkthroughSpace,
   MeasurementAccuracy,
   MeasurementAnnotationMeta,
@@ -14,6 +15,7 @@ import type {
   ViewerManifestHotspotType,
   WalkthroughNode,
 } from "@/lib/types"
+import { getPrimaryMedia, normalizeHotspotType as normalizeInteractiveHotspotType } from "@/lib/hotspot-utils"
 
 const MANIFEST_VERSION = "v1.1.0"
 const CDN_ROOT = path.join(process.cwd(), "public", "cdn", "spaces")
@@ -338,10 +340,26 @@ const buildViews = (
   }
 }
 
-const normalizeHotspotType = (type: unknown): ViewerManifestHotspotType => {
-  const value = typeof type === "string" ? type.toUpperCase() : "INFO"
-  if (value === "INFO" || value === "LINK" || value === "VIDEO" || value === "IMAGE" || value === "AUDIO" || value === "PRODUCT") {
-    return value
+const mapManifestHotspotType = (hotspot: Hotspot): ViewerManifestHotspotType => {
+  const normalized = normalizeInteractiveHotspotType(hotspot.type)
+  if (normalized === "media_embed") {
+    const media = getPrimaryMedia(hotspot)
+    if (media?.type === "audio") {
+      return "AUDIO"
+    }
+    if (media?.type === "image") {
+      return "IMAGE"
+    }
+    return "VIDEO"
+  }
+  if (normalized === "navigation_point") {
+    return "NAVIGATION"
+  }
+  if (normalized === "external_link") {
+    return "LINK"
+  }
+  if (normalized === "custom_action") {
+    return "CUSTOM"
   }
   return "INFO"
 }
@@ -355,23 +373,24 @@ const buildHotspots = (
   const scenes = property.scenes ?? []
 
   scenes.forEach((scene) => {
-    scene.hotspots?.forEach((rawHotspot) => {
-      if (typeof rawHotspot !== "object" || rawHotspot === null) return
-      const hotspot = rawHotspot as Record<string, unknown>
+    scene.hotspots?.forEach((hotspotEntry) => {
+      if (typeof hotspotEntry !== "object" || hotspotEntry === null) return
+      const hotspot = hotspotEntry as Hotspot
+      const primaryMedia = getPrimaryMedia(hotspot)
       hotspots.push({
-        id: typeof hotspot["id"] === "string" ? hotspot["id"] : `${scene.id}_${hotspots.length}`,
-        type: normalizeHotspotType(hotspot["type"]),
-        title: (hotspot["title"] as string) ?? "",
-        content: (hotspot["description"] as string) ?? (hotspot["title"] as string) ?? "",
+        id: hotspot.id,
+        type: mapManifestHotspotType(hotspot),
+        title: hotspot.label ?? hotspot.title ?? "",
+        content: hotspot.description ?? hotspot.label ?? hotspot.title ?? "",
         position: [
-          Number(hotspot["x"] ?? 0) / 10,
-          Number(hotspot["y"] ?? 0) / 10,
-          Number(hotspot["z"] ?? 0)
+          Number(hotspot.x ?? 0) / 100,
+          Number(hotspot.y ?? 0) / 100,
+          Number(hotspot.z ?? 0),
         ],
-        media_url: hotspot["mediaUrl"] ? ensureAbsoluteUrl(hotspot["mediaUrl"] as string, property.id) : undefined,
+        media_url: primaryMedia?.url ? ensureAbsoluteUrl(primaryMedia.url, property.id) : undefined,
         visible_in_views: ["walkthrough"],
         author: defaultAuthor,
-        created_at: updatedAt
+        created_at: updatedAt,
       })
     })
   })

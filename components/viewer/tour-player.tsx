@@ -11,6 +11,8 @@ import type {
   Room,
   Scene,
   SceneEngagementPayload,
+  SceneTransition,
+  SceneTransitionType,
   SphrHotspot,
   SphrSpaceNode,
   TourPoint,
@@ -58,6 +60,17 @@ import {
 import { ZoomControls } from "./zoom-controls"
 import { useHdPhotoModule } from "@/hooks/use-hd-photo-module"
 import { SharePanel } from "./share-panel"
+import { SceneTransitionEngine } from "@/lib/scene-transition-engine"
+import {
+  getHotspotLabel,
+  getPrimaryMedia,
+  isCustomActionHotspot,
+  isExternalLinkHotspot,
+  isMediaHotspot,
+  isNavigationHotspot,
+  resolveHotspotLink,
+  resolveHotspotTargetScene,
+} from "@/lib/hotspot-utils"
 
 const FALLBACK_MIN_ZOOM = 1
 const FALLBACK_MAX_ZOOM = 3
@@ -138,6 +151,8 @@ export function TourPlayer({
     key: number
   } | null>(null)
   const [activeHotspot, setActiveHotspot] = useState<Hotspot | null>(null)
+  const [transitionState, setTransitionState] = useState<{ type: SceneTransitionType; progress: number } | null>(null)
+  const [transitionError, setTransitionError] = useState<string | null>(null)
   const [fallbackZoom, setFallbackZoom] = useState(1)
   const [fallbackOffset, setFallbackOffset] = useState({ x: 0, y: 0 })
   const [isFallbackDragging, setIsFallbackDragging] = useState(false)
@@ -147,6 +162,7 @@ export function TourPlayer({
   const fallbackBoundsRef = useRef<DOMRect | null>(null)
   const fallbackContainerRef = useRef<HTMLDivElement | null>(null)
   const fallbackOffsetRef = useRef({ x: 0, y: 0 })
+  const transitionEngineRef = useRef<SceneTransitionEngine | null>(null)
   const deriveMeasurementDefaults = useCallback((scenes: Scene[]) => {
     const initial: Record<string, Measurement[]> = {}
     for (const scene of scenes) {
@@ -612,6 +628,102 @@ export function TourPlayer({
   }, [fallbackOffset])
 
   const currentScene = property.scenes[currentSceneIndex]
+  const transitionHooks = useMemo(
+    () => ({
+      onStart: (transition: SceneTransition) => {
+        setTransitionError(null)
+        setTransitionState({ type: transition.type, progress: 0 })
+      },
+      onProgress: (progress: number, transition: SceneTransition) => {
+        setTransitionState({ type: transition.type, progress })
+      },
+      onComplete: () => {
+        setTransitionState(null)
+      },
+      onError: (error: Error) => {
+        setTransitionError(error.message)
+        setTransitionState(null)
+      },
+    }),
+    [setTransitionError, setTransitionState],
+  )
+
+  const preloadSceneAssets = useCallback(
+    async (sceneId: string) => {
+      if (typeof window === "undefined") return
+      const targetScene = property.scenes.find((scene) => scene.id === sceneId)
+      if (!targetScene?.imageUrl) {
+        return
+      }
+      await new Promise<void>((resolve) => {
+        const image = new Image()
+        image.onload = () => resolve()
+        image.onerror = () => resolve()
+        image.src = targetScene.imageUrl
+      })
+    },
+    [property.scenes],
+  )
+
+  const activateSceneById = useCallback(
+    async (sceneId: string) => {
+      const index = property.scenes.findIndex((scene) => scene.id === sceneId)
+      if (index !== -1) {
+        goToScene(index)
+      }
+    },
+    [goToScene, property.scenes],
+  )
+
+  useEffect(() => {
+    const engine = new SceneTransitionEngine({
+      preloadScene: preloadSceneAssets,
+      activateScene: activateSceneById,
+      hooks: transitionHooks,
+      defaultDuration: 1400,
+      cacheSize: 2,
+    })
+    transitionEngineRef.current = engine
+    return () => {
+      transitionEngineRef.current = null
+    }
+  }, [activateSceneById, preloadSceneAssets, transitionHooks])
+
+  const requestSceneTransitionByIndex = useCallback(
+    async (index: number, override?: Partial<SceneTransition>) => {
+      const targetScene = property.scenes[index]
+      if (!targetScene) {
+        return
+      }
+      const engine = transitionEngineRef.current
+      if (!engine) {
+        goToScene(index)
+        return
+      }
+      const transitionMeta = currentScene.transitions?.find((entry) => entry.toSceneId === targetScene.id)
+      const base: Partial<SceneTransition> | undefined = transitionMeta
+        ? {
+            type: transitionMeta.type,
+            duration: transitionMeta.duration,
+            easing: transitionMeta.easing,
+            preload: transitionMeta.preload,
+            metadata: transitionMeta.metadata,
+          }
+        : undefined
+      try {
+        await engine.transition({
+          fromSceneId: currentScene.id,
+          toSceneId: targetScene.id,
+          transition: { ...base, ...override },
+        })
+      } catch (error) {
+        console.warn("Falling back to instant scene swap", error)
+        setTransitionError((error as Error).message)
+        goToScene(index)
+      }
+    },
+    [currentScene, goToScene, property.scenes],
+  )
   const capturePreviewCard = useMemo(() => {
     if (!capturePreview) {
       return null
@@ -658,8 +770,7 @@ export function TourPlayer({
     })
   }, [fallbackZoom])
   const mediaHotspots = useMemo(
-    () =>
-      currentScene.hotspots.filter((hotspot) => ["video", "audio", "image"].includes(hotspot.type)),
+    () => currentScene.hotspots.filter((hotspot) => isMediaHotspot(hotspot)),
     [currentScene.hotspots],
   )
   const selectedGuidedTour = useMemo(
@@ -1023,10 +1134,13 @@ export function TourPlayer({
   const handleWalkthroughStep = useCallback(
     (direction: 1 | -1) => {
       const nextIndex = Math.max(0, Math.min(property.scenes.length - 1, currentSceneIndex + direction))
-      goToScene(nextIndex)
+      if (nextIndex === currentSceneIndex) {
+        return
+      }
+      void requestSceneTransitionByIndex(nextIndex)
       setPendingOrientation(null)
     },
-    [currentSceneIndex, goToScene, property.scenes.length],
+    [currentSceneIndex, property.scenes.length, requestSceneTransitionByIndex],
   )
 
   const startTourAt = (index: number) => {
@@ -1044,21 +1158,37 @@ export function TourPlayer({
 
   const handleHotspotClick = (hotspot: Hotspot) => {
     activateHotspot(hotspot)
-    if (hotspot.type === "link" && hotspot.targetSceneId) {
-      const sceneIndex = property.scenes.findIndex((s) => s.id === hotspot.targetSceneId)
-      if (sceneIndex !== -1) {
-        goToScene(sceneIndex)
+    if (isNavigationHotspot(hotspot)) {
+      const targetSceneId = resolveHotspotTargetScene(hotspot) ?? hotspot.targetSceneId
+      if (!targetSceneId) {
+        return
       }
-    } else if (hotspot.type === "cta") {
-      setShowLeadForm(true)
+      const sceneIndex = property.scenes.findIndex((scene) => scene.id === targetSceneId)
+      if (sceneIndex !== -1) {
+        void requestSceneTransitionByIndex(sceneIndex)
+      }
+    } else if (isCustomActionHotspot(hotspot)) {
+      const actionId = hotspot.customActionId ?? "lead-form"
+      window.dispatchEvent(
+        new CustomEvent("hotspot:custom-action", { detail: { id: actionId, hotspot } }),
+      )
+      if (actionId === "lead-form" || actionId === "cta") {
+        setShowLeadForm(true)
+      }
+    } else if (isExternalLinkHotspot(hotspot)) {
+      const link = resolveHotspotLink(hotspot)
+      if (link) {
+        window.open(link, "_blank", "noopener,noreferrer")
+      }
     }
   }
 
   const handleHotspotMediaPreview = useCallback(
     (hotspot: Hotspot) => {
       activateHotspot(hotspot)
-      if (!hotspot.mediaUrl) return
-      window.open(hotspot.mediaUrl, "_blank", "noopener,noreferrer")
+      const primaryMedia = getPrimaryMedia(hotspot)
+      if (!primaryMedia) return
+      window.open(primaryMedia.url, "_blank", "noopener,noreferrer")
     },
     [activateHotspot],
   )
@@ -1234,7 +1364,7 @@ export function TourPlayer({
     if (!room.sceneId) return
     const sceneIndex = property.scenes.findIndex((scene) => scene.id === room.sceneId)
     if (sceneIndex >= 0) {
-      goToScene(sceneIndex)
+      void requestSceneTransitionByIndex(sceneIndex)
       setShowFloorPlan(false)
     }
   }
@@ -1242,13 +1372,31 @@ export function TourPlayer({
   const handleDollhouseNavigate = (sceneId: string) => {
     const sceneIndex = property.scenes.findIndex((scene) => scene.id === sceneId)
     if (sceneIndex >= 0) {
-      goToScene(sceneIndex)
+      void requestSceneTransitionByIndex(sceneIndex)
       setMeasurementMode(false)
     }
   }
 
   return (
     <div className="w-full h-screen flex flex-col bg-black">
+      {transitionState && (
+        <div className="pointer-events-none fixed top-4 right-4 z-50 flex items-center gap-3 rounded-lg bg-black/80 px-4 py-2 text-sm text-white shadow-lg backdrop-blur">
+          <span className="text-[11px] uppercase tracking-wide text-blue-300">
+            {transitionState.type.replace(/_/g, " ")}
+          </span>
+          <div className="h-2 w-32 rounded-full bg-white/10">
+            <div
+              className="h-full rounded-full bg-blue-500 transition-[width]"
+              style={{ width: `${Math.min(transitionState.progress * 100, 100)}%` }}
+            />
+          </div>
+        </div>
+      )}
+      {transitionError && (
+        <div className="fixed top-20 right-4 z-50 rounded-lg bg-red-600/80 px-4 py-2 text-sm text-white shadow-lg">
+          Transition issue: {transitionError}
+        </div>
+      )}
       {/* Header */}
       <div className="bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700 p-4">
         <div className="max-w-7xl mx-auto flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -1629,7 +1777,10 @@ export function TourPlayer({
                   min={0}
                   max={Math.max(property.scenes.length - 1, 0)}
                   value={currentSceneIndex}
-                  onChange={(event) => goToScene(Number(event.target.value))}
+                  onChange={(event) => {
+                    const index = Number(event.target.value)
+                    void requestSceneTransitionByIndex(index)
+                  }}
                   className="w-full mt-3 accent-blue-500"
                   aria-label="Scene navigation"
                 />
@@ -1638,7 +1789,7 @@ export function TourPlayer({
                     <button
                       key={`scene-chip-${scene.id}`}
                       type="button"
-                      onClick={() => goToScene(idx)}
+                      onClick={() => void requestSceneTransitionByIndex(idx)}
                       className={`px-2 py-1 rounded-full text-[11px] tracking-wide uppercase transition ${
                         idx === currentSceneIndex
                           ? "bg-blue-500/20 text-blue-200 border border-blue-500/60"
@@ -1665,13 +1816,18 @@ export function TourPlayer({
                         onClick={() => {
                           const index = property.scenes.findIndex((scene) => scene.id === point.sceneId)
                           if (index !== -1) {
-                            goToScene(index)
-                            setPendingOrientation({
-                              sceneId: point.sceneId,
-                              yaw: point.yaw,
-                              pitch: point.pitch,
-                              key: Date.now(),
-                            })
+                            const transitionPromise = requestSceneTransitionByIndex(index)
+                            void transitionPromise
+                            transitionPromise
+                              .then(() => {
+                                setPendingOrientation({
+                                  sceneId: point.sceneId,
+                                  yaw: point.yaw,
+                                  pitch: point.pitch,
+                                  key: Date.now(),
+                                })
+                              })
+                              .catch(() => {})
                           }
                         }}
                         className="w-full text-left px-3 py-2 rounded-lg bg-gray-800/70 border border-gray-800 hover:border-blue-500/40 transition"
@@ -1697,6 +1853,7 @@ export function TourPlayer({
                   <ul className="mt-2 space-y-2">
                     {mediaHotspots.map((hotspot) => {
                       const isActiveHotspot = activeHotspot?.id === hotspot.id
+                      const primaryMedia = getPrimaryMedia(hotspot)
                       return (
                         <li
                           key={hotspot.id}
@@ -1708,9 +1865,9 @@ export function TourPlayer({
                         >
                           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div className="min-w-0">
-                              <p className="truncate text-sm font-medium text-gray-100">{hotspot.title}</p>
+                              <p className="truncate text-sm font-medium text-gray-100">{getHotspotLabel(hotspot)}</p>
                               <p className="text-[11px] text-gray-400 capitalize">
-                                {hotspot.type} hotspot
+                                {primaryMedia ? `${primaryMedia.type} media` : "media hotspot"}
                                 {isActiveHotspot ? <span className="ml-1 text-blue-300">• Active</span> : null}
                               </p>
                             </div>
@@ -1736,7 +1893,7 @@ export function TourPlayer({
                                   focusHotspot(hotspot)
                                   handleHotspotMediaPreview(hotspot)
                                 }}
-                                disabled={!hotspot.mediaUrl}
+                                disabled={!primaryMedia}
                               >
                                 Open
                               </Button>

@@ -8,14 +8,18 @@ import type {
   CrossPlatformShare,
   CSSCustomization,
   FloorPlan,
+  Hotspot,
   Lead,
   Model3DAsset,
   Property,
   PropertyMerge,
+  SceneTransition,
   SceneTypeConfig,
   TechnicianProfile,
   Visitor,
 } from "@/lib/types"
+import { loadScenePayload, loadTourManifest } from "@/lib/tour-data-loader"
+import { normalizeHotspotType } from "@/lib/hotspot-utils"
 
 interface RawStats {
   totalVisits: number
@@ -101,12 +105,14 @@ const loadState = async (): Promise<StoredData> => {
   try {
     await ensureDirectory()
     const state = await readJsonFile(STATE_FILE)
+    await mergeTourData(state)
     return state
   } catch (error: unknown) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
       throw error
     }
     const mock = await readJsonFile(MOCK_FILE)
+    await mergeTourData(mock)
     await writeState(mock)
     return mock
   }
@@ -139,6 +145,80 @@ const defaultBranding = (propertyId: string): CSSCustomization => ({
 export const getDataSnapshot = async (): Promise<StoredData> => {
   const state = await getState()
   return JSON.parse(JSON.stringify(state)) as StoredData
+}
+
+const normalizeSceneHotspot = (hotspot: Hotspot): Hotspot => {
+  const metadata = hotspot.metadata ?? {}
+  const normalizedType = normalizeHotspotType(hotspot.type)
+  return {
+    ...hotspot,
+    type: normalizedType,
+    label: hotspot.label ?? hotspot.title ?? hotspot.description,
+    title: hotspot.title ?? hotspot.label ?? hotspot.description ?? hotspot.id,
+    metadata,
+  }
+}
+
+const mergeHotspotRecords = (existing: Hotspot, incoming: Hotspot): Hotspot => ({
+  ...existing,
+  ...incoming,
+  type: normalizeHotspotType(incoming.type ?? existing.type),
+  label: incoming.label ?? existing.label,
+  title: incoming.title ?? existing.title,
+  description: incoming.description ?? existing.description,
+  linkUrl: incoming.linkUrl ?? existing.linkUrl,
+  actionUrl: incoming.actionUrl ?? existing.actionUrl,
+  media: incoming.media ?? existing.media,
+  mediaUrl: incoming.mediaUrl ?? existing.mediaUrl,
+  targetSceneId: incoming.targetSceneId ?? existing.targetSceneId,
+  metadata: { ...existing.metadata, ...incoming.metadata },
+})
+
+const mergeTourData = async (state: StoredData) => {
+  const manifest = await loadTourManifest()
+  if (!manifest) {
+    return
+  }
+  const sceneCache = new Map<string, { hotspots: Hotspot[]; transitions: SceneTransition[] }>()
+
+  const resolveScenePayload = async (sceneId: string) => {
+    if (!sceneCache.has(sceneId)) {
+      const payload = await loadScenePayload(sceneId)
+      sceneCache.set(sceneId, payload)
+    }
+    return sceneCache.get(sceneId) ?? { hotspots: [], transitions: [] }
+  }
+
+  for (const property of state.properties) {
+    if (!Array.isArray(property.scenes)) continue
+    for (const scene of property.scenes) {
+      const payload = await resolveScenePayload(scene.id)
+      if (!payload.hotspots.length && !payload.transitions.length) {
+        continue
+      }
+
+      const hotspotMap = new Map<string, Hotspot>()
+      const existingHotspots = Array.isArray(scene.hotspots) ? scene.hotspots : []
+      for (const hotspot of existingHotspots) {
+        const normalized = normalizeSceneHotspot(hotspot)
+        hotspotMap.set(normalized.id, normalized)
+      }
+
+      for (const incoming of payload.hotspots) {
+        const normalizedIncoming = normalizeSceneHotspot(incoming)
+        const current = hotspotMap.get(normalizedIncoming.id)
+        hotspotMap.set(
+          normalizedIncoming.id,
+          current ? mergeHotspotRecords(current, normalizedIncoming) : normalizedIncoming,
+        )
+      }
+
+      scene.hotspots = Array.from(hotspotMap.values())
+      if (payload.transitions.length) {
+        scene.transitions = payload.transitions.map((transition) => ({ ...transition }))
+      }
+    }
+  }
 }
 
 export interface CreatePropertyInput {

@@ -201,6 +201,7 @@ export interface Scene {
   name: string
   imageUrl: string
   hotspots: Hotspot[]
+  transitions?: SceneTransition[]
   measurements: Measurement[]
   annotations: Annotation[]
   order: number
@@ -344,17 +345,74 @@ export interface HDPhotoCollection {
   lastAnalyzedAt?: string
 }
 
+export type HotspotType =
+  | "info_point"
+  | "media_embed"
+  | "navigation_point"
+  | "external_link"
+  | "custom_action"
+  /** Legacy aliases kept for backwards compatibility with existing data sets. */
+  | "info"
+  | "link"
+  | "cta"
+  | "video"
+  | "audio"
+  | "image"
+
+export type HotspotMediaType = "image" | "video" | "audio" | "document" | "model"
+
+export interface HotspotMedia {
+  type: HotspotMediaType
+  url: string
+  posterUrl?: string
+  title?: string
+  description?: string
+  autoplay?: boolean
+  loop?: boolean
+  /** Arbitrary metadata supplied by the authoring interface. */
+  metadata?: Record<string, unknown>
+}
+
+export interface HotspotOcclusionConfig {
+  mode: "auto" | "manual"
+  /** Optional maximum distance in meters where the hotspot remains visible. */
+  maxDistance?: number
+  /** Optional radius around the camera origin used for depth-aware culling. */
+  depthRadius?: number
+  enabled?: boolean
+}
+
 export interface Hotspot {
   id: string
   x: number
   y: number
-  type: "info" | "link" | "cta" | "video" | "audio" | "image"
-  title: string
-  description: string
+  /** Optional depth coordinate used by the occlusion system. */
+  z?: number
+  type: HotspotType
+  /** Display label surfaced inside tooltips or badges. */
+  label?: string
+  /** Optional longer form description for detail panels. */
+  description?: string
+  /** Destination scene identifier for navigation hotspots. */
   targetSceneId?: string
+  /** External URL opened for `external_link` hotspots. */
+  linkUrl?: string
+  /** Legacy action URL alias kept for backwards compatibility. */
   actionUrl?: string
+  /** Identifier for custom action dispatchers. */
+  customActionId?: string
+  /** Optional media payload for `media_embed` hotspots. */
+  media?: HotspotMedia | HotspotMedia[]
+  /** Legacy media URL alias for data sources that store a single asset. */
   mediaUrl?: string
+  /** Arbitrary data persisted alongside the hotspot. */
+  metadata?: Record<string, unknown>
+  /** Optional occlusion overrides for depth-aware rendering. */
+  occlusion?: HotspotOcclusionConfig
+  /** Engagement metrics aggregated from analytics. */
   clickCount?: number
+  /** Optional legacy title maintained for existing UI expectations. */
+  title?: string
 }
 
 export interface MeasurementPoint2D {
@@ -1029,11 +1087,18 @@ export interface AreaMeasurement extends Measurement {
   volume?: number
 }
 
+export type SceneTransitionType = "walkthrough" | "fade_switch" | "orbit_move" | "instant_snap"
+
 export interface SceneTransition {
   fromSceneId: string
   toSceneId: string
-  type: "fade" | "slide"
+  type: SceneTransitionType
   duration: number
+  easing?: "linear" | "cubic" | "smoothstep"
+  /** When true the engine preloads destination assets before the visual cut. */
+  preload?: boolean
+  /** Optional author supplied metadata used by the transition engine. */
+  metadata?: Record<string, unknown>
 }
 
 export interface DayNightMode {
@@ -1063,7 +1128,15 @@ export interface VRSettings {
   gyroscopeEnabled: boolean
 }
 
-export type ViewerManifestHotspotType = "INFO" | "LINK" | "VIDEO" | "IMAGE" | "AUDIO" | "PRODUCT"
+export type ViewerManifestHotspotType =
+  | "INFO"
+  | "LINK"
+  | "VIDEO"
+  | "IMAGE"
+  | "AUDIO"
+  | "PRODUCT"
+  | "NAVIGATION"
+  | "CUSTOM"
 
 export interface ViewerManifestGeometryLodLevel {
   level: number

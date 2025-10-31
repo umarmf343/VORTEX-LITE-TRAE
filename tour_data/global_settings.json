@@ -1,0 +1,7 @@
+{
+  "interaction_latency_target_ms": 80,
+  "transition_budget_ms": 1500,
+  "preload_distance_m": 3.5,
+  "default_hotspot_icon": "dot",
+  "enable_depth_occlusion": true
+}

@@ -7,6 +7,7 @@ import type {
   BrandingConfig,
   DataLayer,
   Hotspot,
+  HotspotMedia,
   Measurement,
   MeasurementExportRecord,
   Scene as SceneType,
@@ -46,8 +47,22 @@ import {
   Building2,
   Camera,
   Globe,
+  ExternalLink,
+  Zap,
 } from "@/lib/icons"
 import { cn } from "@/lib/utils"
+import {
+  evaluateOcclusion,
+  getHotspotDescription,
+  getHotspotLabel,
+  getPrimaryMedia,
+  isCustomActionHotspot,
+  isExternalLinkHotspot,
+  isMediaHotspot,
+  normalizeHotspotType,
+  resolveHotspotLink,
+  shouldDisplayInfoPanel,
+} from "@/lib/hotspot-utils"
 import {
   MathUtils,
   Mesh,
@@ -419,7 +434,7 @@ export function SceneViewer({
   const [autoRotateSpeed, setAutoRotateSpeed] = useState(1)
   const [autoRotateDirection, setAutoRotateDirection] = useState<1 | -1>(1)
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null)
-  const [mediaModal, setMediaModal] = useState<{ type: string; url: string } | null>(null)
+  const [mediaModal, setMediaModal] = useState<{ hotspot: Hotspot; media: HotspotMedia } | null>(null)
   const [dayNightMode, setDayNightMode] = useState<"day" | "night">("day")
   const [vrMode, setVrMode] = useState(false)
   const [measurementType, setMeasurementType] = useState<MeasurementMode>("distance")
@@ -1865,10 +1880,54 @@ export function SceneViewer({
 
   const handleHotspotClick = (hotspot: Hotspot) => {
     setSelectedHotspot(hotspot)
-    if (hotspot.type === "video" || hotspot.type === "audio" || hotspot.type === "image") {
-      setMediaModal({ type: hotspot.type, url: hotspot.mediaUrl || "" })
+    if (isMediaHotspot(hotspot)) {
+      const primaryMedia = getPrimaryMedia(hotspot)
+      if (primaryMedia) {
+        setMediaModal({ hotspot, media: primaryMedia })
+      }
+    } else if (isExternalLinkHotspot(hotspot)) {
+      const link = resolveHotspotLink(hotspot)
+      if (link) {
+        window.open(link, "_blank", "noopener,noreferrer")
+      }
+    } else if (isCustomActionHotspot(hotspot) && hotspot.customActionId) {
+      window.dispatchEvent(
+        new CustomEvent("hotspot:custom-action", {
+          detail: { id: hotspot.customActionId, hotspot },
+        }),
+      )
     }
     onHotspotClick?.(hotspot)
+  }
+
+  const renderHotspotIcon = (hotspot: Hotspot) => {
+    const type = normalizeHotspotType(hotspot.type)
+    if (type === "media_embed") {
+      const media = getPrimaryMedia(hotspot)
+      if (media?.type === "video") {
+        return <Play className="h-4 w-4" aria-hidden="true" />
+      }
+      if (media?.type === "audio") {
+        return <Volume2 className="h-4 w-4" aria-hidden="true" />
+      }
+      if (media?.type === "model") {
+        return <Globe className="h-4 w-4" aria-hidden="true" />
+      }
+      if (media?.type === "document") {
+        return <FileText className="h-4 w-4" aria-hidden="true" />
+      }
+      return <ImageIcon className="h-4 w-4" aria-hidden="true" />
+    }
+    if (type === "navigation_point") {
+      return <Navigation className="h-4 w-4" aria-hidden="true" />
+    }
+    if (type === "external_link") {
+      return <ExternalLink className="h-4 w-4" aria-hidden="true" />
+    }
+    if (type === "custom_action") {
+      return <Zap className="h-4 w-4" aria-hidden="true" />
+    }
+    return <MessageSquare className="h-4 w-4" aria-hidden="true" />
   }
 
   const currentImageUrl = dayNightMode === "night" && dayNightImages?.night ? dayNightImages.night : scene.imageUrl
@@ -2170,10 +2229,18 @@ export function SceneViewer({
               if (sphericalViewModes.includes(currentViewMode) && (!projected || !projected.visible)) {
                 return null
               }
+              const occlusionState = evaluateOcclusion(hotspot, {
+                distance: hotspot.z !== undefined ? Math.abs(hotspot.z) : undefined,
+              })
+              if (occlusionState.hidden) {
+                return null
+              }
+
               const positionStyle =
                 sphericalViewModes.includes(currentViewMode)
                   ? { left: `${projected?.x ?? 0}%`, top: `${projected?.y ?? 0}%` }
                   : { left: `${hotspot.x}%`, top: `${hotspot.y}%` }
+              const label = getHotspotLabel(hotspot)
 
               return (
                 <div
@@ -2182,22 +2249,20 @@ export function SceneViewer({
                   style={positionStyle}
                 >
                   <button
-                    className="relative flex h-8 w-8 items-center justify-center rounded-full transition-all hover:scale-125"
-                    style={{ backgroundColor: branding.primaryColor, opacity: 0.8 }}
+                    className="group relative flex items-center gap-1 rounded-full px-3 py-2 text-xs font-medium text-white transition-all hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                    style={{ backgroundColor: branding.primaryColor, opacity: 0.85 }}
                     onClick={(e) => {
                       e.stopPropagation()
                       handleHotspotClick(hotspot)
                     }}
-                    title={hotspot.title}
+                    title={label}
+                    aria-label={label || "Scene hotspot"}
                   >
-                    <div className="flex items-center gap-0.5">
-                      {hotspot.type === "video" && <Play className="w-4 h-4 text-white" />}
-                      {hotspot.type === "audio" && <Volume2 className="w-4 h-4 text-white" />}
-                      {hotspot.type === "image" && <ImageIcon className="w-4 h-4 text-white" />}
-                    </div>
+                    {renderHotspotIcon(hotspot)}
+                    {label && <span className="whitespace-nowrap">{label}</span>}
                     <div
-                      className="absolute inset-0 rounded-full animate-pulse"
-                      style={{ backgroundColor: branding.primaryColor, opacity: 0.3 }}
+                      className="pointer-events-none absolute inset-0 rounded-full opacity-0 transition-opacity group-hover:opacity-40"
+                      style={{ backgroundColor: branding.primaryColor }}
                     />
                   </button>
                 </div>
@@ -3109,42 +3174,107 @@ export function SceneViewer({
       {/* Background Audio */}
       {backgroundAudio && <audio ref={audioRef} src={backgroundAudio} loop className="hidden" />}
 
+      {selectedHotspot && shouldDisplayInfoPanel(selectedHotspot) && !mediaModal && (
+        <div className="fixed bottom-6 right-6 z-40 w-full max-w-sm rounded-xl border border-white/10 bg-black/70 p-5 text-white backdrop-blur shadow-xl">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-semibold">{getHotspotLabel(selectedHotspot)}</h3>
+              <p className="mt-2 text-sm text-gray-200">{getHotspotDescription(selectedHotspot)}</p>
+            </div>
+            <button
+              onClick={() => setSelectedHotspot(null)}
+              className="rounded-full p-1 text-gray-300 transition hover:bg-white/10 hover:text-white"
+              aria-label="Close hotspot details"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            {isExternalLinkHotspot(selectedHotspot) && resolveHotspotLink(selectedHotspot) && (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => {
+                  const link = resolveHotspotLink(selectedHotspot)
+                  if (link) {
+                    window.open(link, "_blank", "noopener,noreferrer")
+                  }
+                }}
+              >
+                <ExternalLink className="mr-2 h-4 w-4" /> Open link
+              </Button>
+            )}
+            {isCustomActionHotspot(selectedHotspot) && (
+              <span className="text-xs uppercase tracking-wide text-amber-300">
+                Custom action: {selectedHotspot.customActionId ?? "unassigned"}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Media Modal */}
       {mediaModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-gray-900 rounded-lg p-6 max-w-2xl w-full mx-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-white">{selectedHotspot?.title}</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+          <div className="mx-4 w-full max-w-2xl rounded-lg bg-gray-900 p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <h3 className="text-xl font-bold text-white">{getHotspotLabel(mediaModal.hotspot)}</h3>
               <button
                 onClick={() => {
                   setMediaModal(null)
                   setSelectedHotspot(null)
                 }}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-400 transition hover:text-white"
+                aria-label="Close media viewer"
               >
                 ✕
               </button>
             </div>
-            {mediaModal.type === "video" && (
+            {mediaModal.media.type === "video" && (
               <iframe
                 width="100%"
                 height="400"
-                src={mediaModal.url}
-                title="Video"
+                src={mediaModal.media.url}
+                title={getHotspotLabel(mediaModal.hotspot) || "Hotspot video"}
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
+                className="rounded"
               />
             )}
-            {mediaModal.type === "audio" && (
+            {mediaModal.media.type === "audio" && (
               <audio controls className="w-full">
-                <source src={mediaModal.url} type="audio/mpeg" />
+                <source src={mediaModal.media.url} />
               </audio>
             )}
-            {mediaModal.type === "image" && (
-              <img src={mediaModal.url || "/placeholder.svg"} alt="Hotspot" className="w-full rounded" />
+            {mediaModal.media.type === "image" && (
+              <img
+                src={mediaModal.media.url || "/placeholder.svg"}
+                alt={getHotspotLabel(mediaModal.hotspot) || "Hotspot"}
+                className="w-full rounded"
+              />
             )}
-            <p className="text-gray-300 mt-4">{selectedHotspot?.description}</p>
+            {mediaModal.media.type === "document" && (
+              <a
+                href={mediaModal.media.url}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-4 inline-flex items-center gap-2 text-blue-300 underline hover:text-blue-200"
+              >
+                <FileText className="h-4 w-4" /> Open document
+              </a>
+            )}
+            {mediaModal.media.type === "model" && (
+              <div className="mt-4 rounded border border-gray-700 bg-gray-800 p-4 text-sm text-gray-300">
+                Interactive 3D models open in a dedicated viewer. <a
+                  className="ml-1 text-blue-300 underline hover:text-blue-200"
+                  href={mediaModal.media.url}
+                  target="_blank"
+                  rel="noreferrer"
+                >Launch asset</a>.
+              </div>
+            )}
+            <p className="mt-4 text-gray-300">{getHotspotDescription(mediaModal.hotspot)}</p>
           </div>
         </div>
       )}
