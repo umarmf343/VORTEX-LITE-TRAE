@@ -1,0 +1,121 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Guided Tour Scene Manifest Extensions",
+  "description": "Additional manifest fields enabling highlight reels and guided tours.",
+  "type": "object",
+  "properties": {
+    "highlight_points": {
+      "type": "array",
+      "description": "Curated highlight anchors that inform auto-selection and manual authoring UI.",
+      "items": {
+        "type": "object",
+        "required": ["node_id", "label"],
+        "properties": {
+          "node_id": {
+            "type": "string",
+            "description": "Identifier matching an entry in nodes[]."
+          },
+          "label": {
+            "type": "string",
+            "description": "Short display name for the highlight."
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional marketing copy describing why the highlight matters."
+          },
+          "thumbnail_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Preview image used in storyboards and social cuts."
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Classification tags (e.g., primary_suite, amenities, exterior)."
+          },
+          "recommended_duration_seconds": {
+            "type": "number",
+            "minimum": 2,
+            "description": "Suggested dwell time when building sequences."
+          }
+        }
+      }
+    },
+    "video_assets": {
+      "type": "array",
+      "description": "Catalog of generated linear video outputs tied to the space.",
+      "items": {
+        "type": "object",
+        "required": ["video_id", "type", "url", "resolution", "duration_secs", "created_at"],
+        "properties": {
+          "video_id": {
+            "type": "string",
+            "description": "Stable identifier for the rendered asset."
+          },
+          "type": {
+            "type": "string",
+            "enum": ["highlight_reel", "guided_tour"],
+            "description": "Classifies the video for downstream delivery."
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Download or streaming URL."
+          },
+          "resolution": {
+            "type": "string",
+            "pattern": "^\\d+x\\d+$",
+            "description": "Pixel dimensions (e.g., 3840x2160)."
+          },
+          "duration_secs": {
+            "type": "number",
+            "minimum": 1,
+            "description": "Runtime of the asset."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO timestamp for asset creation."
+          },
+          "presets_used": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Preset identifiers applied during rendering."
+          },
+          "branding_overlay": {
+            "type": "object",
+            "properties": {
+              "logo_url": { "type": "string", "format": "uri" },
+              "tagline": { "type": "string" },
+              "agent_contact": { "type": "string" },
+              "call_to_action": { "type": "string" }
+            }
+          },
+          "distribution": {
+            "type": "object",
+            "properties": {
+              "download_url": { "type": "string", "format": "uri" },
+              "streaming_url": { "type": "string", "format": "uri" },
+              "social_variants": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["preset_id", "url"],
+                  "properties": {
+                    "preset_id": { "type": "string" },
+                    "url": { "type": "string", "format": "uri" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": ["highlight_points", "video_assets"]
+}

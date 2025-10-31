@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2025-10-30T11:40:00Z",
+  "updatedAt": "2025-11-04T09:40:00Z",
   "pipelines": [
     {
       "id": "video360",
@@ -11,7 +11,7 @@
         "registeredAt": "2025-10-30T10:45:00Z",
         "checksum": "6593ed8c5a9361fc57f076a826880274490ddcdd25d160c4a3f32dacc009a86a",
         "maintainer": "Immersive Media Platform",
-        "notes": "Authoritative presets for the immersive 360° video export service.",
+        "notes": "Authoritative presets for the immersive 360\u00b0 video export service.",
         "presets": [
           {
             "id": "vp-master-8k-prores",
@@ -199,7 +199,7 @@
           "runAt": "2025-10-30T11:40:00Z",
           "environment": "staging",
           "status": "passed_with_warnings",
-          "summary": "Automated QA suite for 360° video player covering playback, stabilization, and analytics events.",
+          "summary": "Automated QA suite for 360\u00b0 video player covering playback, stabilization, and analytics events.",
           "checks": [
             {
               "id": "qa-video-playback",
@@ -240,6 +240,249 @@
             }
           ],
           "reportPath": "/staging/video_preview_player/qa_space_3BR_flat_01.json"
+        }
+      ]
+    },
+    {
+      "id": "guided_tour",
+      "version": "v1",
+      "presets": {
+        "pipelineId": "guided_tour",
+        "version": "v1",
+        "sourcePath": "/pipelines/guided_tour/v1/guided_tour_variant_presets.json",
+        "registeredAt": "2025-11-04T09:15:00Z",
+        "checksum": "c9bf89bf7d6984ac3da2992c0814c712475216daa01f38e22801e9d268dbbf1b",
+        "maintainer": "Immersive Media Platform",
+        "notes": "Preset catalogue for linear guided tour and highlight reel exports across marketing channels.",
+        "presets": [
+          {
+            "id": "guided-60s-reel-4k",
+            "label": "60s Highlight Reel 16x9 (4K)",
+            "resolution": "3840x2160",
+            "aspect_ratio": "16:9",
+            "frame_rate": 30,
+            "bitrate_mbps": 80,
+            "delivery_format": "mp4",
+            "video_codec": "HEVC Main 10",
+            "audio": {
+              "codec": "AAC-LC",
+              "channels": "stereo",
+              "bitrate_kbps": 256,
+              "sample_rate_hz": 48000
+            },
+            "max_duration_seconds": 90,
+            "profile": "marketing_reel",
+            "intended_use": [
+              "email",
+              "website",
+              "showroom_loop"
+            ],
+            "metadata": {
+              "color_space": "Rec.709",
+              "dynamic_range": "SDR",
+              "transition_pack": "cinematic",
+              "include_branding_overlay": true
+            }
+          },
+          {
+            "id": "guided-120s-tour-1080p",
+            "label": "120s Guided Tour 16x9 (1080p)",
+            "resolution": "1920x1080",
+            "aspect_ratio": "16:9",
+            "frame_rate": 30,
+            "bitrate_mbps": 35,
+            "delivery_format": "mp4",
+            "video_codec": "H.264 High",
+            "audio": {
+              "codec": "AAC-LC",
+              "channels": "stereo",
+              "bitrate_kbps": 192,
+              "sample_rate_hz": 48000
+            },
+            "max_duration_seconds": 150,
+            "profile": "guided_tour",
+            "intended_use": [
+              "web",
+              "listing_portal",
+              "connected_tv"
+            ],
+            "metadata": {
+              "color_space": "Rec.709",
+              "dynamic_range": "SDR",
+              "transition_pack": "smooth",
+              "include_branding_overlay": true
+            }
+          },
+          {
+            "id": "guided-30s-vertical-9x16",
+            "label": "30s Social Spotlight 9x16 (Vertical)",
+            "resolution": "1080x1920",
+            "aspect_ratio": "9:16",
+            "frame_rate": 60,
+            "bitrate_mbps": 24,
+            "delivery_format": "mp4",
+            "video_codec": "H.264 High",
+            "audio": {
+              "codec": "AAC-LC",
+              "channels": "stereo",
+              "bitrate_kbps": 160,
+              "sample_rate_hz": 44100
+            },
+            "max_duration_seconds": 45,
+            "profile": "social",
+            "intended_use": [
+              "instagram_reels",
+              "tiktok",
+              "facebook_stories"
+            ],
+            "metadata": {
+              "color_space": "Rec.709",
+              "dynamic_range": "SDR",
+              "transition_pack": "snappy",
+              "include_branding_overlay": false
+            }
+          },
+          {
+            "id": "guided-180s-tour-master",
+            "label": "180s Guided Tour Master 4K",
+            "resolution": "3840x2160",
+            "aspect_ratio": "16:9",
+            "frame_rate": 30,
+            "bitrate_mbps": 120,
+            "delivery_format": "mov",
+            "video_codec": "Apple ProRes 422 LT",
+            "audio": {
+              "codec": "Linear PCM",
+              "channels": "stereo",
+              "bitrate_kbps": 1536,
+              "sample_rate_hz": 48000
+            },
+            "max_duration_seconds": 240,
+            "profile": "master",
+            "intended_use": [
+              "broadcast",
+              "archive",
+              "kiosk"
+            ],
+            "metadata": {
+              "color_space": "Rec.709",
+              "dynamic_range": "SDR",
+              "transition_pack": "cinematic",
+              "include_branding_overlay": false
+            }
+          }
+        ]
+      },
+      "jobs": [
+        {
+          "jobId": "guided_tour_job_space_3BR_flat_01",
+          "pipelineId": "guided_tour",
+          "version": "v1",
+          "spaceId": "space_3BR_flat_01",
+          "status": "queued",
+          "queuedAt": "2025-11-04T09:20:00Z",
+          "priority": "high",
+          "requestedBy": "agent_cassie",
+          "manifestPath": "/pipelines/guided_tour/v1/guided_tour_job_manifest.json",
+          "deliverables": [
+            {
+              "preset_id": "guided-60s-reel-4k",
+              "destination": "s3://immersive-processed/guided_tour/space_3BR_flat_01/marketing/",
+              "retention_days": 120
+            },
+            {
+              "preset_id": "guided-30s-vertical-9x16",
+              "destination": "s3://immersive-processed/guided_tour/space_3BR_flat_01/social/",
+              "retention_days": 90
+            }
+          ],
+          "qaConfig": {
+            "validate_duration": true,
+            "validate_transition_smoothness": true,
+            "max_camera_acceleration": 1.5,
+            "render_tolerance_seconds": 5
+          },
+          "sourceCapture": {
+            "nodes": "space.manifest::nodes",
+            "navigation_graph": "space.manifest::edges",
+            "highlight_points": "space.manifest::highlight_points"
+          },
+          "webhook": {
+            "on_complete": "https://ops.virtualtour.ai/hooks/guided-tour/job-complete",
+            "on_failure": "https://ops.virtualtour.ai/hooks/guided-tour/job-failed"
+          }
+        }
+      ],
+      "deployments": [
+        {
+          "path": "/staging/guided_tour_creator",
+          "pipelineId": "guided_tour",
+          "environment": "staging",
+          "deployedAt": "2025-11-04T09:25:00Z",
+          "version": "2025.11.04-preview.0",
+          "buildId": "gtc-20251104-0925",
+          "commitRef": "d4c7f12",
+          "viewerUrl": "https://staging.virtualtour.ai/preview/guided-tour/space_3BR_flat_01",
+          "features": [
+            "guided_tour_timeline",
+            "branding_overlay_editor",
+            "voice_over_uploader",
+            "analytics_event_stream"
+          ],
+          "assets": {
+            "preset_catalog": "/pipelines/guided_tour/v1/guided_tour_variant_presets.json",
+            "job_manifest": "/pipelines/guided_tour/v1/guided_tour_job_manifest.json"
+          },
+          "notes": "Deploy staging guided tour creator for highlight reel validation.",
+          "manifestPath": "/staging/guided_tour_creator/deployment.json"
+        }
+      ],
+      "qaRuns": [
+        {
+          "spaceId": "space_3BR_flat_01",
+          "pipelineId": "guided_tour",
+          "suite": "staging_smoke",
+          "runAt": "2025-11-04T09:40:00Z",
+          "environment": "staging",
+          "status": "passed",
+          "summary": "QA suite validated highlight reel renders, social variants, and analytics events.",
+          "checks": [
+            {
+              "id": "qa-guided-duration",
+              "description": "Verify auto reel within target duration",
+              "status": "pass",
+              "metrics": {
+                "duration_seconds": 74.2,
+                "target_seconds": 75
+              }
+            },
+            {
+              "id": "qa-transition-smoothness",
+              "description": "Ensure transitions meet easing thresholds",
+              "status": "pass",
+              "metrics": {
+                "max_acceleration": 1.1,
+                "threshold": 1.5
+              }
+            },
+            {
+              "id": "qa-social-aspect",
+              "description": "Confirm vertical output aspect ratio",
+              "status": "pass",
+              "metrics": {
+                "measured_aspect": "9:16"
+              }
+            },
+            {
+              "id": "qa-branding-overlay",
+              "description": "Check overlay safe zone alignment",
+              "status": "pass",
+              "metrics": {
+                "safe_zone_margin_pct": 8
+              }
+            }
+          ],
+          "reportPath": "/staging/guided_tour_creator/qa_space_3BR_flat_01.json"
         }
       ]
     }

@@ -1,0 +1,42 @@
+{
+  "job_id": "guided_tour_job_TEMPLATE",
+  "pipeline": "guided_tour",
+  "version": "v1",
+  "space_id": "{{space_id}}",
+  "mode": "manual",
+  "sequence": [
+    {
+      "node_id": "{{start_node}}",
+      "duration_seconds": 8,
+      "transition": "dolly",
+      "annotations": [
+        {
+          "label": "Welcome",
+          "text": "Introduce the property and mention square footage."
+        }
+      ]
+    }
+  ],
+  "audio": {
+    "music_track": null,
+    "voice_over": "s3://path-to-voice-over.wav",
+    "mix_level_db": -10
+  },
+  "branding_overlay": {
+    "logo_asset": "s3://branding/logo.png",
+    "agent_contact": "Agent Name • +1 (555) 123-4567",
+    "call_to_action": "Book a showing at example.com"
+  },
+  "deliverables": [
+    {
+      "preset_id": "guided-120s-tour-1080p",
+      "destination": "s3://immersive-processed/guided_tour/{{space_id}}/manual/",
+      "retention_days": 180
+    }
+  ],
+  "qa_config": {
+    "validate_duration": true,
+    "max_camera_acceleration": 1.2,
+    "enforce_caption_track": true
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "pipeline": "guided_tour",
+  "suite": "staging_smoke",
+  "space_id": "space_3BR_flat_01",
+  "run_at": "2025-11-04T09:40:00Z",
+  "environment": "staging",
+  "status": "passed",
+  "summary": "QA suite validated highlight reel renders, social variants, and analytics events.",
+  "checks": [
+    {
+      "id": "qa-guided-duration",
+      "description": "Verify auto reel within target duration",
+      "status": "pass",
+      "metrics": {
+        "duration_seconds": 74.2,
+        "target_seconds": 75
+      }
+    },
+    {
+      "id": "qa-transition-smoothness",
+      "description": "Ensure transitions meet easing thresholds",
+      "status": "pass",
+      "metrics": {
+        "max_acceleration": 1.1,
+        "threshold": 1.5
+      }
+    },
+    {
+      "id": "qa-social-aspect",
+      "description": "Confirm vertical output aspect ratio",
+      "status": "pass",
+      "metrics": {
+        "measured_aspect": "9:16"
+      }
+    },
+    {
+      "id": "qa-branding-overlay",
+      "description": "Check overlay safe zone alignment",
+      "status": "pass",
+      "metrics": {
+        "safe_zone_margin_pct": 8
+      }
+    }
+  ]
+}
