@@ -1,6 +1,7 @@
 import type { LucideIcon, LucideProps } from "lucide-react"
 import {
   AlertCircle,
+  AlertTriangle,
   ArrowDown,
   ArrowLeft,
   ArrowLeftRight,
@@ -12,6 +13,7 @@ import {
   Camera,
   Calendar,
   Check,
+  CheckCircle2,
   CheckCircle,
   ChevronDown,
   ChevronLeft,
@@ -28,6 +30,7 @@ import {
   FileJson,
   FileText,
   History,
+  Info,
   Globe,
   GripVertical,
   Heart,
@@ -68,6 +71,7 @@ import {
   Volume2,
   X,
   XCircle,
+  Sparkles,
   Zap,
   ZoomIn,
   ZoomOut,
@@ -77,6 +81,7 @@ export type { LucideIcon, LucideProps }
 
 export {
   AlertCircle,
+  AlertTriangle,
   ArrowDown,
   ArrowLeft,
   ArrowLeftRight,
@@ -88,6 +93,7 @@ export {
   Camera,
   Calendar,
   Check,
+  CheckCircle2,
   CheckCircle,
   ChevronDown,
   ChevronLeft,
@@ -104,6 +110,7 @@ export {
   FileJson,
   FileText,
   History,
+  Info,
   Globe,
   GripVertical,
   Heart,
@@ -132,6 +139,7 @@ export {
   Ruler,
   Search,
   Share2,
+  Sparkles,
   Square,
   Star,
   Sun,
