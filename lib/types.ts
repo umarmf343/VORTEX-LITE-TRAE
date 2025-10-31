@@ -665,6 +665,49 @@ export interface SphrSpace {
   description?: string
 }
 
+export interface PanoramaSceneInitialView {
+  yaw: number
+  pitch: number
+  fov: number
+}
+
+export interface PanoramaSceneHotspot {
+  id: string
+  targetSceneId: string
+  yaw: number
+  pitch: number
+  label: string
+  autoAlignmentYaw?: number
+  autoAlignmentPitch?: number
+}
+
+export type PanoramaSceneType = "interior" | "exterior"
+
+export interface PanoramaScene {
+  id: string
+  name: string
+  imageUrl: string
+  thumbnailUrl?: string
+  description?: string
+  ambientSound?: string
+  sceneType: PanoramaSceneType
+  floor?: string
+  tags?: string[]
+  initialView: PanoramaSceneInitialView
+  hotspots: PanoramaSceneHotspot[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PanoramaTourManifest {
+  id: string
+  title: string
+  initialSceneId: string
+  publishedAt: string
+  scenes: PanoramaScene[]
+  navigationGraph: Record<string, PanoramaSceneHotspot[]>
+}
+
 export interface BrandingConfig {
   primaryColor: string
   secondaryColor: string
