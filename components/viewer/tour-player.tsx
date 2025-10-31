@@ -49,7 +49,7 @@ import {
   ArrowUp,
   ArrowDown,
   Trash2,
-  Map as MapIcon,
+  MapIcon,
   MapPin,
   Image,
   Navigation,

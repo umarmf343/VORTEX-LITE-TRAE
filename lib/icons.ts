@@ -159,5 +159,6 @@ export const Loader2Icon = Loader2
 export const MinusIcon = Minus
 export const MoreHorizontalIcon = MoreHorizontal
 export const PanelLeftIcon = PanelLeft
+export const MapIcon = Map
 export const SearchIcon = Search
 export const XIcon = X
