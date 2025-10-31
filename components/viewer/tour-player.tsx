@@ -348,13 +348,6 @@ export function TourPlayer({
   }, [activeZoneId, availableZones, campusMapMeta?.defaultZoneId])
 
   useEffect(() => {
-    flushZoneTimer()
-    zoneDwellRef.current = {}
-    zoneTimerRef.current = null
-    setActiveZoneId(null)
-  }, [flushZoneTimer, property.id])
-
-  useEffect(() => {
     const previous = zoneTimerRef.current
     const now = Date.now()
     if (previous && previous.zoneId && previous.zoneId !== activeZoneId) {
@@ -553,6 +546,13 @@ export function TourPlayer({
     }
     zoneTimerRef.current = null
   }, [currentSceneIndex, onEngagementTrack, property.scenes])
+
+  useEffect(() => {
+    flushZoneTimer()
+    zoneDwellRef.current = {}
+    zoneTimerRef.current = null
+    setActiveZoneId(null)
+  }, [flushZoneTimer, property.id])
 
   const flushSphrDwell = useCallback(() => {
     if (!sphrActiveNodeRef.current) {
