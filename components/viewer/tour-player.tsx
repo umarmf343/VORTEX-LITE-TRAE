@@ -51,7 +51,7 @@ import {
   Trash2,
   MapIcon,
   MapPin,
-  Image,
+  Image as ImageIcon,
   Navigation,
   Video,
   MousePointerClick,
@@ -1448,7 +1448,7 @@ export function TourPlayer({
             }
             onClick={() => setActiveExperienceTab("gallery")}
           >
-            <Image className="mr-2 h-4 w-4" /> Gallery
+            <ImageIcon className="mr-2 h-4 w-4" /> Gallery
           </Button>
           {hdPhotoCollection ? (
             <Badge variant="secondary" className="bg-emerald-600/20 text-emerald-200">
@@ -1749,7 +1749,7 @@ export function TourPlayer({
             <div className="space-y-4">
               <div>
                 <div className="flex items-center gap-2 text-white font-semibold">
-                  <Image className="w-4 h-4 text-blue-400" />
+                  <ImageIcon className="w-4 h-4 text-blue-400" />
                   Panoramic Scene
                 </div>
                 <div className="mt-2 relative h-28 rounded-lg overflow-hidden border border-gray-800/80">
