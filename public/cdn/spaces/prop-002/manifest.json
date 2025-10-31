@@ -1,6 +1,6 @@
 {
   "space_id": "prop-002",
-  "version": "v1.0.0",
+  "version": "v1.1.0",
   "owner": "BaladShelter",
   "created_at": "2024-02-10T00:00:00.000Z",
   "geometry": {
@@ -51,7 +51,8 @@
           0
         ],
         "fov": 75,
-        "thumbnail": "https://cdn.virtualtour.ai/modern-home-foyer-entrance.jpg"
+        "thumbnail": "https://cdn.virtualtour.ai/modern-home-foyer-entrance.jpg",
+        "zone_id": "zone-002-interior"
       },
       {
         "id": "scene-005",
@@ -66,7 +67,8 @@
           0
         ],
         "fov": 75,
-        "thumbnail": "https://cdn.virtualtour.ai/open-concept-living-room.jpg"
+        "thumbnail": "https://cdn.virtualtour.ai/open-concept-living-room.jpg",
+        "zone_id": "zone-002-interior"
       },
       {
         "id": "scene-006",
@@ -81,7 +83,8 @@
           0
         ],
         "fov": 75,
-        "thumbnail": "https://cdn.virtualtour.ai/backyard-with-pool.png"
+        "thumbnail": "https://cdn.virtualtour.ai/backyard-with-pool.png",
+        "zone_id": "zone-002-outdoor"
       }
     ],
     "connections": []
@@ -153,7 +156,9 @@
           "resolution": "8K",
           "depthPrecision": "millimeter",
           "originAlignment": true
-        }
+        },
+        "zoneId": "zone-002-interior",
+        "outdoor": true
       }
     },
     "dollhouse": {
@@ -278,6 +283,118 @@
     "permissions": [
       "view"
     ],
-    "expiry": "2025-11-29T19:12:37.410Z"
+    "expiry": "2025-11-30T05:06:17.750Z"
+  },
+  "zones": [
+    {
+      "zone_id": "zone-002-interior",
+      "name": "Main Residence",
+      "space_ids": [
+        "prop-002"
+      ],
+      "default_space_id": "prop-002",
+      "outdoor": false,
+      "site_zone_identifier": "Residence",
+      "campus_map_icon_url": "https://cdn.virtualtour.ai/icons/zone-home.svg",
+      "gps_bounds": {
+        "sw": {
+          "latitude": 34.052,
+          "longitude": -118.245
+        },
+        "ne": {
+          "latitude": 34.053,
+          "longitude": -118.244
+        },
+        "altitude_meters": 110
+      },
+      "capture_metadata": {
+        "captureDate": "2024-09-10",
+        "captureCrew": "LA Capture Pod",
+        "sunOrientation": {
+          "azimuthDegrees": 152,
+          "elevationDegrees": 47,
+          "capturedAt": "2024-09-10T17:30:00Z"
+        },
+        "weather": "CLEAR",
+        "gpsTrackUrl": "https://cdn.virtualtour.ai/prop-002/interior-track.json",
+        "measurementToleranceCm": 3.5,
+        "calibrationMethod": "HYBRID"
+      }
+    },
+    {
+      "zone_id": "zone-002-outdoor",
+      "name": "Outdoor Living",
+      "space_ids": [
+        "prop-002-grounds"
+      ],
+      "default_space_id": "prop-002-grounds",
+      "outdoor": true,
+      "site_zone_identifier": "Backyard",
+      "campus_map_icon_url": "https://cdn.virtualtour.ai/icons/zone-outdoor.svg",
+      "gps_bounds": {
+        "sw": {
+          "latitude": 34.0518,
+          "longitude": -118.2448
+        },
+        "ne": {
+          "latitude": 34.0524,
+          "longitude": -118.2442
+        },
+        "altitude_meters": 108
+      },
+      "capture_metadata": {
+        "captureDate": "2024-09-10",
+        "captureCrew": "LA Capture Pod",
+        "sunOrientation": {
+          "azimuthDegrees": 165,
+          "elevationDegrees": 53,
+          "capturedAt": "2024-09-10T18:00:00Z"
+        },
+        "weather": "PARTLY_CLOUDY",
+        "gpsTrackUrl": "https://cdn.virtualtour.ai/prop-002/grounds-track.json",
+        "measurementToleranceCm": 4.5,
+        "calibrationMethod": "GPS"
+      }
+    }
+  ],
+  "zone_connections": [
+    {
+      "from_zone_id": "zone-002-interior",
+      "to_zone_id": "zone-002-outdoor",
+      "transition_type": "PATH",
+      "description": "Sliding doors to backyard oasis",
+      "estimated_seconds": 7,
+      "distance_meters": 9
+    },
+    {
+      "from_zone_id": "zone-002-outdoor",
+      "to_zone_id": "zone-002-interior",
+      "transition_type": "PATH",
+      "description": "Step back into main living area",
+      "estimated_seconds": 7,
+      "distance_meters": 9
+    }
+  ],
+  "campus_map": {
+    "image_url": "https://cdn.virtualtour.ai/maps/prop-002-campus.png",
+    "tile_url_template": "https://cdn.virtualtour.ai/maps/prop-002/{z}/{x}/{y}.png",
+    "default_zone_id": "zone-002-interior",
+    "gps_bounds": {
+      "sw": {
+        "latitude": 34.0518,
+        "longitude": -118.245
+      },
+      "ne": {
+        "latitude": 34.0528,
+        "longitude": -118.244
+      }
+    }
+  },
+  "outdoor_flag": true,
+  "performance": {
+    "lod_target_triangle_budget": 350000,
+    "max_texture_resolution": 8192,
+    "mobile_max_texture_resolution": 4096,
+    "streaming_chunk_bytes": 4194304
   }
 }
