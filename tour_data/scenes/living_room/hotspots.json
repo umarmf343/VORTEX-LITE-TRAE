@@ -1,0 +1,51 @@
+{
+  "version": 2,
+  "updated_at": "2024-05-12T16:42:00Z",
+  "hotspots": [
+    {
+      "id": "lr_info_entrance",
+      "type": "info_point",
+      "position": { "x": 42.5, "y": 38.1, "z": 1.2 },
+      "label": "Imported Marble Flooring",
+      "description": "Sourced from Carrara, sealed for high-traffic durability.",
+      "metadata": {
+        "surface": "marble",
+        "finish": "honed"
+      }
+    },
+    {
+      "id": "lr_media_fireplace",
+      "type": "media_embed",
+      "position": { "x": 60.2, "y": 47.9, "z": 0.6 },
+      "label": "Smart Fireplace Controls",
+      "description": "Watch the automation overview for the dual-zone fireplace.",
+      "media": {
+        "url": "https://cdn.vortex.dev/media/fireplace-automation.mp4",
+        "poster": "https://cdn.vortex.dev/media/fireplace-thumb.jpg",
+        "type": "video"
+      }
+    },
+    {
+      "id": "lr_nav_to_kitchen",
+      "type": "navigation_point",
+      "position": { "x": 78.4, "y": 55.3, "z": -0.4 },
+      "label": "Step into Kitchen",
+      "target_scene": "kitchen"
+    },
+    {
+      "id": "lr_spec_sheet",
+      "type": "external_link",
+      "position": { "x": 25.1, "y": 52.0, "z": 0.3 },
+      "label": "Download Living Room Spec Sheet",
+      "link": "https://cdn.vortex.dev/docs/living-room-spec.pdf"
+    },
+    {
+      "id": "lr_consultation",
+      "type": "custom_action",
+      "position": { "x": 12.7, "y": 62.4, "z": 0.9 },
+      "label": "Book a Private Tour",
+      "description": "Trigger the concierge workflow to schedule a live consultation.",
+      "custom_action": "lead-form"
+    }
+  ]
+}

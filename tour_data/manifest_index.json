@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default_transition": {
+    "type": "walkthrough",
+    "duration_ms": 1600
+  },
+  "scenes": [
+    {
+      "scene_id": "living_room",
+      "name": "Living Room",
+      "path": "scenes/living_room"
+    },
+    {
+      "scene_id": "kitchen",
+      "name": "Kitchen",
+      "path": "scenes/kitchen"
+    }
+  ]
+}

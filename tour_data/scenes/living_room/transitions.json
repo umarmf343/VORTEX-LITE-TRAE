@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "transitions": [
+    {
+      "target_scene": "kitchen",
+      "transition_type": "walkthrough",
+      "duration_ms": 1800,
+      "metadata": {
+        "path": "living-to-kitchen",
+        "curve": "cubic"
+      }
+    }
+  ]
+}

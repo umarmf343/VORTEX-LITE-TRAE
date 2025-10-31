@@ -1,0 +1,49 @@
+{
+  "version": 2,
+  "updated_at": "2024-05-12T17:05:00Z",
+  "hotspots": [
+    {
+      "id": "kt_info_island",
+      "type": "info_point",
+      "position": { "x": 45.0, "y": 42.0, "z": 1.1 },
+      "label": "Quartz Waterfall Island",
+      "description": "12ft island with dual prep sinks and integrated power raceway.",
+      "metadata": {
+        "countertop": "quartz",
+        "color": "Storm Grey"
+      }
+    },
+    {
+      "id": "kt_media_appliance",
+      "type": "media_embed",
+      "position": { "x": 64.3, "y": 36.7, "z": 0.5 },
+      "label": "Chef-Grade Appliance Package",
+      "description": "360° video tour of the convection wall and induction suite.",
+      "media": {
+        "url": "https://cdn.vortex.dev/media/kitchen-appliances.webm",
+        "type": "video"
+      }
+    },
+    {
+      "id": "kt_nav_to_living",
+      "type": "navigation_point",
+      "position": { "x": 22.4, "y": 58.6, "z": -0.2 },
+      "label": "Return to Living Room",
+      "target_scene": "living_room"
+    },
+    {
+      "id": "kt_recipe_gallery",
+      "type": "external_link",
+      "position": { "x": 35.7, "y": 63.2, "z": 0.4 },
+      "label": "Open Smart Recipe Gallery",
+      "link": "https://cdn.vortex.dev/apps/kitchen-gallery/index.html"
+    },
+    {
+      "id": "kt_schedule_demo",
+      "type": "custom_action",
+      "position": { "x": 12.0, "y": 48.9, "z": 0.7 },
+      "label": "Schedule Appliance Demo",
+      "custom_action": "lead-form"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "transitions": [
+    {
+      "target_scene": "living_room",
+      "transition_type": "orbit_move",
+      "duration_ms": 1500,
+      "easing": "smoothstep"
+    }
+  ]
+}
