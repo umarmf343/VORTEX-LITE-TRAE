@@ -40,6 +40,53 @@ export interface DollhouseModel {
   updatedAt?: string
 }
 
+export interface PropertyZoneConnection {
+  targetZoneId: string
+  transitionType: "WALK" | "PATH" | "TELEPORT"
+  description?: string
+  distanceMeters?: number
+  estimatedSeconds?: number
+}
+
+export interface PropertyZoneCaptureMetadata {
+  captureDate?: string
+  captureCrew?: string
+  sunOrientation?: IngestJobSunOrientation
+  weather?: IngestJobMetadata["weather"]
+  gpsTrackUrl?: string
+  droneFlightPlan?: IngestJobDroneFlightPlan
+  measurementToleranceCm?: number
+  calibrationMethod?: "GPS" | "TOTAL_STATION" | "HYBRID" | "NONE"
+}
+
+export interface PropertyZone {
+  zoneId: string
+  name: string
+  description?: string
+  outdoor: boolean
+  spaceIds: string[]
+  defaultSpaceId?: string
+  siteZoneIdentifier?: string
+  campusMapIconUrl?: string
+  gpsBounds?: {
+    sw: { latitude: number; longitude: number }
+    ne: { latitude: number; longitude: number }
+    altitudeMeters?: number
+  }
+  connections?: PropertyZoneConnection[]
+  captureMetadata?: PropertyZoneCaptureMetadata
+}
+
+export interface PropertyCampusMap {
+  imageUrl: string
+  tileUrlTemplate?: string
+  gpsBounds?: {
+    sw: { latitude: number; longitude: number }
+    ne: { latitude: number; longitude: number }
+  }
+  defaultZoneId?: string
+}
+
 export interface Property {
   id: string
   name: string
@@ -70,6 +117,8 @@ export interface Property {
   immersiveWalkthrough?: ImmersiveWalkthroughSpace
   captureNodes?: CaptureScanNode[]
   hdPhotoCollection?: HDPhotoCollection
+  zones?: PropertyZone[]
+  campusMap?: PropertyCampusMap
 }
 
 export interface Scene {
@@ -88,6 +137,7 @@ export interface Scene {
   dollhouseModel?: DollhouseModel
   immersiveWalkthroughOverride?: Partial<ImmersiveWalkthroughSpace>
   captureNodeId?: string
+  zoneId?: string
 }
 
 export interface CaptureScanNode {
@@ -106,6 +156,7 @@ export interface CaptureScanNode {
   }
   tags?: string[]
   dominantRoomType?: string
+  zoneId?: string
 }
 
 export type HDPhotoKind = "panorama" | "still" | "print_pack"
@@ -433,6 +484,8 @@ export interface ImmersiveWalkthroughSpace {
     exposure?: { min: number; max: number }
     probePositions?: Array<[number, number, number]>
   }
+  zoneId?: string
+  outdoor?: boolean
 }
 
 export interface GuidedTour {
@@ -574,6 +627,10 @@ export interface SceneEngagementPayload {
   sceneId: string
   dwellTime: number
   totalEngagement: Record<string, number>
+  event?: "scene" | "zone_enter" | "zone_exit" | "zone_transition"
+  zoneId?: string
+  targetZoneId?: string
+  metadata?: Record<string, unknown>
 }
 
 export interface PropertyStatsSummary {
@@ -617,6 +674,54 @@ export interface IngestJobRawAsset {
   fileType: "image" | "depthmap" | "pointcloud" | "video"
   fileSize?: number
   captureTimestamp?: string
+  captureMethod?:
+    | "TRIPOD_RGB"
+    | "TRIPOD_LIDAR"
+    | "GROUND_LIDAR"
+    | "HANDHELD_RGB"
+    | "HANDHELD_LIDAR"
+    | "DRONE_RGB"
+    | "DRONE_LIDAR"
+    | "MOBILE_MAPPING"
+    | "STATIC_PANORAMA"
+}
+
+export interface IngestJobZoneMetadata {
+  zoneId: string
+  zoneName?: string
+  siteZoneIdentifier?: string
+  parentTourId?: string
+}
+
+export interface IngestJobGpsTrackPoint {
+  timestamp: string
+  latitude: number
+  longitude: number
+  altitude?: number
+}
+
+export interface IngestJobGroundControlPoint {
+  label: string
+  latitude: number
+  longitude: number
+  elevation?: number
+  accuracyCm?: number
+}
+
+export interface IngestJobDroneFlightPlan {
+  takeoffPoint: {
+    latitude: number
+    longitude: number
+    altitude?: number
+  }
+  maxAltitudeMeters?: number
+  pathUrl?: string
+}
+
+export interface IngestJobSunOrientation {
+  azimuthDegrees: number
+  elevationDegrees: number
+  capturedAt?: string
 }
 
 export interface IngestJobMetadata {
@@ -628,7 +733,16 @@ export interface IngestJobMetadata {
   }
   imuData: Record<string, unknown>[]
   gpsAccuracy: number
+  outdoor?: boolean
+  zone?: IngestJobZoneMetadata
   lightingCondition?: "DAYLIGHT" | "LOW_LIGHT" | "MIXED"
+  sunOrientation?: IngestJobSunOrientation
+  weather?: "CLEAR" | "PARTLY_CLOUDY" | "OVERCAST" | "RAIN" | "SNOW" | "FOG" | "WINDY"
+  gpsTrack?: IngestJobGpsTrackPoint[]
+  groundControlPoints?: IngestJobGroundControlPoint[]
+  measurementToleranceCm?: number
+  captureHeightMeters?: number
+  droneFlightPlan?: IngestJobDroneFlightPlan
   notes?: string
 }
 
@@ -637,6 +751,17 @@ export interface IngestJob {
   spaceId: string
   owner: string
   sourceType: IngestSourceType
+  captureInputs?: Array<
+    | "TRIPOD_RGB"
+    | "TRIPOD_LIDAR"
+    | "GROUND_LIDAR"
+    | "HANDHELD_RGB"
+    | "HANDHELD_LIDAR"
+    | "DRONE_RGB"
+    | "DRONE_LIDAR"
+    | "MOBILE_MAPPING"
+    | "STATIC_PANORAMA"
+  >
   rawAssets: IngestJobRawAsset[]
   metadata: IngestJobMetadata
   status: IngestJobStatus
@@ -897,6 +1022,7 @@ export interface ViewerManifestCameraNode {
   rotation: number[]
   fov?: number
   thumbnail?: string
+  zone_id?: string
 }
 
 export interface ViewerManifestConnection {
@@ -904,11 +1030,54 @@ export interface ViewerManifestConnection {
   to: string
   transition_type: "WALK" | "STAIR" | "TELEPORT"
   distance?: number
+  zone_transition?: boolean
 }
 
 export interface ViewerManifestNavigation {
   camera_nodes: ViewerManifestCameraNode[]
   connections: ViewerManifestConnection[]
+}
+
+export interface ViewerManifestZone {
+  zone_id: string
+  name: string
+  space_ids: string[]
+  default_space_id?: string
+  outdoor: boolean
+  site_zone_identifier?: string
+  campus_map_icon_url?: string
+  gps_bounds?: {
+    sw: { latitude: number; longitude: number }
+    ne: { latitude: number; longitude: number }
+    altitude_meters?: number
+  }
+  capture_metadata?: PropertyZoneCaptureMetadata
+}
+
+export interface ViewerManifestZoneConnection {
+  from_zone_id: string
+  to_zone_id: string
+  transition_type: "WALK" | "PATH" | "TELEPORT"
+  description?: string
+  estimated_seconds?: number
+  distance_meters?: number
+}
+
+export interface ViewerManifestCampusMap {
+  image_url: string
+  tile_url_template?: string
+  default_zone_id?: string
+  gps_bounds?: {
+    sw: { latitude: number; longitude: number }
+    ne: { latitude: number; longitude: number }
+  }
+}
+
+export interface ViewerManifestPerformanceProfile {
+  lod_target_triangle_budget: number
+  max_texture_resolution: number
+  mobile_max_texture_resolution: number
+  streaming_chunk_bytes: number
 }
 
 export interface ViewerManifestWalkthroughView {
@@ -994,6 +1163,11 @@ export interface ViewerManifest {
   measurements: ViewerManifestMeasurement[]
   analytics?: ViewerManifestAnalytics
   access: ViewerManifestAccess
+  zones?: ViewerManifestZone[]
+  zone_connections?: ViewerManifestZoneConnection[]
+  campus_map?: ViewerManifestCampusMap
+  outdoor_flag?: boolean
+  performance?: ViewerManifestPerformanceProfile
 }
 
 export interface AdvancedAnalyticsReport {

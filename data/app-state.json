@@ -235,7 +235,7 @@
               "pitch": -2,
               "note": "Skyline Panorama",
               "durationSeconds": 10,
-              "highlight": "Pause on the 270\u00b0 skyline wrap for the wow moment.",
+              "highlight": "Pause on the 270° skyline wrap for the wow moment.",
               "mediaUrl": "/luxury-penthouse-living-room-360.jpg"
             },
             {
@@ -484,7 +484,7 @@
                 "type": "info",
                 "yaw": -48,
                 "pitch": -12,
-                "description": "Programmable cove lighting and art spots wash the entry volume\u2014ported directly from the SPHR tour lighting presets."
+                "description": "Programmable cove lighting and art spots wash the entry volume—ported directly from the SPHR tour lighting presets."
               },
               {
                 "id": "lobby-to-dining",
@@ -525,7 +525,7 @@
                 "type": "info",
                 "yaw": 15,
                 "pitch": -2,
-                "description": "Floor-to-ceiling glass wraps 270\u00b0 around this room. Hotspot metrics from SPHR highlight 82% engagement here."
+                "description": "Floor-to-ceiling glass wraps 270° around this room. Hotspot metrics from SPHR highlight 82% engagement here."
               },
               {
                 "id": "living-media",
@@ -984,7 +984,8 @@
               "defaultVisible": false
             }
           ],
-          "order": 0
+          "order": 0,
+          "zoneId": "zone-building-a"
         },
         {
           "id": "scene-001",
@@ -1091,7 +1092,7 @@
               "id": "annotation-003",
               "x": 62,
               "y": 35,
-              "text": "360\u00b0 city skyline vantage point",
+              "text": "360° city skyline vantage point",
               "color": "#facc15"
             },
             {
@@ -1124,7 +1125,8 @@
             }
           ],
           "order": 1,
-          "captureNodeId": "scan-living-01"
+          "captureNodeId": "scan-living-01",
+          "zoneId": "zone-building-a"
         },
         {
           "id": "scene-001-terrace",
@@ -1196,7 +1198,8 @@
             }
           ],
           "order": 2,
-          "captureNodeId": "scan-terrace-03"
+          "captureNodeId": "scan-terrace-03",
+          "zoneId": "zone-outdoor-terrace"
         },
         {
           "id": "scene-002",
@@ -1320,7 +1323,8 @@
             }
           ],
           "order": 3,
-          "captureNodeId": "scan-kitchen-02"
+          "captureNodeId": "scan-kitchen-02",
+          "zoneId": "zone-building-a"
         },
         {
           "id": "scene-002-ensuite",
@@ -1399,7 +1403,8 @@
               "defaultVisible": false
             }
           ],
-          "order": 4
+          "order": 4,
+          "zoneId": "zone-building-a"
         },
         {
           "id": "scene-003",
@@ -1504,7 +1509,8 @@
               "defaultVisible": true
             }
           ],
-          "order": 5
+          "order": 5,
+          "zoneId": "zone-building-a"
         },
         {
           "id": "scene-003-dining",
@@ -1575,7 +1581,8 @@
               "defaultVisible": true
             }
           ],
-          "order": 6
+          "order": 6,
+          "zoneId": "zone-building-a"
         },
         {
           "id": "scene-003-office",
@@ -1646,7 +1653,8 @@
               "defaultVisible": false
             }
           ],
-          "order": 7
+          "order": 7,
+          "zoneId": "zone-annex"
         },
         {
           "id": "scene-003-lounge",
@@ -1717,7 +1725,8 @@
               "defaultVisible": false
             }
           ],
-          "order": 8
+          "order": 8,
+          "zoneId": "zone-annex"
         }
       ],
       "stats": {
@@ -1778,7 +1787,8 @@
             "living_room",
             "hero"
           ],
-          "dominantRoomType": "living_room"
+          "dominantRoomType": "living_room",
+          "zoneId": "zone-building-a"
         },
         {
           "id": "scan-kitchen-02",
@@ -1802,7 +1812,8 @@
             "kitchen",
             "panorama"
           ],
-          "dominantRoomType": "kitchen"
+          "dominantRoomType": "kitchen",
+          "zoneId": "zone-building-a"
         },
         {
           "id": "scan-terrace-03",
@@ -1826,7 +1837,8 @@
             "exterior",
             "panorama"
           ],
-          "dominantRoomType": "terrace"
+          "dominantRoomType": "terrace",
+          "zoneId": "zone-outdoor-terrace"
         }
       ],
       "hdPhotoCollection": {
@@ -1836,7 +1848,7 @@
             "id": "hd-panorama-living",
             "spaceId": "prop-001",
             "kind": "panorama",
-            "label": "Grand Salon 360\u00b0",
+            "label": "Grand Salon 360°",
             "description": "Captured from the primary living room scan node with full HDR pipeline.",
             "url": "https://cdn.domain/media/spaces/prop-001/photos/hd-panorama-living.tiff",
             "previewUrl": "https://cdn.domain/media/spaces/prop-001/photos/preview/hd-panorama-living.jpg",
@@ -1876,7 +1888,7 @@
             "id": "hd-panorama-kitchen",
             "spaceId": "prop-001",
             "kind": "panorama",
-            "label": "Chef's Kitchen 360\u00b0",
+            "label": "Chef's Kitchen 360°",
             "description": "Equirectangular projection optimised for luxury appliance showcase.",
             "url": "https://cdn.domain/media/spaces/prop-001/photos/hd-panorama-kitchen.tiff",
             "previewUrl": "https://cdn.domain/media/spaces/prop-001/photos/preview/hd-panorama-kitchen.jpg",
@@ -2153,6 +2165,169 @@
           ]
         },
         "lastAnalyzedAt": "2025-10-30T10:05:00Z"
+      },
+      "zones": [
+        {
+          "zoneId": "zone-building-a",
+          "name": "Building A Penthouse",
+          "outdoor": false,
+          "spaceIds": [
+            "prop-001"
+          ],
+          "defaultSpaceId": "prop-001",
+          "siteZoneIdentifier": "Building A",
+          "campusMapIconUrl": "https://cdn.virtualtour.ai/icons/zone-building-a.svg",
+          "gpsBounds": {
+            "sw": {
+              "latitude": 40.761,
+              "longitude": -73.973
+            },
+            "ne": {
+              "latitude": 40.762,
+              "longitude": -73.971
+            },
+            "altitudeMeters": 240
+          },
+          "captureMetadata": {
+            "captureDate": "2024-10-18",
+            "captureCrew": "Skyline Ops",
+            "sunOrientation": {
+              "azimuthDegrees": 182,
+              "elevationDegrees": 38,
+              "capturedAt": "2024-10-18T14:05:00Z"
+            },
+            "weather": "CLEAR",
+            "gpsTrackUrl": "https://cdn.virtualtour.ai/prop-001/gps-track.json",
+            "measurementToleranceCm": 2.5,
+            "calibrationMethod": "HYBRID"
+          },
+          "connections": [
+            {
+              "targetZoneId": "zone-outdoor-terrace",
+              "transitionType": "PATH",
+              "description": "Glass doors to rooftop terrace",
+              "distanceMeters": 6,
+              "estimatedSeconds": 5
+            }
+          ]
+        },
+        {
+          "zoneId": "zone-outdoor-terrace",
+          "name": "Outdoor Sky Terrace",
+          "outdoor": true,
+          "spaceIds": [
+            "prop-001-terrace"
+          ],
+          "defaultSpaceId": "prop-001-terrace",
+          "siteZoneIdentifier": "Terrace",
+          "campusMapIconUrl": "https://cdn.virtualtour.ai/icons/zone-terrace.svg",
+          "gpsBounds": {
+            "sw": {
+              "latitude": 40.7612,
+              "longitude": -73.9728
+            },
+            "ne": {
+              "latitude": 40.7616,
+              "longitude": -73.9724
+            },
+            "altitudeMeters": 230
+          },
+          "captureMetadata": {
+            "captureDate": "2024-10-18",
+            "captureCrew": "Skyline Ops",
+            "sunOrientation": {
+              "azimuthDegrees": 188,
+              "elevationDegrees": 42,
+              "capturedAt": "2024-10-18T14:20:00Z"
+            },
+            "weather": "PARTLY_CLOUDY",
+            "gpsTrackUrl": "https://cdn.virtualtour.ai/prop-001/terrace-track.json",
+            "measurementToleranceCm": 3.2,
+            "calibrationMethod": "GPS"
+          },
+          "connections": [
+            {
+              "targetZoneId": "zone-building-a",
+              "transitionType": "PATH",
+              "description": "Return through pivot doors",
+              "distanceMeters": 6,
+              "estimatedSeconds": 5
+            },
+            {
+              "targetZoneId": "zone-annex",
+              "transitionType": "PATH",
+              "description": "Skybridge to private lounge",
+              "distanceMeters": 18,
+              "estimatedSeconds": 20
+            }
+          ]
+        },
+        {
+          "zoneId": "zone-annex",
+          "name": "Private Annex Lounge",
+          "outdoor": false,
+          "spaceIds": [
+            "prop-001-annex"
+          ],
+          "defaultSpaceId": "prop-001-annex",
+          "siteZoneIdentifier": "Annex B",
+          "campusMapIconUrl": "https://cdn.virtualtour.ai/icons/zone-annex.svg",
+          "gpsBounds": {
+            "sw": {
+              "latitude": 40.7614,
+              "longitude": -73.9722
+            },
+            "ne": {
+              "latitude": 40.7618,
+              "longitude": -73.9718
+            },
+            "altitudeMeters": 225
+          },
+          "captureMetadata": {
+            "captureDate": "2024-10-19",
+            "captureCrew": "Annex Pods",
+            "sunOrientation": {
+              "azimuthDegrees": 205,
+              "elevationDegrees": 35,
+              "capturedAt": "2024-10-19T16:45:00Z"
+            },
+            "weather": "CLEAR",
+            "gpsTrackUrl": "https://cdn.virtualtour.ai/prop-001/annex-track.json",
+            "measurementToleranceCm": 2.8,
+            "calibrationMethod": "TOTAL_STATION"
+          },
+          "connections": [
+            {
+              "targetZoneId": "zone-building-a",
+              "transitionType": "TELEPORT",
+              "description": "Fast travel to penthouse foyer",
+              "distanceMeters": 32,
+              "estimatedSeconds": 8
+            },
+            {
+              "targetZoneId": "zone-outdoor-terrace",
+              "transitionType": "PATH",
+              "description": "Walkway across terrace edge",
+              "distanceMeters": 12,
+              "estimatedSeconds": 15
+            }
+          ]
+        }
+      ],
+      "campusMap": {
+        "imageUrl": "https://cdn.virtualtour.ai/maps/prop-001-campus.png",
+        "tileUrlTemplate": "https://cdn.virtualtour.ai/maps/prop-001/{z}/{x}/{y}.png",
+        "defaultZoneId": "zone-building-a",
+        "gpsBounds": {
+          "sw": {
+            "latitude": 40.761,
+            "longitude": -73.973
+          },
+          "ne": {
+            "latitude": 40.762,
+            "longitude": -73.971
+          }
+        }
       }
     },
     {
@@ -2261,7 +2436,8 @@
           "hotspots": [],
           "measurements": [],
           "annotations": [],
-          "order": 1
+          "order": 1,
+          "zoneId": "zone-002-interior"
         },
         {
           "id": "scene-005",
@@ -2283,7 +2459,8 @@
           ],
           "measurements": [],
           "annotations": [],
-          "order": 2
+          "order": 2,
+          "zoneId": "zone-002-interior"
         },
         {
           "id": "scene-006",
@@ -2305,7 +2482,8 @@
           ],
           "measurements": [],
           "annotations": [],
-          "order": 3
+          "order": 3,
+          "zoneId": "zone-002-outdoor"
         }
       ],
       "stats": {
@@ -2323,6 +2501,111 @@
           "scene-004": 76,
           "scene-005": 92,
           "scene-006": 68
+        }
+      },
+      "zones": [
+        {
+          "zoneId": "zone-002-interior",
+          "name": "Main Residence",
+          "outdoor": false,
+          "spaceIds": [
+            "prop-002"
+          ],
+          "defaultSpaceId": "prop-002",
+          "siteZoneIdentifier": "Residence",
+          "campusMapIconUrl": "https://cdn.virtualtour.ai/icons/zone-home.svg",
+          "gpsBounds": {
+            "sw": {
+              "latitude": 34.052,
+              "longitude": -118.245
+            },
+            "ne": {
+              "latitude": 34.053,
+              "longitude": -118.244
+            },
+            "altitudeMeters": 110
+          },
+          "captureMetadata": {
+            "captureDate": "2024-09-10",
+            "captureCrew": "LA Capture Pod",
+            "sunOrientation": {
+              "azimuthDegrees": 152,
+              "elevationDegrees": 47,
+              "capturedAt": "2024-09-10T17:30:00Z"
+            },
+            "weather": "CLEAR",
+            "gpsTrackUrl": "https://cdn.virtualtour.ai/prop-002/interior-track.json",
+            "measurementToleranceCm": 3.5,
+            "calibrationMethod": "HYBRID"
+          },
+          "connections": [
+            {
+              "targetZoneId": "zone-002-outdoor",
+              "transitionType": "PATH",
+              "description": "Sliding doors to backyard oasis",
+              "distanceMeters": 9,
+              "estimatedSeconds": 7
+            }
+          ]
+        },
+        {
+          "zoneId": "zone-002-outdoor",
+          "name": "Outdoor Living",
+          "outdoor": true,
+          "spaceIds": [
+            "prop-002-grounds"
+          ],
+          "defaultSpaceId": "prop-002-grounds",
+          "siteZoneIdentifier": "Backyard",
+          "campusMapIconUrl": "https://cdn.virtualtour.ai/icons/zone-outdoor.svg",
+          "gpsBounds": {
+            "sw": {
+              "latitude": 34.0518,
+              "longitude": -118.2448
+            },
+            "ne": {
+              "latitude": 34.0524,
+              "longitude": -118.2442
+            },
+            "altitudeMeters": 108
+          },
+          "captureMetadata": {
+            "captureDate": "2024-09-10",
+            "captureCrew": "LA Capture Pod",
+            "sunOrientation": {
+              "azimuthDegrees": 165,
+              "elevationDegrees": 53,
+              "capturedAt": "2024-09-10T18:00:00Z"
+            },
+            "weather": "PARTLY_CLOUDY",
+            "gpsTrackUrl": "https://cdn.virtualtour.ai/prop-002/grounds-track.json",
+            "measurementToleranceCm": 4.5,
+            "calibrationMethod": "GPS"
+          },
+          "connections": [
+            {
+              "targetZoneId": "zone-002-interior",
+              "transitionType": "PATH",
+              "description": "Step back into main living area",
+              "distanceMeters": 9,
+              "estimatedSeconds": 7
+            }
+          ]
+        }
+      ],
+      "campusMap": {
+        "imageUrl": "https://cdn.virtualtour.ai/maps/prop-002-campus.png",
+        "tileUrlTemplate": "https://cdn.virtualtour.ai/maps/prop-002/{z}/{x}/{y}.png",
+        "defaultZoneId": "zone-002-interior",
+        "gpsBounds": {
+          "sw": {
+            "latitude": 34.0518,
+            "longitude": -118.245
+          },
+          "ne": {
+            "latitude": 34.0528,
+            "longitude": -118.244
+          }
         }
       }
     }
@@ -2448,7 +2731,7 @@
       "status": "scheduled",
       "scheduledDate": "2025-11-03T12:12:12.086Z",
       "assignedTechnicianId": "tech-001",
-      "notes": "Luxury property, needs 360\u00b0 coverage",
+      "notes": "Luxury property, needs 360° coverage",
       "createdAt": "2025-10-27T12:12:12.086Z"
     }
   ],

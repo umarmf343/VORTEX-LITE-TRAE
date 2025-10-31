@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://schema.virtualtour.ai/v1/viewer-manifest.json",
   "x-model": "virtualtour.viewer.manifest",
-  "x-version": "v1.0.0",
+  "x-version": "v1.1.0",
   "title": "VirtualTour Viewer Manifest Schema",
   "type": "object",
   "required": [
@@ -103,7 +103,8 @@
                 "description": "[pitch, yaw, roll] in radians"
               },
               "fov": { "type": "number", "description": "Field of view in degrees" },
-              "thumbnail": { "type": "string", "description": "Preview image URL" }
+              "thumbnail": { "type": "string", "description": "Preview image URL" },
+              "zone_id": { "type": "string", "description": "Zone association for the node." }
             }
           }
         },
@@ -115,7 +116,11 @@
               "from": { "type": "string" },
               "to": { "type": "string" },
               "transition_type": { "type": "string", "enum": ["WALK", "STAIR", "TELEPORT"] },
-              "distance": { "type": "number" }
+              "distance": { "type": "number" },
+              "zone_transition": {
+                "type": "boolean",
+                "description": "Indicates the connection crosses into a different zone."
+              }
             }
           }
         }
@@ -207,6 +212,144 @@
         "average_dwell_time": { "type": "number" },
         "click_heatmap_url": { "type": "string" }
       }
+    },
+    "zones": {
+      "type": "array",
+      "description": "Zones that compose the unified multi-space tour.",
+      "items": {
+        "type": "object",
+        "required": ["zone_id", "name", "space_ids", "outdoor"],
+        "properties": {
+          "zone_id": { "type": "string" },
+          "name": { "type": "string" },
+          "space_ids": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1
+          },
+          "default_space_id": { "type": "string" },
+          "outdoor": { "type": "boolean" },
+          "site_zone_identifier": { "type": "string" },
+          "campus_map_icon_url": { "type": "string" },
+          "gps_bounds": {
+            "type": "object",
+            "properties": {
+              "sw": {
+                "type": "object",
+                "required": ["latitude", "longitude"],
+                "properties": {
+                  "latitude": { "type": "number" },
+                  "longitude": { "type": "number" }
+                },
+                "additionalProperties": false
+              },
+              "ne": {
+                "type": "object",
+                "required": ["latitude", "longitude"],
+                "properties": {
+                  "latitude": { "type": "number" },
+                  "longitude": { "type": "number" }
+                },
+                "additionalProperties": false
+              },
+              "altitude_meters": { "type": "number" }
+            },
+            "additionalProperties": false
+          },
+          "capture_metadata": {
+            "type": "object",
+            "properties": {
+              "captureDate": { "type": "string", "format": "date" },
+              "captureCrew": { "type": "string" },
+              "sunOrientation": {
+                "type": "object",
+                "properties": {
+                  "azimuthDegrees": { "type": "number" },
+                  "elevationDegrees": { "type": "number" },
+                  "capturedAt": { "type": "string", "format": "date-time" }
+                },
+                "additionalProperties": false
+              },
+              "weather": {
+                "type": "string",
+                "enum": ["CLEAR", "PARTLY_CLOUDY", "OVERCAST", "RAIN", "SNOW", "FOG", "WINDY"]
+              },
+              "gpsTrackUrl": { "type": "string" },
+              "measurementToleranceCm": { "type": "number" },
+              "calibrationMethod": {
+                "type": "string",
+                "enum": ["GPS", "TOTAL_STATION", "HYBRID", "NONE"]
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    "zone_connections": {
+      "type": "array",
+      "description": "Graph describing how viewers may transition between zones.",
+      "items": {
+        "type": "object",
+        "required": ["from_zone_id", "to_zone_id", "transition_type"],
+        "properties": {
+          "from_zone_id": { "type": "string" },
+          "to_zone_id": { "type": "string" },
+          "transition_type": { "type": "string", "enum": ["WALK", "PATH", "TELEPORT"] },
+          "description": { "type": "string" },
+          "estimated_seconds": { "type": "number" },
+          "distance_meters": { "type": "number" }
+        }
+      }
+    },
+    "campus_map": {
+      "type": "object",
+      "description": "Campus map metadata for multi-zone navigation.",
+      "properties": {
+        "image_url": { "type": "string" },
+        "tile_url_template": { "type": "string" },
+        "default_zone_id": { "type": "string" },
+        "gps_bounds": {
+          "type": "object",
+          "properties": {
+            "sw": {
+              "type": "object",
+              "required": ["latitude", "longitude"],
+              "properties": {
+                "latitude": { "type": "number" },
+                "longitude": { "type": "number" }
+              },
+              "additionalProperties": false
+            },
+            "ne": {
+              "type": "object",
+              "required": ["latitude", "longitude"],
+              "properties": {
+                "latitude": { "type": "number" },
+                "longitude": { "type": "number" }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "outdoor_flag": {
+      "type": "boolean",
+      "description": "Indicates the manifest represents an outdoor or mixed environment."
+    },
+    "performance": {
+      "type": "object",
+      "description": "Performance tuning profile for streaming large outdoor scenes.",
+      "properties": {
+        "lod_target_triangle_budget": { "type": "integer" },
+        "max_texture_resolution": { "type": "integer" },
+        "mobile_max_texture_resolution": { "type": "integer" },
+        "streaming_chunk_bytes": { "type": "integer" }
+      },
+      "additionalProperties": false
     },
     "access": {
       "type": "object",

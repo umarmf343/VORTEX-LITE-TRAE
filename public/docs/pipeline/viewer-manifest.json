@@ -1,144 +1,247 @@
 {
-  "space_id": "space_3BR_flat_01",
-  "version": "v1.0.0",
-  "owner": "user_54XF9",
-  "created_at": "2025-10-30T10:30:00Z",
+  "space_id": "harborview_master_tour",
+  "version": "v1.1.0",
+  "owner": "baladshelter",
+  "created_at": "2025-04-19T08:45:00Z",
   "geometry": {
     "lod_levels": [
-      { "level": 0, "triangle_count": 50000, "tile_size": 256, "description": "Preview geometry" },
-      { "level": 1, "triangle_count": 250000, "tile_size": 512, "description": "High detail geometry" }
+      { "level": 0, "triangle_count": 60000, "tile_size": 256, "description": "Preview geometry" },
+      { "level": 1, "triangle_count": 240000, "tile_size": 512, "description": "Production geometry" }
     ],
     "mesh_tiles": [
       {
-        "tile_id": "mesh_tile_01",
-        "url": "https://cdn.virtualtour.ai/spaces/3BR_flat_01/tiles/mesh_tile_01.glb",
+        "tile_id": "harborview_master_tour_zone_a",
+        "url": "https://cdn.virtualtour.ai/spaces/harborview_master_tour/mesh/zone-a.glb",
         "lod": 0,
-        "bounds": [0, 0, 0, 12, 8, 3]
+        "bounds": [0, 0, 0, 42, 18, 36]
       }
     ]
   },
   "textures": [
     {
       "lod": 0,
-      "url": "https://cdn.virtualtour.ai/spaces/3BR_flat_01/textures/base_diffuse.ktx2",
-      "resolution": "1024x1024",
+      "url": "https://cdn.virtualtour.ai/spaces/harborview_master_tour/textures/base_diffuse.ktx2",
+      "resolution": "8192x8192",
+      "format": "ktx2"
+    },
+    {
+      "lod": 1,
+      "url": "https://cdn.virtualtour.ai/spaces/harborview_master_tour/textures/mobile_4k.ktx2",
+      "resolution": "4096x4096",
       "format": "ktx2"
     }
   ],
   "navigation": {
     "camera_nodes": [
       {
-        "id": "cam_01",
-        "position": [2.3, 1.6, 1.7],
-        "rotation": [0, 90, 0],
+        "id": "scene_lobby",
+        "position": [2.4, 1.6, 0.4],
+        "rotation": [0, 0.2, 0],
         "fov": 75,
-        "thumbnail": "https://cdn.virtualtour.ai/spaces/3BR_flat_01/thumbs/cam_01.jpg"
+        "thumbnail": "https://cdn.virtualtour.ai/spaces/harborview_master_tour/thumbs/lobby.jpg",
+        "zone_id": "zone-building-a"
       },
       {
-        "id": "cam_02",
-        "position": [5.0, 1.6, 1.7],
-        "rotation": [0, 180, 0],
+        "id": "scene_commons",
+        "position": [18.0, 1.7, -4.6],
+        "rotation": [0, 1.2, 0],
         "fov": 75,
-        "thumbnail": "https://cdn.virtualtour.ai/spaces/3BR_flat_01/thumbs/cam_02.jpg"
+        "thumbnail": "https://cdn.virtualtour.ai/spaces/harborview_master_tour/thumbs/commons.jpg",
+        "zone_id": "zone-outdoor-commons"
+      },
+      {
+        "id": "scene_lab",
+        "position": [32.4, 1.6, 6.8],
+        "rotation": [0, -1.5, 0],
+        "fov": 75,
+        "thumbnail": "https://cdn.virtualtour.ai/spaces/harborview_master_tour/thumbs/lab.jpg",
+        "zone_id": "zone-building-b"
       }
     ],
     "connections": [
-      { "from": "cam_01", "to": "cam_02", "transition_type": "WALK", "distance": 3.1 }
+      {
+        "from": "scene_lobby",
+        "to": "scene_commons",
+        "transition_type": "WALK",
+        "distance": 8.2,
+        "zone_transition": true
+      },
+      {
+        "from": "scene_commons",
+        "to": "scene_lab",
+        "transition_type": "PATH",
+        "distance": 14.6,
+        "zone_transition": true
+      }
     ]
   },
   "views": {
     "walkthrough": {
-      "default_node": "cam_01",
-      "pathfinding_enabled": true,
-      "immersive_space": {
-        "spaceId": "3BR_flat_walkthrough",
-        "defaultNodeId": "cam_01",
-        "spatialMeshUrl": "https://cdn.virtualtour.ai/spaces/3BR_flat_01/walkthrough/mesh.glb",
-        "textureSetUrl": "https://cdn.virtualtour.ai/spaces/3BR_flat_01/walkthrough/textures/",
-        "hdrEnvironmentUrl": "https://cdn.virtualtour.ai/spaces/3BR_flat_01/walkthrough/sky.hdr",
-        "manualWalkEnabled": true,
-        "nodes": [
-          {
-            "id": "cam_01",
-            "position": [0, 0, 0],
-            "orientation": { "yaw": 0 },
-            "connectedTo": ["cam_02"],
-            "label": "Foyer Anchor"
-          },
-          {
-            "id": "cam_02",
-            "position": [4.2, 0, 1.4],
-            "orientation": { "yaw": 0.5 },
-            "connectedTo": ["cam_01"],
-            "label": "Living Core"
-          }
-        ],
-        "hotspots": [
-          {
-            "id": "immersive-hs-balcony",
-            "title": "Balcony Slider",
-            "description": "Glass pocket doors retract fully into the wall for seamless indoor-outdoor living.",
-            "position": [4.6, 1.5, -2.2],
-            "type": "info"
-          }
-        ],
-        "autoTour": {
-          "enabled": true,
-          "order": ["cam_01", "cam_02"],
-          "dwellMs": 4800
-        },
-        "captureMetadata": {
-          "resolution": "8K",
-          "depthPrecision": "millimeter",
-          "originAlignment": true
-        }
-      }
+      "default_node": "scene_lobby",
+      "pathfinding_enabled": true
     },
     "dollhouse": {
-      "model_url": "https://cdn.virtualtour.ai/spaces/3BR_flat_01/dollhouse.glb",
+      "model_url": "https://cdn.virtualtour.ai/spaces/harborview_master_tour/dollhouse.glb",
       "scale_factor": 1.0,
       "supports_floor_toggle": true
     },
     "floorplan": {
-      "projection_url": "https://cdn.virtualtour.ai/spaces/3BR_flat_01/floorplan.svg",
+      "projection_url": "https://cdn.virtualtour.ai/spaces/harborview_master_tour/floorplan.svg",
       "room_polygons": [
         {
-          "room_id": "living_room",
-          "name": "Living Room",
-          "points": [[0, 0], [6, 0], [6, 4], [0, 4]]
+          "room_id": "building_a_lobby",
+          "name": "Innovation Lobby",
+          "points": [[0, 0], [8, 0], [8, 10], [0, 10]]
         }
       ]
     }
   },
   "hotspots": [
     {
-      "id": "hs_tv",
+      "id": "hs_rooftop",
       "type": "INFO",
-      "title": "Smart TV",
-      "content": "55-inch 4K Smart TV with voice control",
-      "position": [3.2, 1.4, 0.2],
+      "title": "Solar Roof",
+      "content": "90kW photovoltaic array offsets 65% of annual load.",
+      "position": [20.2, 6.4, -3.8],
       "visible_in_views": ["walkthrough"],
-      "author": "user_54XF9",
-      "created_at": "2025-10-30T10:32:00Z"
+      "author": "baladshelter",
+      "created_at": "2025-04-19T08:50:00Z"
     }
   ],
   "measurements": [
     {
-      "id": "measure_wall",
-      "point_a": [0.2, 0.0, 0.2],
-      "point_b": [6.0, 0.0, 0.2],
-      "distance_meters": 5.8,
-      "created_by": "user_54XF9"
+      "id": "measure_commons_path",
+      "point_a": [17.8, 0.0, -5.2],
+      "point_b": [30.9, 0.0, 6.4],
+      "distance_meters": 17.6,
+      "created_by": "baladshelter"
     }
   ],
   "analytics": {
-    "views_count": 0,
-    "average_dwell_time": 0,
-    "click_heatmap_url": ""
+    "views_count": 124,
+    "average_dwell_time": 312,
+    "click_heatmap_url": "https://cdn.virtualtour.ai/spaces/harborview_master_tour/analytics/heatmap.png"
+  },
+  "zones": [
+    {
+      "zone_id": "zone-building-a",
+      "name": "Building A",
+      "space_ids": ["harborview_building_a"],
+      "default_space_id": "harborview_building_a",
+      "outdoor": false,
+      "site_zone_identifier": "A",
+      "campus_map_icon_url": "https://cdn.virtualtour.ai/icons/zone-building-a.svg",
+      "gps_bounds": {
+        "sw": { "latitude": 47.6165, "longitude": -122.3521 },
+        "ne": { "latitude": 47.6170, "longitude": -122.3514 },
+        "altitude_meters": 16.2
+      },
+      "capture_metadata": {
+        "captureDate": "2025-04-02",
+        "captureCrew": "Team Atlas",
+        "sunOrientation": {
+          "azimuthDegrees": 135.0,
+          "elevationDegrees": 38.0,
+          "capturedAt": "2025-04-02T17:40:00Z"
+        },
+        "weather": "PARTLY_CLOUDY",
+        "gpsTrackUrl": "https://cdn.virtualtour.ai/spaces/harborview_master_tour/gps/building-a.geojson",
+        "measurementToleranceCm": 3.0,
+        "calibrationMethod": "TOTAL_STATION"
+      }
+    },
+    {
+      "zone_id": "zone-outdoor-commons",
+      "name": "Outdoor Commons",
+      "space_ids": ["harborview_commons"],
+      "default_space_id": "harborview_commons",
+      "outdoor": true,
+      "site_zone_identifier": "Courtyard",
+      "campus_map_icon_url": "https://cdn.virtualtour.ai/icons/zone-commons.svg",
+      "gps_bounds": {
+        "sw": { "latitude": 47.6168, "longitude": -122.3519 },
+        "ne": { "latitude": 47.6176, "longitude": -122.3510 },
+        "altitude_meters": 14.8
+      },
+      "capture_metadata": {
+        "captureDate": "2025-04-04",
+        "captureCrew": "Team Atlas",
+        "sunOrientation": {
+          "azimuthDegrees": 142.0,
+          "elevationDegrees": 41.0,
+          "capturedAt": "2025-04-04T19:10:00Z"
+        },
+        "weather": "CLEAR",
+        "gpsTrackUrl": "https://cdn.virtualtour.ai/spaces/harborview_master_tour/gps/commons.geojson",
+        "measurementToleranceCm": 7.0,
+        "calibrationMethod": "GPS"
+      }
+    },
+    {
+      "zone_id": "zone-building-b",
+      "name": "Building B Labs",
+      "space_ids": ["harborview_building_b"],
+      "default_space_id": "harborview_building_b",
+      "outdoor": false,
+      "site_zone_identifier": "B",
+      "campus_map_icon_url": "https://cdn.virtualtour.ai/icons/zone-building-b.svg",
+      "gps_bounds": {
+        "sw": { "latitude": 47.6172, "longitude": -122.3508 },
+        "ne": { "latitude": 47.6179, "longitude": -122.3500 },
+        "altitude_meters": 18.0
+      },
+      "capture_metadata": {
+        "captureDate": "2025-04-06",
+        "captureCrew": "Team Atlas",
+        "sunOrientation": {
+          "azimuthDegrees": 148.0,
+          "elevationDegrees": 36.0,
+          "capturedAt": "2025-04-06T18:25:00Z"
+        },
+        "weather": "OVERCAST",
+        "gpsTrackUrl": "https://cdn.virtualtour.ai/spaces/harborview_master_tour/gps/building-b.geojson",
+        "measurementToleranceCm": 4.0,
+        "calibrationMethod": "HYBRID"
+      }
+    }
+  ],
+  "zone_connections": [
+    {
+      "from_zone_id": "zone-building-a",
+      "to_zone_id": "zone-outdoor-commons",
+      "transition_type": "WALK",
+      "description": "Exit lobby doors to landscaped plaza",
+      "estimated_seconds": 6,
+      "distance_meters": 12.5
+    },
+    {
+      "from_zone_id": "zone-outdoor-commons",
+      "to_zone_id": "zone-building-b",
+      "transition_type": "PATH",
+      "description": "Follow covered walkway to Lab Wing",
+      "estimated_seconds": 11,
+      "distance_meters": 18.3
+    }
+  ],
+  "campus_map": {
+    "image_url": "https://cdn.virtualtour.ai/spaces/harborview_master_tour/campus-map.png",
+    "tile_url_template": "https://cdn.virtualtour.ai/spaces/harborview_master_tour/map/{z}/{x}/{y}.png",
+    "default_zone_id": "zone-building-a",
+    "gps_bounds": {
+      "sw": { "latitude": 47.6165, "longitude": -122.3522 },
+      "ne": { "latitude": 47.6181, "longitude": -122.3498 }
+    }
+  },
+  "outdoor_flag": true,
+  "performance": {
+    "lod_target_triangle_budget": 350000,
+    "max_texture_resolution": 8192,
+    "mobile_max_texture_resolution": 4096,
+    "streaming_chunk_bytes": 4194304
   },
   "access": {
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "permissions": ["view", "measure"],
-    "expiry": "2025-11-30T00:00:00Z"
+    "expiry": "2025-07-01T00:00:00Z"
   }
 }

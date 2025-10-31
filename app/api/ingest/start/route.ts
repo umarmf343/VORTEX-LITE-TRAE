@@ -56,8 +56,20 @@ const saveJobs = async (jobs: StoredIngestJob[]) => {
 const requiredFields = ["job_id", "space_id", "owner", "source_type", "raw_assets", "metadata", "status"]
 
 const SOURCE_TYPES = new Set(["PHOTOGRAMMETRY", "LIDAR", "HYBRID", "PANO_360"])
+const CAPTURE_INPUT_TYPES = new Set([
+  "TRIPOD_RGB",
+  "TRIPOD_LIDAR",
+  "GROUND_LIDAR",
+  "HANDHELD_RGB",
+  "HANDHELD_LIDAR",
+  "DRONE_RGB",
+  "DRONE_LIDAR",
+  "MOBILE_MAPPING",
+  "STATIC_PANORAMA",
+])
 const STATUS_TYPES: Set<IngestJobStatus> = new Set(["QUEUED", "PROCESSING", "REDUCTION", "FUSION", "TEXTURING", "QA", "PUBLISHED", "FAILED"])
 const RAW_ASSET_TYPES = new Set(["image", "depthmap", "pointcloud", "video"])
+const WEATHER_TYPES = new Set(["CLEAR", "PARTLY_CLOUDY", "OVERCAST", "RAIN", "SNOW", "FOG", "WINDY"])
 
 const validatePayload = (payload: Record<string, unknown>) => {
   for (const field of requiredFields) {
@@ -82,6 +94,18 @@ const validatePayload = (payload: Record<string, unknown>) => {
   const rawAssets = payload["raw_assets"]
   if (!Array.isArray(rawAssets) || rawAssets.length === 0) {
     throw new Error("raw_assets must be a non-empty array")
+  }
+
+  const captureInputs = payload["capture_inputs"]
+  if (typeof captureInputs !== "undefined") {
+    if (!Array.isArray(captureInputs) || captureInputs.length === 0) {
+      throw new Error("capture_inputs must be a non-empty array when provided")
+    }
+    for (const [index, input] of captureInputs.entries()) {
+      if (typeof input !== "string" || !CAPTURE_INPUT_TYPES.has(input)) {
+        throw new Error(`capture_inputs[${index}] must be one of: ${Array.from(CAPTURE_INPUT_TYPES).join(", ")}`)
+      }
+    }
   }
 
   rawAssets.forEach((asset, index) => {
@@ -116,6 +140,12 @@ const validatePayload = (payload: Record<string, unknown>) => {
       typeof assetRecord["capture_timestamp"] !== "undefined"
     ) {
       throw new Error(`raw_assets[${index}].capture_timestamp must be an ISO string when provided`)
+    }
+    if ("capture_method" in assetRecord) {
+      const method = assetRecord["capture_method"]
+      if (typeof method !== "string" || !CAPTURE_INPUT_TYPES.has(method)) {
+        throw new Error(`raw_assets[${index}].capture_method must be one of: ${Array.from(CAPTURE_INPUT_TYPES).join(", ")}`)
+      }
     }
   })
 
@@ -164,6 +194,162 @@ const validatePayload = (payload: Record<string, unknown>) => {
   }
   if ("notes" in metadataRecord && typeof metadataRecord["notes"] !== "string") {
     throw new Error("metadata.notes must be a string when provided")
+  }
+  if ("outdoor" in metadataRecord && typeof metadataRecord["outdoor"] !== "boolean") {
+    throw new Error("metadata.outdoor must be a boolean when provided")
+  }
+  if ("zone" in metadataRecord) {
+    const zoneRecord = metadataRecord["zone"]
+    if (typeof zoneRecord !== "object" || zoneRecord === null) {
+      throw new Error("metadata.zone must be an object when provided")
+    }
+    const zone = zoneRecord as Record<string, unknown>
+    if (typeof zone["zone_id"] !== "string" || zone["zone_id"].length === 0) {
+      throw new Error("metadata.zone.zone_id must be a non-empty string")
+    }
+    if ("zone_name" in zone && typeof zone["zone_name"] !== "string") {
+      throw new Error("metadata.zone.zone_name must be a string when provided")
+    }
+    if ("site_zone_identifier" in zone && typeof zone["site_zone_identifier"] !== "string") {
+      throw new Error("metadata.zone.site_zone_identifier must be a string when provided")
+    }
+    if ("parent_tour_id" in zone && typeof zone["parent_tour_id"] !== "string") {
+      throw new Error("metadata.zone.parent_tour_id must be a string when provided")
+    }
+  }
+  if ("sun_orientation" in metadataRecord) {
+    const sunOrientation = metadataRecord["sun_orientation"]
+    if (typeof sunOrientation !== "object" || sunOrientation === null) {
+      throw new Error("metadata.sun_orientation must be an object when provided")
+    }
+    const sun = sunOrientation as Record<string, unknown>
+    if (typeof sun["azimuth_degrees"] !== "number") {
+      throw new Error("metadata.sun_orientation.azimuth_degrees must be a number")
+    }
+    if (typeof sun["elevation_degrees"] !== "number") {
+      throw new Error("metadata.sun_orientation.elevation_degrees must be a number")
+    }
+    if ("captured_at" in sun && typeof sun["captured_at"] !== "string") {
+      throw new Error("metadata.sun_orientation.captured_at must be an ISO string when provided")
+    }
+  }
+  if ("weather" in metadataRecord) {
+    const weather = metadataRecord["weather"]
+    if (typeof weather !== "string" || !WEATHER_TYPES.has(weather)) {
+      throw new Error(`metadata.weather must be one of: ${Array.from(WEATHER_TYPES).join(", ")}`)
+    }
+  }
+  if ("gps_track" in metadataRecord) {
+    const gpsTrack = metadataRecord["gps_track"]
+    if (!Array.isArray(gpsTrack)) {
+      throw new Error("metadata.gps_track must be an array when provided")
+    }
+    gpsTrack.forEach((point, index) => {
+      if (typeof point !== "object" || point === null) {
+        throw new Error(`metadata.gps_track[${index}] must be an object`)
+      }
+      const trackPoint = point as Record<string, unknown>
+      if (typeof trackPoint["timestamp"] !== "string") {
+        throw new Error(`metadata.gps_track[${index}].timestamp must be an ISO string`)
+      }
+      if (typeof trackPoint["latitude"] !== "number") {
+        throw new Error(`metadata.gps_track[${index}].latitude must be a number`)
+      }
+      if (typeof trackPoint["longitude"] !== "number") {
+        throw new Error(`metadata.gps_track[${index}].longitude must be a number`)
+      }
+      if (
+        "altitude" in trackPoint &&
+        typeof trackPoint["altitude"] !== "number" &&
+        typeof trackPoint["altitude"] !== "undefined"
+      ) {
+        throw new Error(`metadata.gps_track[${index}].altitude must be a number when provided`)
+      }
+    })
+  }
+  if ("ground_control_points" in metadataRecord) {
+    const gcps = metadataRecord["ground_control_points"]
+    if (!Array.isArray(gcps)) {
+      throw new Error("metadata.ground_control_points must be an array when provided")
+    }
+    gcps.forEach((point, index) => {
+      if (typeof point !== "object" || point === null) {
+        throw new Error(`metadata.ground_control_points[${index}] must be an object`)
+      }
+      const gcp = point as Record<string, unknown>
+      if (typeof gcp["label"] !== "string" || gcp["label"].length === 0) {
+        throw new Error(`metadata.ground_control_points[${index}].label must be a non-empty string`)
+      }
+      if (typeof gcp["latitude"] !== "number") {
+        throw new Error(`metadata.ground_control_points[${index}].latitude must be a number`)
+      }
+      if (typeof gcp["longitude"] !== "number") {
+        throw new Error(`metadata.ground_control_points[${index}].longitude must be a number`)
+      }
+      if (
+        "elevation" in gcp &&
+        typeof gcp["elevation"] !== "number" &&
+        typeof gcp["elevation"] !== "undefined"
+      ) {
+        throw new Error(`metadata.ground_control_points[${index}].elevation must be a number when provided`)
+      }
+      if (
+        "accuracy_cm" in gcp &&
+        typeof gcp["accuracy_cm"] !== "number" &&
+        typeof gcp["accuracy_cm"] !== "undefined"
+      ) {
+        throw new Error(`metadata.ground_control_points[${index}].accuracy_cm must be a number when provided`)
+      }
+    })
+  }
+  if (
+    "measurement_tolerance_cm" in metadataRecord &&
+    typeof metadataRecord["measurement_tolerance_cm"] !== "number"
+  ) {
+    throw new Error("metadata.measurement_tolerance_cm must be a number when provided")
+  }
+  if (
+    "capture_height_meters" in metadataRecord &&
+    typeof metadataRecord["capture_height_meters"] !== "number"
+  ) {
+    throw new Error("metadata.capture_height_meters must be a number when provided")
+  }
+  if ("drone_flight_plan" in metadataRecord) {
+    const flightPlan = metadataRecord["drone_flight_plan"]
+    if (typeof flightPlan !== "object" || flightPlan === null) {
+      throw new Error("metadata.drone_flight_plan must be an object when provided")
+    }
+    const plan = flightPlan as Record<string, unknown>
+    if ("takeoff_point" in plan) {
+      const takeoff = plan["takeoff_point"]
+      if (typeof takeoff !== "object" || takeoff === null) {
+        throw new Error("metadata.drone_flight_plan.takeoff_point must be an object when provided")
+      }
+      const takeoffRecord = takeoff as Record<string, unknown>
+      if (typeof takeoffRecord["latitude"] !== "number") {
+        throw new Error("metadata.drone_flight_plan.takeoff_point.latitude must be a number")
+      }
+      if (typeof takeoffRecord["longitude"] !== "number") {
+        throw new Error("metadata.drone_flight_plan.takeoff_point.longitude must be a number")
+      }
+      if (
+        "altitude" in takeoffRecord &&
+        typeof takeoffRecord["altitude"] !== "number" &&
+        typeof takeoffRecord["altitude"] !== "undefined"
+      ) {
+        throw new Error("metadata.drone_flight_plan.takeoff_point.altitude must be a number when provided")
+      }
+    }
+    if (
+      "max_altitude_meters" in plan &&
+      typeof plan["max_altitude_meters"] !== "number" &&
+      typeof plan["max_altitude_meters"] !== "undefined"
+    ) {
+      throw new Error("metadata.drone_flight_plan.max_altitude_meters must be a number when provided")
+    }
+    if ("path_url" in plan && typeof plan["path_url"] !== "string") {
+      throw new Error("metadata.drone_flight_plan.path_url must be a string when provided")
+    }
   }
 
   const status = payload["status"]

@@ -193,6 +193,9 @@ export function TourPlayer({
   const tourTimeoutRef = useRef<number | null>(null)
   const sphrActiveNodeRef = useRef<string | null>(null)
   const sphrNodeStartRef = useRef<number>(Date.now())
+  const [activeZoneId, setActiveZoneId] = useState<string | null>(null)
+  const zoneTimerRef = useRef<{ zoneId: string; startedAt: number } | null>(null)
+  const zoneDwellRef = useRef<Record<string, number>>({})
   const stopTourTimer = useCallback(() => {
     if (tourTimeoutRef.current) {
       window.clearTimeout(tourTimeoutRef.current)
@@ -200,6 +203,91 @@ export function TourPlayer({
     }
   }, [])
   const guidedTours = property.guidedTours ?? []
+  const availableZones = useMemo(() => {
+    if (viewerManifest?.zones?.length) {
+      return viewerManifest.zones.map((zone) => ({
+        id: zone.zone_id,
+        name: zone.name,
+        outdoor: zone.outdoor,
+        icon: zone.campus_map_icon_url,
+        description: zone.site_zone_identifier,
+      }))
+    }
+    if (property.zones?.length) {
+      return property.zones.map((zone) => ({
+        id: zone.zoneId,
+        name: zone.name,
+        outdoor: zone.outdoor,
+        icon: zone.campusMapIconUrl,
+        description: zone.siteZoneIdentifier,
+      }))
+    }
+    return [] as Array<{
+      id: string
+      name: string
+      outdoor: boolean
+      icon?: string
+      description?: string
+    }>
+  }, [property.zones, viewerManifest?.zones])
+  const zoneConnections = useMemo(() => {
+    if (viewerManifest?.zone_connections?.length) {
+      return viewerManifest.zone_connections
+    }
+    const connections: ViewerManifest["zone_connections"] = []
+    property.zones?.forEach((zone) => {
+      zone.connections?.forEach((connection) => {
+        connections.push({
+          from_zone_id: zone.zoneId,
+          to_zone_id: connection.targetZoneId,
+          transition_type: connection.transitionType,
+          description: connection.description,
+          estimated_seconds: connection.estimatedSeconds,
+          distance_meters: connection.distanceMeters,
+        })
+      })
+    })
+    return connections
+  }, [property.zones, viewerManifest?.zone_connections])
+  const campusMapMeta = useMemo(() => {
+    if (viewerManifest?.campus_map) {
+      return {
+        imageUrl: viewerManifest.campus_map.image_url,
+        tileUrlTemplate: viewerManifest.campus_map.tile_url_template,
+        defaultZoneId: viewerManifest.campus_map.default_zone_id,
+      }
+    }
+    if (property.campusMap) {
+      return {
+        imageUrl: property.campusMap.imageUrl,
+        tileUrlTemplate: property.campusMap.tileUrlTemplate,
+        defaultZoneId: property.campusMap.defaultZoneId,
+      }
+    }
+    return null
+  }, [property.campusMap, viewerManifest?.campus_map])
+  const activeZone = useMemo(() => {
+    if (!availableZones.length) return null
+    const resolvedId = activeZoneId && availableZones.some((zone) => zone.id === activeZoneId)
+      ? activeZoneId
+      : availableZones[0].id
+    return availableZones.find((zone) => zone.id === resolvedId) ?? null
+  }, [activeZoneId, availableZones])
+  const goToScene = useCallback(
+    (index: number, options?: { preserveZone?: boolean }) => {
+      const clampedIndex = Math.max(0, Math.min(property.scenes.length - 1, index))
+      setCurrentSceneIndex(clampedIndex)
+      if (options?.preserveZone) {
+        return
+      }
+      const fallbackZoneId = availableZones[0]?.id ?? null
+      const targetZone = property.scenes[clampedIndex]?.zoneId ?? fallbackZoneId
+      if (targetZone && targetZone !== activeZoneId) {
+        setActiveZoneId(targetZone)
+      }
+    },
+    [activeZoneId, availableZones, property.scenes],
+  )
 
   useEffect(() => {
     let cancelled = false
@@ -229,6 +317,103 @@ export function TourPlayer({
       cancelled = true
     }
   }, [property.id])
+
+  useEffect(() => {
+    if (!availableZones.length) {
+      if (activeZoneId !== null) {
+        setActiveZoneId(null)
+      }
+      return
+    }
+    const preferredZoneId =
+      campusMapMeta?.defaultZoneId && availableZones.some((zone) => zone.id === campusMapMeta.defaultZoneId)
+        ? campusMapMeta.defaultZoneId
+        : availableZones[0].id
+    if (!activeZoneId || !availableZones.some((zone) => zone.id === activeZoneId)) {
+      setActiveZoneId(preferredZoneId)
+    }
+  }, [activeZoneId, availableZones, campusMapMeta?.defaultZoneId])
+
+  useEffect(() => {
+    flushZoneTimer()
+    zoneDwellRef.current = {}
+    zoneTimerRef.current = null
+    setActiveZoneId(null)
+  }, [flushZoneTimer, property.id])
+
+  useEffect(() => {
+    const previous = zoneTimerRef.current
+    const now = Date.now()
+    if (previous && previous.zoneId && previous.zoneId !== activeZoneId) {
+      const dwell = (now - previous.startedAt) / 1000
+      if (dwell > 0.1) {
+        zoneDwellRef.current[previous.zoneId] = (zoneDwellRef.current[previous.zoneId] || 0) + dwell
+        const totals = { ...sceneEngagement.current }
+        const zoneTotals = { ...zoneDwellRef.current }
+        onEngagementTrack?.({
+          sceneId: property.scenes[currentSceneIndex]?.id ?? previous.zoneId,
+          zoneId: previous.zoneId,
+          targetZoneId: activeZoneId ?? undefined,
+          dwellTime: dwell,
+          totalEngagement: totals,
+          event: "zone_exit",
+          metadata: {
+            transitionedTo: activeZoneId,
+            zoneDwellTotals: zoneTotals,
+          },
+        })
+        if (activeZoneId) {
+          onEngagementTrack?.({
+            sceneId: property.scenes[currentSceneIndex]?.id ?? previous.zoneId,
+            zoneId: previous.zoneId,
+            targetZoneId: activeZoneId,
+            dwellTime: dwell,
+            totalEngagement: totals,
+            event: "zone_transition",
+            metadata: {
+              fromZoneId: previous.zoneId,
+              toZoneId: activeZoneId,
+            },
+          })
+        }
+      }
+    }
+    if (activeZoneId) {
+      zoneTimerRef.current = { zoneId: activeZoneId, startedAt: now }
+      onEngagementTrack?.({
+        sceneId: property.scenes[currentSceneIndex]?.id ?? activeZoneId,
+        zoneId: activeZoneId,
+        targetZoneId: activeZoneId,
+        dwellTime: 0,
+        totalEngagement: { ...sceneEngagement.current },
+        event: "zone_enter",
+        metadata: {
+          fromZoneId: previous?.zoneId,
+          toZoneId: activeZoneId,
+          outdoor: Boolean(availableZones.find((zone) => zone.id === activeZoneId)?.outdoor),
+        },
+      })
+    } else {
+      zoneTimerRef.current = null
+    }
+  }, [activeZoneId, availableZones, currentSceneIndex, onEngagementTrack, property.scenes])
+
+  useEffect(() => {
+    if (!activeZoneId) {
+      return
+    }
+    const fallbackZoneId = availableZones[0]?.id ?? null
+    const currentSceneZone = property.scenes[currentSceneIndex]?.zoneId ?? fallbackZoneId
+    if (currentSceneZone === activeZoneId) {
+      return
+    }
+    const targetIndex = property.scenes.findIndex(
+      (scene) => (scene.zoneId ?? fallbackZoneId) === activeZoneId,
+    )
+    if (targetIndex >= 0) {
+      goToScene(targetIndex, { preserveZone: true })
+    }
+  }, [activeZoneId, availableZones, currentSceneIndex, goToScene, property.scenes])
 
   useEffect(() => {
     if (activeExperienceTab === "floorplan") {
@@ -265,9 +450,9 @@ export function TourPlayer({
     }
     const targetIndex = property.scenes.findIndex((scene) => scene.id === defaultNode)
     if (targetIndex >= 0) {
-      setCurrentSceneIndex((previous) => (previous === targetIndex ? previous : targetIndex))
+      goToScene(targetIndex)
     }
-  }, [viewerManifest, property.scenes])
+  }, [goToScene, property.scenes, viewerManifest])
 
   const viewerFloorPlan = useMemo<FloorPlan | null>(() => {
     if (!viewerManifest) {
@@ -320,14 +505,41 @@ export function TourPlayer({
   const handleSceneEngagement = useCallback(
     (sceneId: string, dwellTime: number) => {
       sceneEngagement.current[sceneId] = (sceneEngagement.current[sceneId] || 0) + dwellTime
+      const fallbackZoneId = availableZones[0]?.id
+      const scene = property.scenes.find((entry) => entry.id === sceneId)
+      const zoneId = scene?.zoneId ?? activeZoneId ?? fallbackZoneId
+      const totals = { ...sceneEngagement.current }
       onEngagementTrack?.({
         sceneId,
+        zoneId: zoneId ?? undefined,
         dwellTime,
-        totalEngagement: sceneEngagement.current,
+        totalEngagement: totals,
+        event: "scene",
       })
     },
-    [onEngagementTrack],
+    [activeZoneId, availableZones, onEngagementTrack, property.scenes],
   )
+
+  const flushZoneTimer = useCallback(() => {
+    const timer = zoneTimerRef.current
+    if (!timer) {
+      return
+    }
+    const dwell = (Date.now() - timer.startedAt) / 1000
+    if (dwell > 0.1) {
+      zoneDwellRef.current[timer.zoneId] = (zoneDwellRef.current[timer.zoneId] || 0) + dwell
+      const totals = { ...sceneEngagement.current }
+      onEngagementTrack?.({
+        sceneId: property.scenes[currentSceneIndex]?.id ?? timer.zoneId,
+        zoneId: timer.zoneId,
+        dwellTime: dwell,
+        totalEngagement: totals,
+        event: "zone_exit",
+        metadata: { zoneDwellTotals: { ...zoneDwellRef.current } },
+      })
+    }
+    zoneTimerRef.current = null
+  }, [currentSceneIndex, onEngagementTrack, property.scenes])
 
   const flushSphrDwell = useCallback(() => {
     if (!sphrActiveNodeRef.current) {
@@ -345,7 +557,7 @@ export function TourPlayer({
     setShowFloorPlan(false)
     setShowGallery(false)
     setActiveExperienceTab("walkthrough")
-    setCurrentSceneIndex(0)
+    goToScene(0)
     setSessionStart(Date.now())
     setIsFavorite(property.isFavorite ?? false)
     setShowShareMenu(false)
@@ -359,9 +571,11 @@ export function TourPlayer({
     setActiveHotspot(null)
     setSelectedTourId(property.guidedTours?.[0]?.id ?? CUSTOM_TOUR_ID)
     stopTourTimer()
-  }, [property.id, property.isFavorite, stopTourTimer])
+  }, [goToScene, property.guidedTours, property.id, property.isFavorite, stopTourTimer])
 
   useEffect(() => () => flushSphrDwell(), [flushSphrDwell])
+
+  useEffect(() => () => flushZoneTimer(), [flushZoneTimer])
 
   useEffect(() => {
     if (!showSphrViewer) {
@@ -665,7 +879,7 @@ export function TourPlayer({
       if (sceneIndex === -1) return
 
       if (sceneIndex !== currentSceneIndex) {
-        setCurrentSceneIndex(sceneIndex)
+        goToScene(sceneIndex)
       }
 
       const targetScene = property.scenes[sceneIndex]
@@ -678,7 +892,7 @@ export function TourPlayer({
         key: Date.now(),
       })
     },
-    [currentSceneIndex, findSceneIndexForHotspot, getOrientationFromHotspot, property.scenes],
+    [currentSceneIndex, findSceneIndexForHotspot, getOrientationFromHotspot, goToScene, property.scenes],
   )
 
   const handleMeasurementCaptured = useCallback((sceneId: string, measurement: Measurement) => {
@@ -811,13 +1025,11 @@ export function TourPlayer({
 
   const handleWalkthroughStep = useCallback(
     (direction: 1 | -1) => {
-      setCurrentSceneIndex((prev) => {
-        const nextIndex = Math.max(0, Math.min(property.scenes.length - 1, prev + direction))
-        return nextIndex
-      })
+      const nextIndex = Math.max(0, Math.min(property.scenes.length - 1, currentSceneIndex + direction))
+      goToScene(nextIndex)
       setPendingOrientation(null)
     },
-    [property.scenes, property.scenes.length],
+    [currentSceneIndex, goToScene, property.scenes.length],
   )
 
   const startTourAt = (index: number) => {
@@ -838,7 +1050,7 @@ export function TourPlayer({
     if (hotspot.type === "link" && hotspot.targetSceneId) {
       const sceneIndex = property.scenes.findIndex((s) => s.id === hotspot.targetSceneId)
       if (sceneIndex !== -1) {
-        setCurrentSceneIndex(sceneIndex)
+        goToScene(sceneIndex)
       }
     } else if (hotspot.type === "cta") {
       setShowLeadForm(true)
@@ -869,7 +1081,7 @@ export function TourPlayer({
 
     const sceneIndex = property.scenes.findIndex((scene) => scene.id === currentPoint.sceneId)
     if (sceneIndex !== -1 && sceneIndex !== currentSceneIndex) {
-      setCurrentSceneIndex(sceneIndex)
+      goToScene(sceneIndex)
       return
     }
 
@@ -906,6 +1118,7 @@ export function TourPlayer({
   }, [
     activeTourIndex,
     currentSceneIndex,
+    goToScene,
     isCustomTourSelected,
     isTourPlaying,
     property.scenes,
@@ -1038,7 +1251,7 @@ export function TourPlayer({
     if (!room.sceneId) return
     const sceneIndex = property.scenes.findIndex((scene) => scene.id === room.sceneId)
     if (sceneIndex >= 0) {
-      setCurrentSceneIndex(sceneIndex)
+      goToScene(sceneIndex)
       setShowFloorPlan(false)
     }
   }
@@ -1046,7 +1259,7 @@ export function TourPlayer({
   const handleDollhouseNavigate = (sceneId: string) => {
     const sceneIndex = property.scenes.findIndex((scene) => scene.id === sceneId)
     if (sceneIndex >= 0) {
-      setCurrentSceneIndex(sceneIndex)
+      goToScene(sceneIndex)
       setMeasurementMode(false)
     }
   }
@@ -1110,6 +1323,75 @@ export function TourPlayer({
             </Badge>
           ) : null}
         </div>
+        {availableZones.length > 0 ? (
+          <div className="max-w-7xl mx-auto mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-200">
+            <div className="flex items-center gap-2 text-slate-300">
+              <Globe className="h-4 w-4 text-sky-300" />
+              <span>Active zone</span>
+            </div>
+            <Select
+              value={activeZone?.id ?? ""}
+              onValueChange={(value) => setActiveZoneId(value)}
+            >
+              <SelectTrigger className="w-[220px] bg-gray-900/80 border-gray-700 text-white">
+                <SelectValue placeholder="Select zone" />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-900/90 border border-gray-700 text-white">
+                {availableZones.map((zone) => (
+                  <SelectItem key={zone.id} value={zone.id} className="text-sm">
+                    <div className="flex flex-col">
+                      <span>{zone.name}</span>
+                      {zone.description ? (
+                        <span className="text-xs text-gray-400">{zone.description}</span>
+                      ) : null}
+                    </div>
+                  </SelectItem>
+                ))}
+                {zoneConnections.length > 0 ? (
+                  <>
+                    <SelectSeparator className="bg-gray-700" />
+                    <div className="px-3 py-2 text-xs text-gray-400">
+                      {zoneConnections.length} zone link
+                      {zoneConnections.length === 1 ? "" : "s"} configured
+                    </div>
+                  </>
+                ) : null}
+              </SelectContent>
+            </Select>
+            {activeZone ? (
+              <Badge
+                variant="outline"
+                className={`border ${
+                  activeZone.outdoor ? "border-emerald-500/40 text-emerald-200" : "border-blue-500/40 text-blue-200"
+                }`}
+              >
+                {activeZone.outdoor ? "Outdoor" : "Interior"}
+              </Badge>
+            ) : null}
+            {campusMapMeta?.imageUrl ? (
+              <Button asChild size="sm" variant="outline" className="gap-2">
+                <a href={campusMapMeta.imageUrl} target="_blank" rel="noopener noreferrer">
+                  <Map className="h-4 w-4" /> View campus map
+                </a>
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
+        {zoneConnections.length > 0 ? (
+          <div className="max-w-7xl mx-auto mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+            {zoneConnections.slice(0, 3).map((connection) => (
+              <span
+                key={`${connection.from_zone_id}-${connection.to_zone_id}`}
+                className="rounded-full border border-slate-700/70 px-2 py-1"
+              >
+                {connection.from_zone_id} → {connection.to_zone_id} · {connection.transition_type.toLowerCase()}
+              </span>
+            ))}
+            {zoneConnections.length > 3 ? (
+              <span className="text-slate-500">+{zoneConnections.length - 3} more links</span>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       {/* Main Viewer */}
@@ -1265,7 +1547,7 @@ export function TourPlayer({
               {property.scenes.map((scene, idx) => (
                 <button
                   key={scene.id}
-                  onClick={() => setCurrentSceneIndex(idx)}
+                  onClick={() => goToScene(idx)}
                   className={`w-full text-left rounded-lg overflow-hidden transition-all border border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                     idx === currentSceneIndex ? "ring-2 ring-blue-500" : "hover:border-blue-500/40"
                   }`}
@@ -1364,7 +1646,7 @@ export function TourPlayer({
                   min={0}
                   max={Math.max(property.scenes.length - 1, 0)}
                   value={currentSceneIndex}
-                  onChange={(event) => setCurrentSceneIndex(Number(event.target.value))}
+                  onChange={(event) => goToScene(Number(event.target.value))}
                   className="w-full mt-3 accent-blue-500"
                   aria-label="Scene navigation"
                 />
@@ -1373,7 +1655,7 @@ export function TourPlayer({
                     <button
                       key={`scene-chip-${scene.id}`}
                       type="button"
-                      onClick={() => setCurrentSceneIndex(idx)}
+                      onClick={() => goToScene(idx)}
                       className={`px-2 py-1 rounded-full text-[11px] tracking-wide uppercase transition ${
                         idx === currentSceneIndex
                           ? "bg-blue-500/20 text-blue-200 border border-blue-500/60"
@@ -1400,7 +1682,7 @@ export function TourPlayer({
                         onClick={() => {
                           const index = property.scenes.findIndex((scene) => scene.id === point.sceneId)
                           if (index !== -1) {
-                            setCurrentSceneIndex(index)
+                            goToScene(index)
                             setPendingOrientation({
                               sceneId: point.sceneId,
                               yaw: point.yaw,
@@ -1937,7 +2219,7 @@ export function TourPlayer({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentSceneIndex(Math.max(0, currentSceneIndex - 1))}
+            onClick={() => goToScene(Math.max(0, currentSceneIndex - 1), { preserveZone: false })}
             disabled={currentSceneIndex === 0}
             className="gap-2"
           >
@@ -1947,7 +2229,9 @@ export function TourPlayer({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentSceneIndex(Math.min(property.scenes.length - 1, currentSceneIndex + 1))}
+            onClick={() =>
+              goToScene(Math.min(property.scenes.length - 1, currentSceneIndex + 1), { preserveZone: false })
+            }
             disabled={currentSceneIndex === property.scenes.length - 1}
             className="gap-2"
           >
