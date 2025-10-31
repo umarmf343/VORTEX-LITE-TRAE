@@ -33,7 +33,7 @@ import {
 } from "three"
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader"
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader"
-import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader"
+import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js"
 import { LightProbeGenerator } from "three/examples/jsm/lights/LightProbeGenerator"
 
 import type {
@@ -384,23 +384,22 @@ export class ImmersiveWalkthroughEngine {
     const pmrem = new PMREMGenerator(this.renderer)
     pmrem.compileEquirectangularShader()
 
-    await new Promise<void>((resolve, reject) => {
-      new RGBELoader().load(
-        this.space.hdrEnvironmentUrl!,
-        (texture) => {
-          this.hdrTexture = texture
-          const envMap = pmrem.fromEquirectangular(texture).texture
-          envMap.mapping = EquirectangularReflectionMapping
-          this.scene!.environment = envMap
-          this.scene!.background = null
-          const probe = LightProbeGenerator.fromCubeTexture(envMap)
-          this.scene!.add(probe as LightProbe)
-          resolve()
-        },
-        undefined,
-        (error) => reject(error),
-      )
-    })
+    try {
+      const texture = await new HDRLoader().loadAsync(this.space.hdrEnvironmentUrl!)
+      this.hdrTexture = texture
+      const envMap = pmrem.fromEquirectangular(texture).texture
+      envMap.mapping = EquirectangularReflectionMapping
+      this.scene!.environment = envMap
+      this.scene!.background = null
+      const probe = LightProbeGenerator.fromCubeTexture(envMap)
+      this.scene!.add(probe as LightProbe)
+    } catch (error) {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("Failed to load HDR environment", error)
+      }
+    } finally {
+      pmrem.dispose()
+    }
   }
 
   private async loadSpatialAssets() {
