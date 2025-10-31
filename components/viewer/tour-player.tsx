@@ -575,7 +575,7 @@ export function TourPlayer({
     goToScene(0)
     setSessionStart(Date.now())
     setIsFavorite(property.isFavorite ?? false)
-    setShowShareMenu(false)
+    setShareDialogOpen(false)
     sceneEngagement.current = {}
     sphrActiveNodeRef.current = null
     sphrNodeStartRef.current = Date.now()
