@@ -580,9 +580,6 @@ export function SceneViewer({
       lighting: override.lighting ?? base.lighting,
     }
   }, [immersiveWalkthrough, scene.immersiveWalkthroughOverride, scene.id])
-  const immersiveWalkthroughActive =
-    currentViewMode === "walkthrough" && Boolean(effectiveWalkthroughSpace)
-  const sphericalRendererActive = sphericalViewModes.includes(currentViewMode) && !immersiveWalkthroughActive
   const resolvedViewModes = useMemo<SceneViewMode[]>(() => {
     const baseModes = availableViewModes?.length ? availableViewModes : allViewModes
     return baseModes.filter((mode) => (mode === "dollhouse" ? Boolean(effectiveDollhouseModel) : true))
@@ -593,6 +590,9 @@ export function SceneViewer({
       : resolvedViewModes[0] ?? "360"
     return preferred
   })
+  const immersiveWalkthroughActive =
+    currentViewMode === "walkthrough" && Boolean(effectiveWalkthroughSpace)
+  const sphericalRendererActive = sphericalViewModes.includes(currentViewMode) && !immersiveWalkthroughActive
   const [renderError, setRenderError] = useState<string | null>(null)
   const [transitionActive, setTransitionActive] = useState(false)
   const [transitionKey, setTransitionKey] = useState(0)
