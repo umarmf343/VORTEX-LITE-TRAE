@@ -235,7 +235,7 @@
               "pitch": -2,
               "note": "Skyline Panorama",
               "durationSeconds": 10,
-              "highlight": "Pause on the 270° skyline wrap for the wow moment.",
+              "highlight": "Pause on the 270\u00b0 skyline wrap for the wow moment.",
               "mediaUrl": "/luxury-penthouse-living-room-360.jpg"
             },
             {
@@ -484,7 +484,7 @@
                 "type": "info",
                 "yaw": -48,
                 "pitch": -12,
-                "description": "Programmable cove lighting and art spots wash the entry volume—ported directly from the SPHR tour lighting presets."
+                "description": "Programmable cove lighting and art spots wash the entry volume\u2014ported directly from the SPHR tour lighting presets."
               },
               {
                 "id": "lobby-to-dining",
@@ -525,7 +525,7 @@
                 "type": "info",
                 "yaw": 15,
                 "pitch": -2,
-                "description": "Floor-to-ceiling glass wraps 270° around this room. Hotspot metrics from SPHR highlight 82% engagement here."
+                "description": "Floor-to-ceiling glass wraps 270\u00b0 around this room. Hotspot metrics from SPHR highlight 82% engagement here."
               },
               {
                 "id": "living-media",
@@ -1092,7 +1092,7 @@
               "id": "annotation-003",
               "x": 62,
               "y": 35,
-              "text": "360° city skyline vantage point",
+              "text": "360\u00b0 city skyline vantage point",
               "color": "#facc15"
             },
             {
@@ -1923,6 +1923,78 @@
             "longitude": -73.971
           }
         }
+      },
+      "sharing": {
+        "canonicalHost": "https://tour.virtualtour.ai",
+        "sharePath": "/view",
+        "embedPath": "/embed",
+        "widgetPath": "/embed/widget.js",
+        "defaultMode": "walkthrough",
+        "visibility": "token",
+        "tokens": [
+          {
+            "id": "public",
+            "label": "Public share link",
+            "token": "prop-001-public-token",
+            "expiresAt": "2025-12-31T23:59:59Z",
+            "maxViews": null,
+            "allowedOrigins": [
+              "*"
+            ]
+          },
+          {
+            "id": "marketing-campaign",
+            "label": "Marketing campaign Q4",
+            "token": "prop-001-mk-q4",
+            "expiresAt": "2024-12-31T23:59:59Z",
+            "maxViews": 10000,
+            "allowedOrigins": [
+              "https://baladshelter.com",
+              "https://landing.virtualtour.ai"
+            ]
+          }
+        ],
+        "defaultTokenId": "public",
+        "embedAllowed": true,
+        "embedDefaults": {
+          "aspectRatio": "56.25%",
+          "height": 640,
+          "viewMode": "walkthrough",
+          "startNode": "scene-001-foyer",
+          "branding": true,
+          "autoplay": false,
+          "allowFloorplan": true,
+          "allowDollhouse": true,
+          "allowFullscreen": true,
+          "allowUiChrome": true
+        },
+        "customizationOptions": {
+          "allowStartNode": true,
+          "allowViewMode": true,
+          "allowBrandingToggle": true,
+          "allowAutoplay": true,
+          "allowFloorplan": true,
+          "allowDollhouse": true,
+          "allowFullscreen": true,
+          "allowUiChrome": true
+        },
+        "social": {
+          "title": "Luxury Downtown Penthouse",
+          "description": "Stunning penthouse with panoramic city views, high-end finishes, and smart home automation.",
+          "image": "/penthouse-exterior.jpg",
+          "twitterCard": "summary_large_image"
+        },
+        "tracking": {
+          "endpoint": "/api/analytics/share",
+          "pixelId": "vt-share-prop-001"
+        },
+        "pwa": {
+          "deepLink": "virtualtour://space/prop-001",
+          "iosAppId": "id1234567890",
+          "androidPackage": "ai.virtualtour.app",
+          "installPrompt": "Open in the VirtualTour app for full AR navigation."
+        },
+        "shortLinkDomain": "https://vrtx.to"
       }
     },
     {
@@ -2202,6 +2274,78 @@
             "longitude": -118.244
           }
         }
+      },
+      "sharing": {
+        "canonicalHost": "https://tour.virtualtour.ai",
+        "sharePath": "/view",
+        "embedPath": "/embed",
+        "widgetPath": "/embed/widget.js",
+        "defaultMode": "walkthrough",
+        "visibility": "token",
+        "tokens": [
+          {
+            "id": "public",
+            "label": "Public share link",
+            "token": "prop-002-public-token",
+            "expiresAt": "2025-12-31T23:59:59Z",
+            "maxViews": null,
+            "allowedOrigins": [
+              "*"
+            ]
+          },
+          {
+            "id": "marketing-campaign",
+            "label": "Marketing campaign Q4",
+            "token": "prop-002-mk-q4",
+            "expiresAt": "2024-12-31T23:59:59Z",
+            "maxViews": 10000,
+            "allowedOrigins": [
+              "https://baladshelter.com",
+              "https://landing.virtualtour.ai"
+            ]
+          }
+        ],
+        "defaultTokenId": "public",
+        "embedAllowed": true,
+        "embedDefaults": {
+          "aspectRatio": "56.25%",
+          "height": 640,
+          "viewMode": "walkthrough",
+          "startNode": "scene-004",
+          "branding": true,
+          "autoplay": false,
+          "allowFloorplan": true,
+          "allowDollhouse": false,
+          "allowFullscreen": true,
+          "allowUiChrome": true
+        },
+        "customizationOptions": {
+          "allowStartNode": true,
+          "allowViewMode": true,
+          "allowBrandingToggle": true,
+          "allowAutoplay": true,
+          "allowFloorplan": true,
+          "allowDollhouse": true,
+          "allowFullscreen": true,
+          "allowUiChrome": true
+        },
+        "social": {
+          "title": "Modern Suburban Family Home",
+          "description": "Contemporary home with open floor plan, energy-efficient features, and beautiful backyard.",
+          "image": "/suburban-home-front.jpg",
+          "twitterCard": "summary_large_image"
+        },
+        "tracking": {
+          "endpoint": "/api/analytics/share",
+          "pixelId": "vt-share-prop-002"
+        },
+        "pwa": {
+          "deepLink": "virtualtour://space/prop-002",
+          "iosAppId": "id1234567890",
+          "androidPackage": "ai.virtualtour.app",
+          "installPrompt": "Open in the VirtualTour app for full AR navigation."
+        },
+        "shortLinkDomain": "https://vrtx.to"
       }
     }
   ],
@@ -2326,7 +2470,7 @@
       "status": "scheduled",
       "scheduledDate": "2025-11-03T12:12:12.086Z",
       "assignedTechnicianId": "tech-001",
-      "notes": "Luxury property, needs 360° coverage",
+      "notes": "Luxury property, needs 360\u00b0 coverage",
       "createdAt": "2025-10-27T12:12:12.086Z"
     }
   ],

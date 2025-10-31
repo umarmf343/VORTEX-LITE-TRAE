@@ -10,6 +10,9 @@
     "version",
     "owner",
     "created_at",
+    "share_url",
+    "embed_allowed",
+    "embed_snippet_template",
     "geometry",
     "textures",
     "navigation",
@@ -34,6 +37,65 @@
     "created_at": {
       "type": "string",
       "format": "date-time"
+    },
+    "share_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Canonical share link that respects ACL tokens."
+    },
+    "embed_allowed": {
+      "type": "boolean",
+      "description": "Indicates if the space owner has permitted iframe/embed usage."
+    },
+    "embed_snippet_template": {
+      "type": "object",
+      "required": ["iframe", "javascript", "parameters"],
+      "properties": {
+        "iframe": {
+          "type": "string",
+          "description": "Responsive iframe HTML snippet including default query parameters."
+        },
+        "javascript": {
+          "type": "string",
+          "description": "Async widget embed code for advanced integrations."
+        },
+        "responsive_css": {
+          "type": "string",
+          "description": "Optional CSS helper that enforces responsive sizing using aspect-ratio padding."
+        },
+        "parameters": {
+          "type": "array",
+          "description": "Supported query or data attribute overrides for the embed layer.",
+          "items": {
+            "type": "object",
+            "required": ["key", "type"],
+            "properties": {
+              "key": {
+                "type": "string",
+                "description": "Embed parameter key (e.g., start, mode, branding)."
+              },
+              "type": {
+                "type": "string",
+                "enum": ["string", "boolean", "number"],
+                "description": "Parameter value type."
+              },
+              "default": {
+                "type": ["string", "boolean", "number", "null"],
+                "description": "Default value applied in the generated snippet."
+              },
+              "description": {
+                "type": "string",
+                "description": "Human-readable explanation of what the parameter controls."
+              },
+              "options": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Enumerated options if the parameter is constrained to specific values."
+              }
+            }
+          }
+        }
+      }
     },
     "geometry": {
       "type": "object",

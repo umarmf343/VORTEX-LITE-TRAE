@@ -1,12 +1,13 @@
 "use client"
 
 import dynamic from "next/dynamic"
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
 
 import { useData } from "@/lib/data-context"
 import type { Lead, LeadCapturePayload } from "@/lib/types"
 import { Loader2 } from "@/lib/icons"
 import { useToast } from "@/components/ui/use-toast"
+import { logShareEvent } from "@/lib/analytics"
 
 const TourPlayer = dynamic(
   () =>
@@ -37,6 +38,27 @@ export default function EmbedPage({ params }: EmbedPageProps) {
     [properties, propertyId],
   )
   const floorPlan = useMemo(() => getFloorPlan(property?.floorPlanId), [getFloorPlan, property?.floorPlanId])
+
+  useEffect(() => {
+    if (!property) {
+      return
+    }
+
+    const host = typeof document !== "undefined" ? document.referrer || null : null
+    const parameters =
+      typeof window !== "undefined"
+        ? Object.fromEntries(new URLSearchParams(window.location.search).entries())
+        : undefined
+
+    logShareEvent("embed_loaded", {
+      spaceId: property.id,
+      embedType: "iframe",
+      host,
+      parameters,
+      userAgent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+      token: parameters?.token ?? null,
+    })
+  }, [property])
 
   const handleLeadCapture = async (leadData: LeadCapturePayload) => {
     try {

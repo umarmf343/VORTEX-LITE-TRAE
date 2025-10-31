@@ -3,6 +3,69 @@
   "version": "v1.1.0",
   "owner": "BaladShelter",
   "created_at": "2024-01-15T00:00:00.000Z",
+  "share_url": "https://tour.virtualtour.ai/view?space_id=prop-001&mode=walkthrough&token=prop-001-public-token&start=scene-001-foyer&utm_source=share-panel&utm_medium=link",
+  "embed_allowed": true,
+  "embed_snippet_template": {
+    "iframe": "<div class=\"virtualtour-embed\" style=\"position:relative;width:100%;padding-top:56.25%;\"><iframe src=\"https://tour.virtualtour.ai/embed?space_id=prop-001&mode=walkthrough&token=prop-001-public-token&start=scene-001-foyer&utm_source=share-panel&utm_medium=embed\" title=\"Luxury Downtown Penthouse virtual tour\" loading=\"lazy\" allow=\"fullscreen; xr-spatial-tracking\" allowfullscreen style=\"position:absolute;top:0;left:0;width:100%;height:100%;border:0;border-radius:12px;\"></iframe></div>",
+    "javascript": "<div class=\"virtualtour-widget\" data-space-id=\"prop-001\" data-token=\"prop-001-public-token\" data-mode=\"walkthrough\" data-start-node=\"scene-001-foyer\" data-branding=\"1\" data-autoplay=\"0\" data-floorplan=\"1\" data-dollhouse=\"1\" data-fullscreen=\"1\" data-chromeless=\"0\"></div>\n<script async src=\"https://tour.virtualtour.ai/embed/widget.js\" data-space=\"prop-001\" data-token=\"prop-001-public-token\" data-track-host=\"true\"></script>",
+    "responsive_css": ".virtualtour-embed{position:relative;width:100%;padding-top:56.25%;}\n.virtualtour-embed iframe{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:12px;box-shadow:0 10px 30px rgba(15,23,42,0.25);}",
+    "parameters": [
+      {
+        "key": "start",
+        "type": "string",
+        "default": "scene-001-foyer",
+        "description": "Initial camera node to focus when the tour loads."
+      },
+      {
+        "key": "mode",
+        "type": "string",
+        "default": "walkthrough",
+        "options": [
+          "walkthrough",
+          "floorplan",
+          "dollhouse",
+          "gallery"
+        ],
+        "description": "Viewer mode to start in (walkthrough, floorplan, dollhouse, gallery)."
+      },
+      {
+        "key": "branding",
+        "type": "boolean",
+        "default": true,
+        "description": "Show platform chrome and branding overlay."
+      },
+      {
+        "key": "autoplay",
+        "type": "boolean",
+        "default": false,
+        "description": "Start the guided tour automatically when loaded."
+      },
+      {
+        "key": "floorplan",
+        "type": "boolean",
+        "default": true,
+        "description": "Enable the floorplan toggle inside the embed UI."
+      },
+      {
+        "key": "dollhouse",
+        "type": "boolean",
+        "default": true,
+        "description": "Enable dollhouse mode in the embedded viewer."
+      },
+      {
+        "key": "fullscreen",
+        "type": "boolean",
+        "default": true,
+        "description": "Allow the fullscreen button inside the embed."
+      },
+      {
+        "key": "chromeless",
+        "type": "boolean",
+        "default": false,
+        "description": "Hide navigation chrome for kiosk or signage setups."
+      }
+    ]
+  },
   "geometry": {
     "lod_levels": [
       {
@@ -1376,7 +1439,7 @@
       "view",
       "measure"
     ],
-    "expiry": "2025-11-30T05:06:17.729Z"
+    "expiry": "2025-11-30T06:31:05.282Z"
   },
   "zones": [
     {

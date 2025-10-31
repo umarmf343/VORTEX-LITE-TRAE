@@ -8,7 +8,9 @@ import type {
   MeasurementAccuracy,
   MeasurementAnnotationMeta,
   MeasurementKind,
+  ShareViewMode,
   ViewerManifest,
+  ViewerManifestEmbedParameter,
   ViewerManifestHotspotType,
   WalkthroughNode,
 } from "@/lib/types"
@@ -631,6 +633,184 @@ const buildAccess = (property: StoredData["properties"][number], owner: string):
   }
 }
 
+const shareViewModes = (
+  property: StoredData["properties"][number],
+  views: ViewerManifest["views"],
+): ShareViewMode[] => {
+  const supported = new Set<ShareViewMode>(["walkthrough"])
+  if (views.floorplan?.projection_url) {
+    supported.add("floorplan")
+  }
+  if (views.dollhouse?.model_url || (property.supportedViewModes ?? []).includes("dollhouse")) {
+    supported.add("dollhouse")
+  }
+  if ((property.scenes ?? []).some((scene) => Array.isArray(scene.hotspots) && scene.hotspots.length > 0)) {
+    supported.add("gallery")
+  }
+  return Array.from(supported)
+}
+
+const normalizeShareMode = (
+  requested: ShareViewMode | undefined,
+  fallback: ShareViewMode,
+  available: ShareViewMode[],
+): ShareViewMode => {
+  if (requested && available.includes(requested)) {
+    return requested
+  }
+  return fallback
+}
+
+const buildShareDetails = (
+  property: StoredData["properties"][number],
+  access: ViewerManifest["access"],
+  navigation: ViewerManifest["navigation"],
+  views: ViewerManifest["views"],
+): Pick<ViewerManifest, "share_url" | "embed_allowed" | "embed_snippet_template"> => {
+  const sharing = property.sharing
+  const canonicalHost = sharing?.canonicalHost ?? "https://tour.virtualtour.ai"
+  const shareBase = new URL(sharing?.sharePath ?? "/view", canonicalHost)
+  const embedBase = new URL(sharing?.embedPath ?? "/embed", canonicalHost)
+  const widgetSrc = new URL(sharing?.widgetPath ?? "/embed/widget.js", canonicalHost).toString()
+
+  const availableModes = shareViewModes(property, views)
+  const defaultMode = normalizeShareMode(sharing?.defaultMode ?? "walkthrough", "walkthrough", availableModes)
+  const defaultToken = sharing?.tokens?.find((entry) => entry.id === sharing?.defaultTokenId) ?? sharing?.tokens?.[0]
+  const shareToken = defaultToken?.token ?? access.token
+
+  const manifestStartNode = navigation.camera_nodes[0]?.id
+  const propertyStartNode = property.scenes?.[0]?.id
+  const defaultStartNode = sharing?.embedDefaults?.startNode ?? manifestStartNode ?? propertyStartNode ?? null
+
+  const shareUrl = new URL(shareBase)
+  shareUrl.searchParams.set("space_id", property.id)
+  shareUrl.searchParams.set("mode", defaultMode)
+  if (shareToken) {
+    shareUrl.searchParams.set("token", shareToken)
+  }
+  if (defaultStartNode) {
+    shareUrl.searchParams.set("start", defaultStartNode)
+  }
+  shareUrl.searchParams.set("utm_source", "share-panel")
+  shareUrl.searchParams.set("utm_medium", "link")
+
+  const embedDefaults = sharing?.embedDefaults
+  const embedUrl = new URL(embedBase)
+  embedUrl.searchParams.set("space_id", property.id)
+  embedUrl.searchParams.set(
+    "mode",
+    normalizeShareMode(embedDefaults?.viewMode ?? defaultMode, defaultMode, availableModes),
+  )
+  if (shareToken) {
+    embedUrl.searchParams.set("token", shareToken)
+  }
+  if (defaultStartNode) {
+    embedUrl.searchParams.set("start", defaultStartNode)
+  }
+  if (embedDefaults?.autoplay) {
+    embedUrl.searchParams.set("autoplay", "1")
+  }
+  if (embedDefaults && !embedDefaults.branding) {
+    embedUrl.searchParams.set("branding", "0")
+  }
+  if (embedDefaults && !embedDefaults.allowFloorplan) {
+    embedUrl.searchParams.set("floorplan", "0")
+  }
+  if (embedDefaults && !embedDefaults.allowDollhouse) {
+    embedUrl.searchParams.set("dollhouse", "0")
+  }
+  if (embedDefaults && !embedDefaults.allowFullscreen) {
+    embedUrl.searchParams.set("fullscreen", "0")
+  }
+  if (embedDefaults && !embedDefaults.allowUiChrome) {
+    embedUrl.searchParams.set("chromeless", "1")
+  }
+  embedUrl.searchParams.set("utm_source", "share-panel")
+  embedUrl.searchParams.set("utm_medium", "embed")
+
+  const aspectRatio = embedDefaults?.aspectRatio ?? "56.25%"
+
+  const iframeSnippet = `<div class="virtualtour-embed" style="position:relative;width:100%;padding-top:${aspectRatio};"><iframe src="${embedUrl.toString()}" title="${property.name ?? property.id} virtual tour" loading="lazy" allow="fullscreen; xr-spatial-tracking" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;border-radius:12px;"></iframe></div>`
+
+  const responsiveCss = [
+    ".virtualtour-embed{position:relative;width:100%;padding-top:%%ASPECT%%;}",
+    ".virtualtour-embed iframe{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:12px;box-shadow:0 10px 30px rgba(15,23,42,0.25);}",
+  ]
+    .join("\n")
+    .replace("%%ASPECT%%", aspectRatio)
+
+  const javascriptSnippetLines = [
+    `<div class="virtualtour-widget" data-space-id="${property.id}" data-token="${shareToken ?? access.token}" data-mode="${embedUrl.searchParams.get("mode") ?? defaultMode}"${
+      defaultStartNode ? ` data-start-node="${defaultStartNode}"` : ""
+    } data-branding="${embedDefaults?.branding !== false ? "1" : "0"}" data-autoplay="${embedDefaults?.autoplay ? "1" : "0"}" data-floorplan="${embedDefaults?.allowFloorplan === false ? "0" : "1"}" data-dollhouse="${embedDefaults?.allowDollhouse ? "1" : "0"}" data-fullscreen="${embedDefaults?.allowFullscreen === false ? "0" : "1"}" data-chromeless="${embedDefaults?.allowUiChrome === false ? "1" : "0"}"></div>`,
+    `<script async src="${widgetSrc}" data-space="${property.id}" data-token="${shareToken ?? access.token}" data-track-host="true"></script>`,
+  ]
+  const javascriptSnippet = javascriptSnippetLines.join("\n")
+
+  const parameters: ViewerManifestEmbedParameter[] = [
+    {
+      key: "start",
+      type: "string",
+      default: defaultStartNode,
+      description: "Initial camera node to focus when the tour loads.",
+    },
+    {
+      key: "mode",
+      type: "string",
+      default: embedUrl.searchParams.get("mode") ?? defaultMode,
+      options: availableModes,
+      description: "Viewer mode to start in (walkthrough, floorplan, dollhouse, gallery).",
+    },
+    {
+      key: "branding",
+      type: "boolean",
+      default: embedDefaults?.branding !== false,
+      description: "Show platform chrome and branding overlay.",
+    },
+    {
+      key: "autoplay",
+      type: "boolean",
+      default: !!embedDefaults?.autoplay,
+      description: "Start the guided tour automatically when loaded.",
+    },
+    {
+      key: "floorplan",
+      type: "boolean",
+      default: embedDefaults?.allowFloorplan !== false,
+      description: "Enable the floorplan toggle inside the embed UI.",
+    },
+    {
+      key: "dollhouse",
+      type: "boolean",
+      default: !!embedDefaults?.allowDollhouse,
+      description: "Enable dollhouse mode in the embedded viewer.",
+    },
+    {
+      key: "fullscreen",
+      type: "boolean",
+      default: embedDefaults?.allowFullscreen !== false,
+      description: "Allow the fullscreen button inside the embed.",
+    },
+    {
+      key: "chromeless",
+      type: "boolean",
+      default: embedDefaults?.allowUiChrome === false,
+      description: "Hide navigation chrome for kiosk or signage setups.",
+    },
+  ]
+
+  return {
+    share_url: shareUrl.toString(),
+    embed_allowed: sharing?.embedAllowed ?? true,
+    embed_snippet_template: {
+      iframe: iframeSnippet,
+      javascript: javascriptSnippet,
+      responsive_css: responsiveCss,
+      parameters,
+    },
+  }
+}
+
 const buildManifest = (
   property: StoredData["properties"][number],
   state: StoredData
@@ -649,12 +829,14 @@ const buildManifest = (
   const campusMap = buildCampusMap(property)
   const outdoorFlag = (property.zones ?? []).some((zone) => zone.outdoor)
   const performance = buildPerformanceProfile(property)
+  const shareDetails = buildShareDetails(property, access, navigation, views)
 
   return {
     space_id: property.id,
     version: MANIFEST_VERSION,
     owner,
     created_at: property.createdAt ?? new Date().toISOString(),
+    ...shareDetails,
     geometry,
     textures,
     navigation,

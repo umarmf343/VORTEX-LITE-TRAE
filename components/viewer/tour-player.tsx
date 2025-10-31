@@ -57,10 +57,7 @@ import {
 } from "@/lib/icons"
 import { ZoomControls } from "./zoom-controls"
 import { useHdPhotoModule } from "@/hooks/use-hd-photo-module"
-
-type SharePlatform = "facebook" | "twitter" | "linkedin" | "email"
-
-const sharePlatforms: SharePlatform[] = ["facebook", "twitter", "linkedin", "email"]
+import { SharePanel } from "./share-panel"
 
 const FALLBACK_MIN_ZOOM = 1
 const FALLBACK_MAX_ZOOM = 3
@@ -124,7 +121,7 @@ export function TourPlayer({
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", message: "" })
   const [sessionStart, setSessionStart] = useState(Date.now())
   const [isFavorite, setIsFavorite] = useState(property.isFavorite ?? false)
-  const [showShareMenu, setShowShareMenu] = useState(false)
+  const [shareDialogOpen, setShareDialogOpen] = useState(false)
   const [showFloorPlan, setShowFloorPlan] = useState(false)
   const [showGallery, setShowGallery] = useState(false)
   const [activeExperienceTab, setActiveExperienceTab] = useState<"walkthrough" | "floorplan" | "gallery">("walkthrough")
@@ -1193,20 +1190,6 @@ export function TourPlayer({
     setFormData({ name: "", email: "", phone: "", message: "" })
   }
 
-  const handleShare = (platform: SharePlatform) => {
-    const url = window.location.href
-    const text = `Check out this amazing property: ${property.name}`
-    const shareUrls: Record<SharePlatform, string> = {
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
-      email: `mailto:?subject=${encodeURIComponent(property.name)}&body=${encodeURIComponent(text + "\n" + url)}`,
-    }
-    if (shareUrls[platform]) {
-      window.open(shareUrls[platform], "_blank", "noopener,noreferrer")
-    }
-  }
-
   const handleGalleryExport = useCallback(
     (assetIds: string[]) => {
       if (assetIds.length === 0) return
@@ -2183,31 +2166,17 @@ export function TourPlayer({
 
           {/* Share */}
           <Card className="p-4 bg-gray-900 border-gray-800">
-            <div className="relative">
-              <Button
-                variant="outline"
-                className="w-full gap-2 bg-transparent"
-                onClick={() => setShowShareMenu(!showShareMenu)}
-              >
+            <div className="space-y-3">
+              <div>
+                <h3 className="text-sm font-semibold text-gray-200">Share &amp; embed</h3>
+                <p className="text-xs text-gray-400">
+                  Generate secure share links, responsive embeds, and social posts for this tour.
+                </p>
+              </div>
+              <Button variant="outline" className="w-full gap-2 bg-transparent" onClick={() => setShareDialogOpen(true)}>
                 <Share2 className="w-4 h-4" />
-                Share Property
+                Launch share panel
               </Button>
-              {showShareMenu && (
-                <div className="absolute top-12 left-0 right-0 bg-gray-800 border border-gray-700 rounded shadow-lg z-10">
-                  {sharePlatforms.map((platform) => (
-                    <button
-                      key={platform}
-                      onClick={() => {
-                        handleShare(platform)
-                        setShowShareMenu(false)
-                      }}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-700 text-sm text-gray-300 capitalize"
-                    >
-                      Share on {platform}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
           </Card>
         </div>
@@ -2353,6 +2322,12 @@ export function TourPlayer({
           </Card>
         </div>
       )}
+      <SharePanel
+        property={property}
+        viewerManifest={viewerManifest}
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+      />
     </div>
   )
 }
