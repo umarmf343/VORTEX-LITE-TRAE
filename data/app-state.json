@@ -1125,7 +1125,6 @@
             }
           ],
           "order": 1,
-          "captureNodeId": "scan-living-01",
           "zoneId": "zone-building-a"
         },
         {
@@ -1198,7 +1197,6 @@
             }
           ],
           "order": 2,
-          "captureNodeId": "scan-terrace-03",
           "zoneId": "zone-outdoor-terrace"
         },
         {
@@ -1323,7 +1321,6 @@
             }
           ],
           "order": 3,
-          "captureNodeId": "scan-kitchen-02",
           "zoneId": "zone-building-a"
         },
         {
@@ -1764,408 +1761,6 @@
           "scene-003-lounge": 76
         }
       },
-      "captureNodes": [
-        {
-          "id": "scan-living-01",
-          "name": "Great Room Pivot",
-          "position": {
-            "x": 4.2,
-            "y": 1.6,
-            "z": -2.1
-          },
-          "panoramaUrl": "/cdn/spaces/prop-001/panoramas/scan-living-01.jpg",
-          "meshReference": "/cdn/spaces/prop-001/geometry/scan-living-01.bin",
-          "heading": 95,
-          "pitch": 2,
-          "captureDate": "2025-10-29T18:12:00Z",
-          "lightEstimate": {
-            "exposure": 1.12,
-            "whiteBalance": 0.02,
-            "temperatureK": 5200
-          },
-          "tags": [
-            "living_room",
-            "hero"
-          ],
-          "dominantRoomType": "living_room",
-          "zoneId": "zone-building-a"
-        },
-        {
-          "id": "scan-kitchen-02",
-          "name": "Chef Kitchen Axis",
-          "position": {
-            "x": 8.6,
-            "y": 1.6,
-            "z": -1.4
-          },
-          "panoramaUrl": "/cdn/spaces/prop-001/panoramas/scan-kitchen-02.jpg",
-          "meshReference": "/cdn/spaces/prop-001/geometry/scan-kitchen-02.bin",
-          "heading": 140,
-          "pitch": 0,
-          "captureDate": "2025-10-29T18:18:00Z",
-          "lightEstimate": {
-            "exposure": 1.04,
-            "whiteBalance": -0.01,
-            "temperatureK": 5100
-          },
-          "tags": [
-            "kitchen",
-            "panorama"
-          ],
-          "dominantRoomType": "kitchen",
-          "zoneId": "zone-building-a"
-        },
-        {
-          "id": "scan-terrace-03",
-          "name": "Sky Terrace Center",
-          "position": {
-            "x": -3.4,
-            "y": 1.7,
-            "z": -6.2
-          },
-          "panoramaUrl": "/cdn/spaces/prop-001/panoramas/scan-terrace-03.jpg",
-          "meshReference": "/cdn/spaces/prop-001/geometry/scan-terrace-03.bin",
-          "heading": 32,
-          "pitch": -4,
-          "captureDate": "2025-10-29T18:26:00Z",
-          "lightEstimate": {
-            "exposure": 1.34,
-            "whiteBalance": 0.05,
-            "temperatureK": 5600
-          },
-          "tags": [
-            "exterior",
-            "panorama"
-          ],
-          "dominantRoomType": "terrace",
-          "zoneId": "zone-outdoor-terrace"
-        }
-      ],
-      "hdPhotoCollection": {
-        "spaceId": "prop-001",
-        "panoramas": [
-          {
-            "id": "hd-panorama-living",
-            "spaceId": "prop-001",
-            "kind": "panorama",
-            "label": "Grand Salon 360°",
-            "description": "Captured from the primary living room scan node with full HDR pipeline.",
-            "url": "https://cdn.domain/media/spaces/prop-001/photos/hd-panorama-living.tiff",
-            "previewUrl": "https://cdn.domain/media/spaces/prop-001/photos/preview/hd-panorama-living.jpg",
-            "format": "tiff",
-            "metadata": {
-              "resolution": "8192x4096",
-              "width": 8192,
-              "height": 4096,
-              "dpi": 300,
-              "colorDepth": 16,
-              "hdr": true,
-              "colorProfile": "CMYK",
-              "supersampling": 4,
-              "toneMapping": "aces",
-              "backgroundMode": "hdr",
-              "captureNodeId": "scan-living-01",
-              "captureTimestamp": "2025-10-29T18:15:00Z",
-              "enhancements": [
-                "global_illumination",
-                "ambient_occlusion",
-                "white_balance_auto"
-              ],
-              "sizeBytes": 186554321,
-              "fileChecksum": "sha256:3f84fbcb0e6f5e6f4f7f5a4a6d3aa4b1"
-            },
-            "tags": [
-              "panorama",
-              "living_room"
-            ],
-            "heroScore": 0.94,
-            "suggestedUsage": [
-              "Hero banner",
-              "Brochure cover"
-            ]
-          },
-          {
-            "id": "hd-panorama-kitchen",
-            "spaceId": "prop-001",
-            "kind": "panorama",
-            "label": "Chef's Kitchen 360°",
-            "description": "Equirectangular projection optimised for luxury appliance showcase.",
-            "url": "https://cdn.domain/media/spaces/prop-001/photos/hd-panorama-kitchen.tiff",
-            "previewUrl": "https://cdn.domain/media/spaces/prop-001/photos/preview/hd-panorama-kitchen.jpg",
-            "format": "tiff",
-            "metadata": {
-              "resolution": "8192x4096",
-              "width": 8192,
-              "height": 4096,
-              "dpi": 300,
-              "colorDepth": 16,
-              "hdr": true,
-              "colorProfile": "CMYK",
-              "supersampling": 4,
-              "toneMapping": "aces",
-              "backgroundMode": "hdr",
-              "captureNodeId": "scan-kitchen-02",
-              "captureTimestamp": "2025-10-29T18:20:00Z",
-              "enhancements": [
-                "global_illumination",
-                "tone_balancer"
-              ],
-              "sizeBytes": 182004329,
-              "fileChecksum": "sha256:9aa0c93672ec0ae2d27d5af6062a2aab"
-            },
-            "tags": [
-              "panorama",
-              "kitchen"
-            ],
-            "heroScore": 0.91,
-            "suggestedUsage": [
-              "Interactive embed",
-              "Website panorama"
-            ]
-          }
-        ],
-        "heroShots": [
-          {
-            "id": "hd-hero-living-01",
-            "spaceId": "prop-001",
-            "kind": "still",
-            "label": "Living Room Skyline View",
-            "description": "AI-curated hero still with balanced composition of city skyline and interior seating.",
-            "url": "https://cdn.domain/media/spaces/prop-001/photos/hd-hero-living-01.jpg",
-            "previewUrl": "https://cdn.domain/media/spaces/prop-001/photos/preview/hd-hero-living-01.jpg",
-            "format": "jpg",
-            "metadata": {
-              "resolution": "7680x5120",
-              "width": 7680,
-              "height": 5120,
-              "dpi": 300,
-              "colorDepth": 16,
-              "hdr": true,
-              "colorProfile": "sRGB",
-              "supersampling": 4,
-              "toneMapping": "aces",
-              "backgroundMode": "hdr",
-              "captureNodeId": "scan-living-01",
-              "captureTimestamp": "2025-10-29T18:16:00Z",
-              "enhancements": [
-                "noise_reduction",
-                "highlight_recovery"
-              ],
-              "sizeBytes": 24566789,
-              "fileChecksum": "sha256:64a3d28dc2d82e3e2b8517cfbb3f2521"
-            },
-            "tags": [
-              "hero",
-              "living_room"
-            ],
-            "heroScore": 0.97,
-            "suggestedUsage": [
-              "Listing",
-              "Large format print"
-            ]
-          },
-          {
-            "id": "hd-hero-kitchen-01",
-            "spaceId": "prop-001",
-            "kind": "still",
-            "label": "Entertainer's Kitchen",
-            "description": "Framing selected for premium appliance reveal and natural daylight.",
-            "url": "https://cdn.domain/media/spaces/prop-001/photos/hd-hero-kitchen-01.jpg",
-            "previewUrl": "https://cdn.domain/media/spaces/prop-001/photos/preview/hd-hero-kitchen-01.jpg",
-            "format": "jpg",
-            "metadata": {
-              "resolution": "6144x4096",
-              "width": 6144,
-              "height": 4096,
-              "dpi": 300,
-              "colorDepth": 16,
-              "hdr": true,
-              "colorProfile": "sRGB",
-              "supersampling": 4,
-              "toneMapping": "aces",
-              "backgroundMode": "hdr",
-              "captureNodeId": "scan-kitchen-02",
-              "captureTimestamp": "2025-10-29T18:21:30Z",
-              "enhancements": [
-                "color_grading",
-                "white_balance_auto"
-              ],
-              "sizeBytes": 20155220,
-              "fileChecksum": "sha256:3d32c8e44e9a1b50a9521ec20de49c6e"
-            },
-            "tags": [
-              "hero",
-              "kitchen"
-            ],
-            "heroScore": 0.95,
-            "suggestedUsage": [
-              "Brochure spread",
-              "Email campaign"
-            ]
-          },
-          {
-            "id": "hd-hero-terrace-01",
-            "spaceId": "prop-001",
-            "kind": "still",
-            "label": "Sky Terrace Twilight",
-            "description": "Auto-generated twilight view balancing ambient occlusion and skyline glow.",
-            "url": "https://cdn.domain/media/spaces/prop-001/photos/hd-hero-terrace-01.jpg",
-            "previewUrl": "https://cdn.domain/media/spaces/prop-001/photos/preview/hd-hero-terrace-01.jpg",
-            "format": "jpg",
-            "metadata": {
-              "resolution": "8192x5464",
-              "width": 8192,
-              "height": 5464,
-              "dpi": 300,
-              "colorDepth": 16,
-              "hdr": true,
-              "colorProfile": "sRGB",
-              "supersampling": 4,
-              "toneMapping": "aces",
-              "backgroundMode": "hdr",
-              "captureNodeId": "scan-terrace-03",
-              "captureTimestamp": "2025-10-29T18:28:10Z",
-              "enhancements": [
-                "hdr_rebalance",
-                "shadow_noise_reduction"
-              ],
-              "sizeBytes": 33222109,
-              "fileChecksum": "sha256:a33f4395829f3f9f4e811b11b9759de9"
-            },
-            "tags": [
-              "hero",
-              "outdoor"
-            ],
-            "heroScore": 0.93,
-            "suggestedUsage": [
-              "Billboard",
-              "Poster"
-            ]
-          }
-        ],
-        "printLayouts": [
-          {
-            "id": "hd-print-pack-001",
-            "spaceId": "prop-001",
-            "kind": "print_pack",
-            "label": "A3 Showcase Layout",
-            "description": "Pre-built A3 layout with bleed and crop marks for quick print approvals.",
-            "url": "https://cdn.domain/media/spaces/prop-001/photos/print/hd-print-pack-001.pdf",
-            "previewUrl": "https://cdn.domain/media/spaces/prop-001/photos/preview/hd-print-pack-001.jpg",
-            "format": "pdf",
-            "metadata": {
-              "resolution": "4961x3508",
-              "width": 4961,
-              "height": 3508,
-              "dpi": 300,
-              "colorDepth": 16,
-              "hdr": false,
-              "colorProfile": "CMYK",
-              "captureTimestamp": "2025-10-29T18:40:00Z",
-              "enhancements": [
-                "layout_bleed",
-                "branding_overlay"
-              ]
-            },
-            "tags": [
-              "print",
-              "layout"
-            ],
-            "suggestedUsage": [
-              "Open house",
-              "Broker package"
-            ]
-          }
-        ],
-        "suggestions": [
-          {
-            "id": "suggestion-living-hero",
-            "nodeId": "scan-living-01",
-            "label": "Living Room Fireplace",
-            "description": "Centered framing highlighting fireplace and skyline contrast.",
-            "rationale": "High composition and light balance from ray traced pass.",
-            "metadata": {
-              "compositionScore": 0.96,
-              "lightingScore": 0.92,
-              "occlusionScore": 0.88
-            },
-            "recommendedOutput": "ultra-8k"
-          },
-          {
-            "id": "suggestion-kitchen-detail",
-            "nodeId": "scan-kitchen-02",
-            "label": "Marble Island Detail",
-            "description": "Tight crop of waterfall island with appliance wall context.",
-            "rationale": "AI detected premium finish and balanced highlights.",
-            "metadata": {
-              "compositionScore": 0.9,
-              "lightingScore": 0.89,
-              "occlusionScore": 0.94
-            },
-            "recommendedOutput": "ultra-4k"
-          },
-          {
-            "id": "suggestion-terrace-sunset",
-            "nodeId": "scan-terrace-03",
-            "label": "Terrace Sunset Panorama",
-            "description": "Wide hero view emphasising skyline and outdoor entertaining zone.",
-            "rationale": "Low occlusion and golden-hour exposure detected.",
-            "metadata": {
-              "compositionScore": 0.94,
-              "lightingScore": 0.97,
-              "occlusionScore": 0.91
-            },
-            "recommendedOutput": "ultra-8k"
-          }
-        ],
-        "exports": [
-          {
-            "id": "export-001",
-            "kind": "batch",
-            "requestedAt": "2025-10-30T09:00:00Z",
-            "requestedBy": "marketing@baladshelter.com",
-            "spaceId": "prop-001",
-            "assets": [
-              "hd-hero-living-01",
-              "hd-hero-kitchen-01"
-            ],
-            "format": "jpg",
-            "resolution": "ultra-4k",
-            "dpi": 300,
-            "backgroundMode": "hdr",
-            "includeWatermark": false,
-            "includeBrandingOverlay": true,
-            "iccProfile": "sRGB",
-            "status": "completed",
-            "completedAt": "2025-10-30T09:02:45Z",
-            "outputUrl": "https://cdn.domain/media/spaces/prop-001/photos/exports/export-001.zip",
-            "downloadSizeBytes": 48522340,
-            "notes": "Delivered print + web bundle."
-          }
-        ],
-        "moduleState": {
-          "online": true,
-          "lastRunAt": "2025-10-30T10:10:00Z",
-          "renderNode": "gpu-cluster-01",
-          "queue": [
-            {
-              "id": "render-job-kitchen",
-              "nodeId": "scan-kitchen-02",
-              "spaceId": "prop-001",
-              "requestedAt": "2025-10-30T10:15:00Z",
-              "targetResolution": {
-                "width": 8192,
-                "height": 4096
-              },
-              "dpi": 300,
-              "supersampling": 4,
-              "status": "pending",
-              "autoGenerated": true
-            }
-          ]
-        },
-        "lastAnalyzedAt": "2025-10-30T10:05:00Z"
-      },
       "zones": [
         {
           "zoneId": "zone-building-a",
@@ -2328,6 +1923,78 @@
             "longitude": -73.971
           }
         }
+      },
+      "sharing": {
+        "canonicalHost": "https://tour.virtualtour.ai",
+        "sharePath": "/view",
+        "embedPath": "/embed",
+        "widgetPath": "/embed/widget.js",
+        "defaultMode": "walkthrough",
+        "visibility": "token",
+        "tokens": [
+          {
+            "id": "public",
+            "label": "Public share link",
+            "token": "prop-001-public-token",
+            "expiresAt": "2025-12-31T23:59:59Z",
+            "maxViews": null,
+            "allowedOrigins": [
+              "*"
+            ]
+          },
+          {
+            "id": "marketing-campaign",
+            "label": "Marketing campaign Q4",
+            "token": "prop-001-mk-q4",
+            "expiresAt": "2024-12-31T23:59:59Z",
+            "maxViews": 10000,
+            "allowedOrigins": [
+              "https://baladshelter.com",
+              "https://landing.virtualtour.ai"
+            ]
+          }
+        ],
+        "defaultTokenId": "public",
+        "embedAllowed": true,
+        "embedDefaults": {
+          "aspectRatio": "56.25%",
+          "height": 640,
+          "viewMode": "walkthrough",
+          "startNode": "scene-001-foyer",
+          "branding": true,
+          "autoplay": false,
+          "allowFloorplan": true,
+          "allowDollhouse": true,
+          "allowFullscreen": true,
+          "allowUiChrome": true
+        },
+        "customizationOptions": {
+          "allowStartNode": true,
+          "allowViewMode": true,
+          "allowBrandingToggle": true,
+          "allowAutoplay": true,
+          "allowFloorplan": true,
+          "allowDollhouse": true,
+          "allowFullscreen": true,
+          "allowUiChrome": true
+        },
+        "social": {
+          "title": "Luxury Downtown Penthouse",
+          "description": "Stunning penthouse with panoramic city views, high-end finishes, and smart home automation.",
+          "image": "/penthouse-exterior.jpg",
+          "twitterCard": "summary_large_image"
+        },
+        "tracking": {
+          "endpoint": "/api/analytics/share",
+          "pixelId": "vt-share-prop-001"
+        },
+        "pwa": {
+          "deepLink": "virtualtour://space/prop-001",
+          "iosAppId": "id1234567890",
+          "androidPackage": "ai.virtualtour.app",
+          "installPrompt": "Open in the VirtualTour app for full AR navigation."
+        },
+        "shortLinkDomain": "https://vrtx.to"
       }
     },
     {
@@ -2607,7 +2274,119 @@
             "longitude": -118.244
           }
         }
+      },
+      "sharing": {
+        "canonicalHost": "https://tour.virtualtour.ai",
+        "sharePath": "/view",
+        "embedPath": "/embed",
+        "widgetPath": "/embed/widget.js",
+        "defaultMode": "walkthrough",
+        "visibility": "token",
+        "tokens": [
+          {
+            "id": "public",
+            "label": "Public share link",
+            "token": "prop-002-public-token",
+            "expiresAt": "2025-12-31T23:59:59Z",
+            "maxViews": null,
+            "allowedOrigins": [
+              "*"
+            ]
+          },
+          {
+            "id": "marketing-campaign",
+            "label": "Marketing campaign Q4",
+            "token": "prop-002-mk-q4",
+            "expiresAt": "2024-12-31T23:59:59Z",
+            "maxViews": 10000,
+            "allowedOrigins": [
+              "https://baladshelter.com",
+              "https://landing.virtualtour.ai"
+            ]
+          }
+        ],
+        "defaultTokenId": "public",
+        "embedAllowed": true,
+        "embedDefaults": {
+          "aspectRatio": "56.25%",
+          "height": 640,
+          "viewMode": "walkthrough",
+          "startNode": "scene-004",
+          "branding": true,
+          "autoplay": false,
+          "allowFloorplan": true,
+          "allowDollhouse": false,
+          "allowFullscreen": true,
+          "allowUiChrome": true
+        },
+        "customizationOptions": {
+          "allowStartNode": true,
+          "allowViewMode": true,
+          "allowBrandingToggle": true,
+          "allowAutoplay": true,
+          "allowFloorplan": true,
+          "allowDollhouse": true,
+          "allowFullscreen": true,
+          "allowUiChrome": true
+        },
+        "social": {
+          "title": "Modern Suburban Family Home",
+          "description": "Contemporary home with open floor plan, energy-efficient features, and beautiful backyard.",
+          "image": "/suburban-home-front.jpg",
+          "twitterCard": "summary_large_image"
+        },
+        "tracking": {
+          "endpoint": "/api/analytics/share",
+          "pixelId": "vt-share-prop-002"
+        },
+        "pwa": {
+          "deepLink": "virtualtour://space/prop-002",
+          "iosAppId": "id1234567890",
+          "androidPackage": "ai.virtualtour.app",
+          "installPrompt": "Open in the VirtualTour app for full AR navigation."
+        },
+        "shortLinkDomain": "https://vrtx.to"
       }
+    },
+    {
+      "id": "prop-be9c1607-b595-4076-8499-4d904da1b6a0",
+      "name": "Updated",
+      "address": "1 Main St",
+      "price": 525000,
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "sqft": 1200,
+      "description": "Newly added property awaiting full media package and tour configuration.",
+      "images": [],
+      "thumbnail": "/placeholder.jpg",
+      "createdAt": "2025-10-31T06:31:09.981Z",
+      "updatedAt": "2025-10-31T06:31:09.989Z",
+      "branding": {
+        "primaryColor": "#1f2937",
+        "secondaryColor": "#f97316",
+        "logo": "/placeholder-logo.svg",
+        "companyName": "BaladShelter",
+        "contactEmail": "info@baladshelter.com",
+        "contactPhone": "+1 (555) 010-0000"
+      },
+      "scenes": [],
+      "stats": {
+        "totalVisits": 0,
+        "uniqueVisitors": 0,
+        "avgDuration": 0,
+        "conversionRate": 0,
+        "leadsGenerated": 0,
+        "lastUpdated": "2025-10-31T06:31:09.981Z"
+      },
+      "isFavorite": false,
+      "tags": [],
+      "sceneTransition": "fade",
+      "supportedViewModes": [
+        "walkthrough",
+        "360"
+      ],
+      "guidedTours": [],
+      "zones": []
     }
   ],
   "leads": [
@@ -3116,6 +2895,12 @@
       "whiteLabel": true,
       "removeBranding": false,
       "customDomain": "suburbanhomes.baladshelter.com"
+    },
+    "prop-be9c1607-b595-4076-8499-4d904da1b6a0": {
+      "propertyId": "prop-be9c1607-b595-4076-8499-4d904da1b6a0",
+      "customCSS": "",
+      "whiteLabel": false,
+      "removeBranding": false
     }
   }
 }

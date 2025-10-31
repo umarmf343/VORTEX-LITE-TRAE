@@ -87,6 +87,80 @@ export interface PropertyCampusMap {
   defaultZoneId?: string
 }
 
+export type ShareVisibility = "public" | "private" | "token"
+
+export type ShareViewMode = "walkthrough" | "floorplan" | "dollhouse" | "gallery"
+
+export interface ShareAccessToken {
+  id: string
+  label?: string
+  token: string
+  expiresAt?: string
+  maxViews?: number | null
+  allowedOrigins?: string[]
+}
+
+export interface ShareEmbedDefaults {
+  aspectRatio: string
+  height: number
+  viewMode: ShareViewMode
+  startNode?: string | null
+  branding: boolean
+  autoplay: boolean
+  allowFloorplan: boolean
+  allowDollhouse: boolean
+  allowFullscreen: boolean
+  allowUiChrome: boolean
+}
+
+export interface ShareCustomizationOptions {
+  allowStartNode: boolean
+  allowViewMode: boolean
+  allowBrandingToggle: boolean
+  allowAutoplay: boolean
+  allowFloorplan: boolean
+  allowDollhouse: boolean
+  allowFullscreen: boolean
+  allowUiChrome: boolean
+}
+
+export interface ShareSocialMetadata {
+  title: string
+  description: string
+  image?: string | null
+  twitterCard?: "summary" | "summary_large_image"
+}
+
+export interface ShareTrackingConfig {
+  endpoint?: string
+  pixelId?: string
+}
+
+export interface SharePWAConfig {
+  deepLink?: string
+  iosAppId?: string
+  androidPackage?: string
+  installPrompt?: string
+}
+
+export interface PropertySharingConfig {
+  canonicalHost: string
+  sharePath: string
+  embedPath: string
+  widgetPath?: string
+  defaultMode: ShareViewMode
+  visibility: ShareVisibility
+  tokens: ShareAccessToken[]
+  defaultTokenId?: string
+  embedAllowed: boolean
+  embedDefaults: ShareEmbedDefaults
+  customizationOptions: ShareCustomizationOptions
+  social: ShareSocialMetadata
+  tracking?: ShareTrackingConfig
+  pwa?: SharePWAConfig
+  shortLinkDomain?: string
+}
+
 export interface Property {
   id: string
   name: string
@@ -119,6 +193,7 @@ export interface Property {
   hdPhotoCollection?: HDPhotoCollection
   zones?: PropertyZone[]
   campusMap?: PropertyCampusMap
+  sharing: PropertySharingConfig
 }
 
 export interface Scene {
@@ -1138,6 +1213,21 @@ export interface ViewerManifestMeasurement {
   created_at?: string
 }
 
+export interface ViewerManifestEmbedParameter {
+  key: string
+  type: "string" | "boolean" | "number"
+  default?: string | number | boolean | null
+  description?: string
+  options?: string[]
+}
+
+export interface ViewerManifestEmbedSnippetTemplate {
+  iframe: string
+  javascript: string
+  responsive_css?: string
+  parameters: ViewerManifestEmbedParameter[]
+}
+
 export interface ViewerManifestAnalytics {
   views_count: number
   average_dwell_time: number
@@ -1155,6 +1245,9 @@ export interface ViewerManifest {
   version: string
   owner: string
   created_at: string
+  share_url: string
+  embed_allowed: boolean
+  embed_snippet_template: ViewerManifestEmbedSnippetTemplate
   geometry: ViewerManifestGeometry
   textures: ViewerManifestTexture[]
   navigation: ViewerManifestNavigation
