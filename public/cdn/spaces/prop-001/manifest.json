@@ -727,8 +727,8 @@
       "title": "Curated Art Gallery",
       "content": "Rotating installations from local artists welcome guests in the private lobby.",
       "position": [
-        3.8,
-        4.2,
+        0.38,
+        0.42,
         0
       ],
       "visible_in_views": [
@@ -739,12 +739,12 @@
     },
     {
       "id": "hotspot-foyer-to-living",
-      "type": "LINK",
+      "type": "NAVIGATION",
       "title": "Enter the Grand Living Room",
       "content": "Step through the pivot door into the skyline great room.",
       "position": [
-        6.2,
-        5.5,
+        0.62,
+        0.55,
         0
       ],
       "visible_in_views": [
@@ -759,8 +759,8 @@
       "title": "Ambient Arrival Score",
       "content": "Custom-composed soundtrack that cues automatically for private events.",
       "position": [
-        2,
-        6,
+        0.2,
+        0.6,
         0
       ],
       "media_url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
@@ -776,8 +776,8 @@
       "title": "Floor-to-Ceiling Windows",
       "content": "Premium glass with UV protection and smart tinting",
       "position": [
-        4.5,
-        5,
+        0.45,
+        0.5,
         0
       ],
       "visible_in_views": [
@@ -788,12 +788,12 @@
     },
     {
       "id": "hotspot-002",
-      "type": "VIDEO",
+      "type": "IMAGE",
       "title": "Smart Home Demo",
       "content": "Watch the smart home automation in action",
       "position": [
-        7,
-        6,
+        0.7,
+        0.6,
         0
       ],
       "media_url": "https://www.youtube.com/embed/dQw4w9WgXcQ",
@@ -805,12 +805,12 @@
     },
     {
       "id": "hotspot-003",
-      "type": "INFO",
+      "type": "CUSTOM",
       "title": "Schedule Tour",
       "content": "Book an in-person viewing",
       "position": [
-        3,
-        4,
+        0.3,
+        0.4,
         0
       ],
       "visible_in_views": [
@@ -821,12 +821,12 @@
     },
     {
       "id": "hotspot-living-to-terrace",
-      "type": "LINK",
+      "type": "NAVIGATION",
       "title": "Open the Sky Terrace",
       "content": "Flow directly to the outdoor lounge overlooking Midtown.",
       "position": [
-        8.2,
-        4.4,
+        0.82,
+        0.44,
         0
       ],
       "visible_in_views": [
@@ -837,12 +837,12 @@
     },
     {
       "id": "hotspot-living-to-dining",
-      "type": "LINK",
+      "type": "NAVIGATION",
       "title": "Transition to Dining Gallery",
       "content": "Pivot toward the sculptural dining table for entertaining.",
       "position": [
-        1.8,
-        5.2,
+        0.18,
+        0.52,
         0
       ],
       "visible_in_views": [
@@ -857,8 +857,8 @@
       "title": "Fire Pit Lounge",
       "content": "Gas fire pit anchors the outdoor seating lounge with radiant heaters overhead.",
       "position": [
-        4.4,
-        6.2,
+        0.44,
+        0.62,
         0
       ],
       "visible_in_views": [
@@ -869,12 +869,12 @@
     },
     {
       "id": "hotspot-terrace-to-living",
-      "type": "LINK",
+      "type": "NAVIGATION",
       "title": "Return to Living Room",
       "content": "Slide back through the NanaWall into the great room.",
       "position": [
-        1.8,
-        4.6,
+        0.18,
+        0.46,
         0
       ],
       "visible_in_views": [
@@ -885,12 +885,12 @@
     },
     {
       "id": "hotspot-terrace-video",
-      "type": "VIDEO",
+      "type": "IMAGE",
       "title": "Sunset Drone Flyover",
       "content": "Aerial perspective of the terrace and surrounding skyline.",
       "position": [
-        7,
-        4.8,
+        0.7,
+        0.48,
         0
       ],
       "media_url": "https://player.vimeo.com/video/76979871?h=bf0e24c908",
@@ -902,12 +902,12 @@
     },
     {
       "id": "hotspot-004",
-      "type": "LINK",
+      "type": "NAVIGATION",
       "title": "Back to Living Room",
       "content": "Return to main area",
       "position": [
-        5,
-        4.5,
+        0.5,
+        0.45,
         0
       ],
       "visible_in_views": [
@@ -922,8 +922,8 @@
       "title": "Room Audio System",
       "content": "Premium Bose sound system",
       "position": [
-        6,
-        5.5,
+        0.6,
+        0.55,
         0
       ],
       "media_url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
@@ -935,12 +935,12 @@
     },
     {
       "id": "hotspot-bedroom-to-ensuite",
-      "type": "LINK",
+      "type": "NAVIGATION",
       "title": "Spa Ensuite",
       "content": "Continue into the steam shower and soaking tub retreat.",
       "position": [
-        8.2,
-        5.2,
+        0.82,
+        0.52,
         0
       ],
       "visible_in_views": [
@@ -951,12 +951,12 @@
     },
     {
       "id": "hotspot-bedroom-to-terrace",
-      "type": "LINK",
+      "type": "NAVIGATION",
       "title": "Private Terrace Access",
       "content": "Step to the sunrise terrace shared with the wellness lounge.",
       "position": [
-        2.2,
-        4,
+        0.22,
+        0.4,
         0
       ],
       "visible_in_views": [
@@ -971,8 +971,8 @@
       "title": "Stone Soaking Tub",
       "content": "Hand-carved marble tub with city views and chromotherapy lighting.",
       "position": [
-        5.8,
-        5.4,
+        0.58,
+        0.54,
         0
       ],
       "visible_in_views": [
@@ -987,8 +987,8 @@
       "title": "Steam Shower Suite",
       "content": "Aromatherapy, body sprays, and digital temperature controls.",
       "position": [
-        2.8,
-        4.8,
+        0.28,
+        0.48,
         0
       ],
       "visible_in_views": [
@@ -999,12 +999,12 @@
     },
     {
       "id": "hotspot-ensuite-back-bedroom",
-      "type": "LINK",
+      "type": "NAVIGATION",
       "title": "Return to Owner's Suite",
       "content": "Slide pocket door back to the bedroom.",
       "position": [
-        8.2,
-        6,
+        0.82,
+        0.6,
         0
       ],
       "visible_in_views": [
@@ -1015,12 +1015,12 @@
     },
     {
       "id": "hotspot-ensuite-consult",
-      "type": "INFO",
+      "type": "CUSTOM",
       "title": "Book Wellness Consultation",
       "content": "Connect with the concierge team for spa programming.",
       "position": [
-        1.8,
-        6.2,
+        0.18,
+        0.62,
         0
       ],
       "visible_in_views": [
@@ -1035,8 +1035,8 @@
       "title": "Marble Countertops",
       "content": "Italian marble with professional appliances",
       "position": [
-        4,
-        5,
+        0.4,
+        0.5,
         0
       ],
       "media_url": "https://cdn.virtualtour.ai/modern-kitchen-with-marble-counters.jpg",
@@ -1048,12 +1048,12 @@
     },
     {
       "id": "hotspot-kitchen-to-dining",
-      "type": "LINK",
+      "type": "NAVIGATION",
       "title": "Flow to Dining Gallery",
       "content": "See the 12-seat dining table with skyline backdrop.",
       "position": [
-        7.8,
-        4.8,
+        0.78,
+        0.48,
         0
       ],
       "visible_in_views": [
@@ -1068,8 +1068,8 @@
       "title": "Integrated Appliance Wall",
       "content": "Sub-Zero and Wolf appliances concealed behind custom millwork.",
       "position": [
-        2.8,
-        4.2,
+        0.28,
+        0.42,
         0
       ],
       "visible_in_views": [
@@ -1080,12 +1080,12 @@
     },
     {
       "id": "hotspot-kitchen-video",
-      "type": "VIDEO",
+      "type": "IMAGE",
       "title": "Chef's Table Experience",
       "content": "Hosted dinner series featuring Michelin-star chefs.",
       "position": [
-        6,
-        6.5,
+        0.6,
+        0.65,
         0
       ],
       "media_url": "https://player.vimeo.com/video/45830194?h=3bce16fa1f",
@@ -1101,8 +1101,8 @@
       "title": "Sculptural Chandelier",
       "content": "Statement fixture with programmable scenes for entertaining.",
       "position": [
-        5.2,
-        4.2,
+        0.52,
+        0.42,
         0
       ],
       "visible_in_views": [
@@ -1113,12 +1113,12 @@
     },
     {
       "id": "hotspot-dining-to-kitchen",
-      "type": "LINK",
+      "type": "NAVIGATION",
       "title": "Return to Chef's Kitchen",
       "content": "View back toward the culinary hub.",
       "position": [
-        8.2,
-        5.2,
+        0.82,
+        0.52,
         0
       ],
       "visible_in_views": [
@@ -1129,12 +1129,12 @@
     },
     {
       "id": "hotspot-dining-to-office",
-      "type": "LINK",
+      "type": "NAVIGATION",
       "title": "Executive Study",
       "content": "Discover the custom-built home office.",
       "position": [
-        2,
-        5.8,
+        0.2,
+        0.58,
         0
       ],
       "visible_in_views": [
@@ -1149,8 +1149,8 @@
       "title": "Custom Built-ins",
       "content": "Walnut shelving with integrated task lighting and hidden storage.",
       "position": [
-        3.6,
-        5,
+        0.36,
+        0.5,
         0
       ],
       "visible_in_views": [
@@ -1161,12 +1161,12 @@
     },
     {
       "id": "hotspot-office-to-dining",
-      "type": "LINK",
+      "type": "NAVIGATION",
       "title": "Back to Dining Gallery",
       "content": "Rejoin the main entertaining core.",
       "position": [
-        8,
-        5.2,
+        0.8,
+        0.52,
         0
       ],
       "visible_in_views": [
@@ -1177,12 +1177,12 @@
     },
     {
       "id": "hotspot-office-to-lounge",
-      "type": "LINK",
+      "type": "NAVIGATION",
       "title": "Cinema Lounge",
       "content": "Transition to the acoustic media lounge.",
       "position": [
-        1.8,
-        4.6,
+        0.18,
+        0.46,
         0
       ],
       "visible_in_views": [
@@ -1197,8 +1197,8 @@
       "title": "Acoustic Projection Wall",
       "content": "120-inch acoustically transparent screen with 9.2 surround sound.",
       "position": [
-        4.8,
-        4,
+        0.48,
+        0.4,
         0
       ],
       "visible_in_views": [
@@ -1209,12 +1209,12 @@
     },
     {
       "id": "hotspot-lounge-to-office",
-      "type": "LINK",
+      "type": "NAVIGATION",
       "title": "Back to Executive Study",
       "content": "Flow to the private workspace.",
       "position": [
-        8.2,
-        5.8,
+        0.82,
+        0.58,
         0
       ],
       "visible_in_views": [
@@ -1225,12 +1225,12 @@
     },
     {
       "id": "hotspot-lounge-to-terrace",
-      "type": "LINK",
+      "type": "NAVIGATION",
       "title": "Night Terrace",
       "content": "Step onto the terrace for evening entertaining.",
       "position": [
-        2,
-        5.2,
+        0.2,
+        0.52,
         0
       ],
       "visible_in_views": [
@@ -1439,7 +1439,7 @@
       "view",
       "measure"
     ],
-    "expiry": "2025-11-30T06:31:05.282Z"
+    "expiry": "2025-11-30T11:52:06.089Z"
   },
   "zones": [
     {

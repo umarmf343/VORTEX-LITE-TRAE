@@ -11,7 +11,7 @@
         "registeredAt": "2025-10-30T10:45:00Z",
         "checksum": "6593ed8c5a9361fc57f076a826880274490ddcdd25d160c4a3f32dacc009a86a",
         "maintainer": "Immersive Media Platform",
-        "notes": "Authoritative presets for the immersive 360\u00b0 video export service.",
+        "notes": "Authoritative presets for the immersive 360° video export service.",
         "presets": [
           {
             "id": "vp-master-8k-prores",
@@ -199,7 +199,7 @@
           "runAt": "2025-10-30T11:40:00Z",
           "environment": "staging",
           "status": "passed_with_warnings",
-          "summary": "Automated QA suite for 360\u00b0 video player covering playback, stabilization, and analytics events.",
+          "summary": "Automated QA suite for 360° video player covering playback, stabilization, and analytics events.",
           "checks": [
             {
               "id": "qa-video-playback",
@@ -251,7 +251,7 @@
         "version": "v1",
         "sourcePath": "/pipelines/guided_tour/v1/guided_tour_variant_presets.json",
         "registeredAt": "2025-11-04T09:15:00Z",
-        "checksum": "c9bf89bf7d6984ac3da2992c0814c712475216daa01f38e22801e9d268dbbf1b",
+        "checksum": "e0905ffe118bfcde4df4a4d24c5c45756dfe0446d419afadb3888dedd2f4811e",
         "maintainer": "Immersive Media Platform",
         "notes": "Preset catalogue for linear guided tour and highlight reel exports across marketing channels.",
         "presets": [
@@ -401,11 +401,6 @@
             "validate_transition_smoothness": true,
             "max_camera_acceleration": 1.5,
             "render_tolerance_seconds": 5
-          },
-          "sourceCapture": {
-            "nodes": "space.manifest::nodes",
-            "navigation_graph": "space.manifest::edges",
-            "highlight_points": "space.manifest::highlight_points"
           },
           "webhook": {
             "on_complete": "https://ops.virtualtour.ai/hooks/guided-tour/job-complete",
