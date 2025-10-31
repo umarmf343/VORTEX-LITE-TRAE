@@ -49,6 +49,7 @@ import {
   ArrowUp,
   ArrowDown,
   Trash2,
+  Map as MapIcon,
   MapPin,
   Image,
   Navigation,
@@ -1503,7 +1504,7 @@ export function TourPlayer({
             {campusMapMeta?.imageUrl ? (
               <Button asChild size="sm" variant="outline" className="gap-2">
                 <a href={campusMapMeta.imageUrl} target="_blank" rel="noopener noreferrer">
-                  <Map className="h-4 w-4" /> View campus map
+                  <MapIcon className="h-4 w-4" /> View campus map
                 </a>
               </Button>
             ) : null}
