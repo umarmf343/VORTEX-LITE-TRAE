@@ -9,7 +9,7 @@
         "version": "v1",
         "sourcePath": "/pipelines/video360/v1/video_export_presets.json",
         "registeredAt": "2025-10-30T10:45:00Z",
-        "checksum": "8443e5492166fca8f75cac12192c2d127151577db70a3b69181de47c22511441",
+        "checksum": "6593ed8c5a9361fc57f076a826880274490ddcdd25d160c4a3f32dacc009a86a",
         "maintainer": "Immersive Media Platform",
         "notes": "Authoritative presets for the immersive 360° video export service.",
         "presets": [

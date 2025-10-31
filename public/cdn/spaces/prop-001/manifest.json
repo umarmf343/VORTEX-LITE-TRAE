@@ -1,0 +1,1355 @@
+{
+  "space_id": "prop-001",
+  "version": "v1.0.0",
+  "owner": "BaladShelter",
+  "created_at": "2024-01-15T00:00:00.000Z",
+  "geometry": {
+    "lod_levels": [
+      {
+        "level": 0,
+        "triangle_count": 50000,
+        "tile_size": 256,
+        "description": "low geometry"
+      },
+      {
+        "level": 1,
+        "triangle_count": 100000,
+        "tile_size": 512,
+        "description": "mid geometry"
+      },
+      {
+        "level": 2,
+        "triangle_count": 150000,
+        "tile_size": 512,
+        "description": "high geometry"
+      }
+    ],
+    "mesh_tiles": [
+      {
+        "tile_id": "prop-001_dollhouse_0",
+        "url": "https://cdn.virtualtour.ai/models/penthouse-dollhouse-low.gltf",
+        "lod": 0,
+        "bounds": [
+          0,
+          0,
+          0,
+          60,
+          26,
+          44
+        ]
+      }
+    ]
+  },
+  "textures": [
+    {
+      "lod": 0,
+      "url": "https://cdn.virtualtour.ai/luxury-penthouse-living-room-360.jpg",
+      "resolution": "4096x4096",
+      "format": "jpg"
+    },
+    {
+      "lod": 1,
+      "url": "https://images.unsplash.com/photo-1479839672679-a46483c0e7c8?auto=format&fit=crop&w=2400&q=80",
+      "resolution": "2400x2400",
+      "format": "jpg"
+    },
+    {
+      "lod": 2,
+      "url": "https://images.unsplash.com/photo-1616594039964-74805d4d03b2?auto=format&fit=crop&w=2400&q=80",
+      "resolution": "2400x2400",
+      "format": "jpg"
+    },
+    {
+      "lod": 3,
+      "url": "https://images.unsplash.com/photo-1528909514045-2fa4ac7a08ba?auto=format&fit=crop&w=2400&q=80",
+      "resolution": "2400x2400",
+      "format": "jpg"
+    }
+  ],
+  "navigation": {
+    "camera_nodes": [
+      {
+        "id": "scene-001-foyer",
+        "position": [
+          0,
+          1.6,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "fov": 75,
+        "thumbnail": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=720&q=80"
+      },
+      {
+        "id": "scene-001",
+        "position": [
+          2.5,
+          1.6,
+          0
+        ],
+        "rotation": [
+          0,
+          0.6981317007977318,
+          0
+        ],
+        "fov": 75,
+        "thumbnail": "https://cdn.virtualtour.ai/luxury-penthouse-living-room.png"
+      },
+      {
+        "id": "scene-001-terrace",
+        "position": [
+          5,
+          1.6,
+          0
+        ],
+        "rotation": [
+          0,
+          1.3962634015954636,
+          0
+        ],
+        "fov": 75,
+        "thumbnail": "https://images.unsplash.com/photo-1479839672679-a46483c0e7c8?auto=format&fit=crop&w=720&q=80"
+      },
+      {
+        "id": "scene-002",
+        "position": [
+          7.5,
+          1.6,
+          0
+        ],
+        "rotation": [
+          0,
+          2.0943951023931953,
+          0
+        ],
+        "fov": 75,
+        "thumbnail": "https://cdn.virtualtour.ai/master-bedroom-with-city-view.jpg"
+      },
+      {
+        "id": "scene-002-ensuite",
+        "position": [
+          10,
+          1.6,
+          0
+        ],
+        "rotation": [
+          0,
+          2.792526803190927,
+          0
+        ],
+        "fov": 75,
+        "thumbnail": "https://images.unsplash.com/photo-1616594039964-74805d4d03b2?auto=format&fit=crop&w=720&q=80"
+      },
+      {
+        "id": "scene-003",
+        "position": [
+          12.5,
+          1.6,
+          0
+        ],
+        "rotation": [
+          0,
+          3.490658503988659,
+          0
+        ],
+        "fov": 75,
+        "thumbnail": "https://cdn.virtualtour.ai/modern-kitchen-with-marble-counters.jpg"
+      },
+      {
+        "id": "scene-003-dining",
+        "position": [
+          15,
+          1.6,
+          0
+        ],
+        "rotation": [
+          0,
+          4.1887902047863905,
+          0
+        ],
+        "fov": 75,
+        "thumbnail": "https://images.unsplash.com/photo-1528909514045-2fa4ac7a08ba?auto=format&fit=crop&w=720&q=80"
+      },
+      {
+        "id": "scene-003-office",
+        "position": [
+          17.5,
+          1.6,
+          0
+        ],
+        "rotation": [
+          0,
+          4.886921905584122,
+          0
+        ],
+        "fov": 75,
+        "thumbnail": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=720&q=80"
+      },
+      {
+        "id": "scene-003-lounge",
+        "position": [
+          20,
+          1.6,
+          0
+        ],
+        "rotation": [
+          0,
+          5.585053606381854,
+          0
+        ],
+        "fov": 75,
+        "thumbnail": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=720&q=80"
+      }
+    ],
+    "connections": [
+      {
+        "from": "scene-001-foyer",
+        "to": "scene-001",
+        "transition_type": "WALK",
+        "distance": 3
+      },
+      {
+        "from": "scene-001",
+        "to": "scene-001-terrace",
+        "transition_type": "WALK",
+        "distance": 3
+      },
+      {
+        "from": "scene-001",
+        "to": "scene-003-dining",
+        "transition_type": "WALK",
+        "distance": 3
+      },
+      {
+        "from": "scene-001-terrace",
+        "to": "scene-001",
+        "transition_type": "WALK",
+        "distance": 3
+      },
+      {
+        "from": "scene-002",
+        "to": "scene-001",
+        "transition_type": "WALK",
+        "distance": 3
+      },
+      {
+        "from": "scene-002",
+        "to": "scene-002-ensuite",
+        "transition_type": "WALK",
+        "distance": 3
+      },
+      {
+        "from": "scene-002",
+        "to": "scene-001-terrace",
+        "transition_type": "WALK",
+        "distance": 3
+      },
+      {
+        "from": "scene-002-ensuite",
+        "to": "scene-002",
+        "transition_type": "WALK",
+        "distance": 3
+      },
+      {
+        "from": "scene-003",
+        "to": "scene-003-dining",
+        "transition_type": "WALK",
+        "distance": 3
+      },
+      {
+        "from": "scene-003-dining",
+        "to": "scene-003",
+        "transition_type": "WALK",
+        "distance": 3
+      },
+      {
+        "from": "scene-003-dining",
+        "to": "scene-003-office",
+        "transition_type": "WALK",
+        "distance": 3
+      },
+      {
+        "from": "scene-003-office",
+        "to": "scene-003-dining",
+        "transition_type": "WALK",
+        "distance": 3
+      },
+      {
+        "from": "scene-003-office",
+        "to": "scene-003-lounge",
+        "transition_type": "WALK",
+        "distance": 3
+      },
+      {
+        "from": "scene-003-lounge",
+        "to": "scene-003-office",
+        "transition_type": "WALK",
+        "distance": 3
+      },
+      {
+        "from": "scene-003-lounge",
+        "to": "scene-001-terrace",
+        "transition_type": "WALK",
+        "distance": 3
+      }
+    ]
+  },
+  "views": {
+    "walkthrough": {
+      "default_node": "scene-001-foyer",
+      "pathfinding_enabled": true,
+      "immersive_space": {
+        "spaceId": "prop-001-immersive",
+        "defaultNodeId": "node-foyer",
+        "nodes": [
+          {
+            "id": "node-foyer",
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "orientation": {
+              "yaw": 0
+            },
+            "connectedTo": [
+              "node-living"
+            ],
+            "label": "Elevator Foyer",
+            "mediaAnchor": "scene-001-foyer"
+          },
+          {
+            "id": "node-living",
+            "position": [
+              4.5,
+              0,
+              1.2
+            ],
+            "orientation": {
+              "yaw": 0.4
+            },
+            "connectedTo": [
+              "node-foyer",
+              "node-kitchen"
+            ],
+            "label": "Great Room",
+            "mediaAnchor": "scene-001"
+          },
+          {
+            "id": "node-kitchen",
+            "position": [
+              8.2,
+              0,
+              1
+            ],
+            "orientation": {
+              "yaw": -1.2
+            },
+            "connectedTo": [
+              "node-living"
+            ],
+            "label": "Chef's Kitchen",
+            "mediaAnchor": "scene-003"
+          }
+        ],
+        "hotspots": [
+          {
+            "id": "hotspot-art",
+            "position": [
+              0.8,
+              1.6,
+              -1.2
+            ],
+            "title": "Gallery Lighting",
+            "description": "Arrival presets wash the art wall in programmable light.",
+            "type": "info"
+          },
+          {
+            "id": "hotspot-balcony",
+            "position": [
+              5.6,
+              1.5,
+              -2.3
+            ],
+            "title": "Balcony Doors",
+            "type": "navigation",
+            "targetNodeId": "node-kitchen",
+            "description": "Step out to the 40-foot wraparound balcony."
+          }
+        ],
+        "spatialMeshUrl": "https://cdn.virtualtour.ai/cdn/spaces/3BR_flat_01/walkthrough/mesh.glb",
+        "textureSetUrl": "https://cdn.virtualtour.ai/cdn/spaces/3BR_flat_01/walkthrough/textures/",
+        "hdrEnvironmentUrl": "https://cdn.virtualtour.ai/cdn/spaces/3BR_flat_01/walkthrough/sky.hdr",
+        "navigationMeshUrl": "https://cdn.virtualtour.ai/cdn/spaces/3BR_flat_01/walkthrough/navmesh.glb",
+        "dracoDecoderPath": "/cdn/decoders/draco/",
+        "materialBoost": 0.15,
+        "eyeHeight": 1.7,
+        "manualWalkEnabled": true,
+        "autoTour": {
+          "enabled": true,
+          "order": [
+            "node-foyer",
+            "node-living",
+            "node-kitchen"
+          ],
+          "dwellMs": 5200
+        },
+        "captureMetadata": {
+          "resolution": "8K",
+          "depthPrecision": "millimeter",
+          "originAlignment": true
+        },
+        "lighting": {
+          "exposure": {
+            "min": 0.9,
+            "max": 1.15
+          },
+          "probePositions": [
+            [
+              2.5,
+              2.3,
+              0.8
+            ],
+            [
+              7.1,
+              2.1,
+              0.5
+            ]
+          ]
+        }
+      }
+    },
+    "dollhouse": {
+      "model_url": "https://cdn.virtualtour.ai/models/penthouse-dollhouse-low.gltf",
+      "scale_factor": 0.3,
+      "supports_floor_toggle": true
+    },
+    "floorplan": {
+      "projection_url": "https://cdn.virtualtour.ai/floor-plan-layout.jpg",
+      "room_polygons": [
+        {
+          "room_id": "room-001",
+          "name": "Private Foyer",
+          "points": [
+            [
+              40,
+              20
+            ],
+            [
+              200,
+              20
+            ],
+            [
+              200,
+              140
+            ],
+            [
+              40,
+              140
+            ]
+          ]
+        },
+        {
+          "room_id": "room-002",
+          "name": "Skyline Living Room",
+          "points": [
+            [
+              220,
+              20
+            ],
+            [
+              440,
+              20
+            ],
+            [
+              440,
+              200
+            ],
+            [
+              220,
+              200
+            ]
+          ]
+        },
+        {
+          "room_id": "room-003",
+          "name": "Sky Terrace",
+          "points": [
+            [
+              460,
+              20
+            ],
+            [
+              640,
+              20
+            ],
+            [
+              640,
+              220
+            ],
+            [
+              460,
+              220
+            ]
+          ]
+        },
+        {
+          "room_id": "room-004",
+          "name": "Owner's Suite",
+          "points": [
+            [
+              220,
+              220
+            ],
+            [
+              420,
+              220
+            ],
+            [
+              420,
+              380
+            ],
+            [
+              220,
+              380
+            ]
+          ]
+        },
+        {
+          "room_id": "room-005",
+          "name": "Spa Ensuite",
+          "points": [
+            [
+              440,
+              220
+            ],
+            [
+              620,
+              220
+            ],
+            [
+              620,
+              360
+            ],
+            [
+              440,
+              360
+            ]
+          ]
+        },
+        {
+          "room_id": "room-006",
+          "name": "Chef's Kitchen",
+          "points": [
+            [
+              20,
+              220
+            ],
+            [
+              200,
+              220
+            ],
+            [
+              200,
+              380
+            ],
+            [
+              20,
+              380
+            ]
+          ]
+        },
+        {
+          "room_id": "room-007",
+          "name": "Dining Gallery",
+          "points": [
+            [
+              20,
+              400
+            ],
+            [
+              220,
+              400
+            ],
+            [
+              220,
+              540
+            ],
+            [
+              20,
+              540
+            ]
+          ]
+        },
+        {
+          "room_id": "room-008",
+          "name": "Executive Study",
+          "points": [
+            [
+              240,
+              400
+            ],
+            [
+              420,
+              400
+            ],
+            [
+              420,
+              540
+            ],
+            [
+              240,
+              540
+            ]
+          ]
+        },
+        {
+          "room_id": "room-009",
+          "name": "Cinema Lounge",
+          "points": [
+            [
+              420,
+              400
+            ],
+            [
+              620,
+              400
+            ],
+            [
+              620,
+              560
+            ],
+            [
+              420,
+              560
+            ]
+          ]
+        }
+      ]
+    }
+  },
+  "hotspots": [
+    {
+      "id": "hotspot-foyer-art",
+      "type": "INFO",
+      "title": "Curated Art Gallery",
+      "content": "Rotating installations from local artists welcome guests in the private lobby.",
+      "position": [
+        3.8,
+        4.2,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-foyer-to-living",
+      "type": "LINK",
+      "title": "Enter the Grand Living Room",
+      "content": "Step through the pivot door into the skyline great room.",
+      "position": [
+        6.2,
+        5.5,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-foyer-audio",
+      "type": "AUDIO",
+      "title": "Ambient Arrival Score",
+      "content": "Custom-composed soundtrack that cues automatically for private events.",
+      "position": [
+        2,
+        6,
+        0
+      ],
+      "media_url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-001",
+      "type": "INFO",
+      "title": "Floor-to-Ceiling Windows",
+      "content": "Premium glass with UV protection and smart tinting",
+      "position": [
+        4.5,
+        5,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-002",
+      "type": "VIDEO",
+      "title": "Smart Home Demo",
+      "content": "Watch the smart home automation in action",
+      "position": [
+        7,
+        6,
+        0
+      ],
+      "media_url": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-003",
+      "type": "INFO",
+      "title": "Schedule Tour",
+      "content": "Book an in-person viewing",
+      "position": [
+        3,
+        4,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-living-to-terrace",
+      "type": "LINK",
+      "title": "Open the Sky Terrace",
+      "content": "Flow directly to the outdoor lounge overlooking Midtown.",
+      "position": [
+        8.2,
+        4.4,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-living-to-dining",
+      "type": "LINK",
+      "title": "Transition to Dining Gallery",
+      "content": "Pivot toward the sculptural dining table for entertaining.",
+      "position": [
+        1.8,
+        5.2,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-terrace-firepit",
+      "type": "INFO",
+      "title": "Fire Pit Lounge",
+      "content": "Gas fire pit anchors the outdoor seating lounge with radiant heaters overhead.",
+      "position": [
+        4.4,
+        6.2,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-terrace-to-living",
+      "type": "LINK",
+      "title": "Return to Living Room",
+      "content": "Slide back through the NanaWall into the great room.",
+      "position": [
+        1.8,
+        4.6,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-terrace-video",
+      "type": "VIDEO",
+      "title": "Sunset Drone Flyover",
+      "content": "Aerial perspective of the terrace and surrounding skyline.",
+      "position": [
+        7,
+        4.8,
+        0
+      ],
+      "media_url": "https://player.vimeo.com/video/76979871?h=bf0e24c908",
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-004",
+      "type": "LINK",
+      "title": "Back to Living Room",
+      "content": "Return to main area",
+      "position": [
+        5,
+        4.5,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-005",
+      "type": "AUDIO",
+      "title": "Room Audio System",
+      "content": "Premium Bose sound system",
+      "position": [
+        6,
+        5.5,
+        0
+      ],
+      "media_url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-bedroom-to-ensuite",
+      "type": "LINK",
+      "title": "Spa Ensuite",
+      "content": "Continue into the steam shower and soaking tub retreat.",
+      "position": [
+        8.2,
+        5.2,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-bedroom-to-terrace",
+      "type": "LINK",
+      "title": "Private Terrace Access",
+      "content": "Step to the sunrise terrace shared with the wellness lounge.",
+      "position": [
+        2.2,
+        4,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-ensuite-tub",
+      "type": "INFO",
+      "title": "Stone Soaking Tub",
+      "content": "Hand-carved marble tub with city views and chromotherapy lighting.",
+      "position": [
+        5.8,
+        5.4,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-ensuite-steam",
+      "type": "INFO",
+      "title": "Steam Shower Suite",
+      "content": "Aromatherapy, body sprays, and digital temperature controls.",
+      "position": [
+        2.8,
+        4.8,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-ensuite-back-bedroom",
+      "type": "LINK",
+      "title": "Return to Owner's Suite",
+      "content": "Slide pocket door back to the bedroom.",
+      "position": [
+        8.2,
+        6,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-ensuite-consult",
+      "type": "INFO",
+      "title": "Book Wellness Consultation",
+      "content": "Connect with the concierge team for spa programming.",
+      "position": [
+        1.8,
+        6.2,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-006",
+      "type": "IMAGE",
+      "title": "Marble Countertops",
+      "content": "Italian marble with professional appliances",
+      "position": [
+        4,
+        5,
+        0
+      ],
+      "media_url": "https://cdn.virtualtour.ai/modern-kitchen-with-marble-counters.jpg",
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-kitchen-to-dining",
+      "type": "LINK",
+      "title": "Flow to Dining Gallery",
+      "content": "See the 12-seat dining table with skyline backdrop.",
+      "position": [
+        7.8,
+        4.8,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-kitchen-appliance",
+      "type": "INFO",
+      "title": "Integrated Appliance Wall",
+      "content": "Sub-Zero and Wolf appliances concealed behind custom millwork.",
+      "position": [
+        2.8,
+        4.2,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-kitchen-video",
+      "type": "VIDEO",
+      "title": "Chef's Table Experience",
+      "content": "Hosted dinner series featuring Michelin-star chefs.",
+      "position": [
+        6,
+        6.5,
+        0
+      ],
+      "media_url": "https://player.vimeo.com/video/45830194?h=3bce16fa1f",
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-dining-lighting",
+      "type": "INFO",
+      "title": "Sculptural Chandelier",
+      "content": "Statement fixture with programmable scenes for entertaining.",
+      "position": [
+        5.2,
+        4.2,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-dining-to-kitchen",
+      "type": "LINK",
+      "title": "Return to Chef's Kitchen",
+      "content": "View back toward the culinary hub.",
+      "position": [
+        8.2,
+        5.2,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-dining-to-office",
+      "type": "LINK",
+      "title": "Executive Study",
+      "content": "Discover the custom-built home office.",
+      "position": [
+        2,
+        5.8,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-office-builtins",
+      "type": "INFO",
+      "title": "Custom Built-ins",
+      "content": "Walnut shelving with integrated task lighting and hidden storage.",
+      "position": [
+        3.6,
+        5,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-office-to-dining",
+      "type": "LINK",
+      "title": "Back to Dining Gallery",
+      "content": "Rejoin the main entertaining core.",
+      "position": [
+        8,
+        5.2,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-office-to-lounge",
+      "type": "LINK",
+      "title": "Cinema Lounge",
+      "content": "Transition to the acoustic media lounge.",
+      "position": [
+        1.8,
+        4.6,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-lounge-screen",
+      "type": "INFO",
+      "title": "Acoustic Projection Wall",
+      "content": "120-inch acoustically transparent screen with 9.2 surround sound.",
+      "position": [
+        4.8,
+        4,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-lounge-to-office",
+      "type": "LINK",
+      "title": "Back to Executive Study",
+      "content": "Flow to the private workspace.",
+      "position": [
+        8.2,
+        5.8,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    },
+    {
+      "id": "hotspot-lounge-to-terrace",
+      "type": "LINK",
+      "title": "Night Terrace",
+      "content": "Step onto the terrace for evening entertaining.",
+      "position": [
+        2,
+        5.2,
+        0
+      ],
+      "visible_in_views": [
+        "walkthrough"
+      ],
+      "author": "BaladShelter",
+      "created_at": "2024-10-20T00:00:00.000Z"
+    }
+  ],
+  "measurements": [
+    {
+      "id": "measure-foyer-span",
+      "type": "distance",
+      "point_a": [
+        1.8,
+        0,
+        5.8
+      ],
+      "point_b": [
+        8.2,
+        0,
+        5.8
+      ],
+      "distance_meters": 4.42,
+      "created_by": "BaladShelter",
+      "created_at": "2024-01-18T12:00:00.000Z"
+    },
+    {
+      "id": "measure-living-01",
+      "type": "distance",
+      "point_a": [
+        2.2,
+        0,
+        5.2
+      ],
+      "point_b": [
+        6.8,
+        0,
+        5.2
+      ],
+      "distance_meters": 5.639,
+      "created_by": "BaladShelter",
+      "created_at": "2024-01-18T14:18:00.000Z"
+    },
+    {
+      "id": "measure-living-ceiling",
+      "type": "distance",
+      "point_a": [
+        5.2,
+        0,
+        1.8
+      ],
+      "point_b": [
+        5.2,
+        0,
+        7.8
+      ],
+      "distance_meters": 6.706,
+      "created_by": "BaladShelter",
+      "created_at": "2024-01-20T10:00:00.000Z"
+    },
+    {
+      "id": "measure-terrace-depth",
+      "type": "distance",
+      "point_a": [
+        1.5,
+        0,
+        7
+      ],
+      "point_b": [
+        8.5,
+        0,
+        7
+      ],
+      "distance_meters": 8.534,
+      "created_by": "BaladShelter",
+      "created_at": "2024-01-21T09:12:00.000Z"
+    },
+    {
+      "id": "measure-bedroom-01",
+      "type": "distance",
+      "point_a": [
+        2.8,
+        0,
+        5.8
+      ],
+      "point_b": [
+        7.2,
+        0,
+        5.8
+      ],
+      "distance_meters": 4.938,
+      "created_by": "BaladShelter",
+      "created_at": "2024-01-19T09:42:00.000Z"
+    },
+    {
+      "id": "measure-bedroom-closet",
+      "type": "distance",
+      "point_a": [
+        6.5,
+        0,
+        4
+      ],
+      "point_b": [
+        9.2,
+        0,
+        4
+      ],
+      "distance_meters": 3.597,
+      "created_by": "BaladShelter",
+      "created_at": "2024-01-22T08:30:00.000Z"
+    },
+    {
+      "id": "measure-ensuite-length",
+      "type": "distance",
+      "point_a": [
+        2.2,
+        0,
+        6.4
+      ],
+      "point_b": [
+        7.8,
+        0,
+        6.4
+      ],
+      "distance_meters": 6.523,
+      "created_by": "BaladShelter",
+      "created_at": "2024-01-23T07:20:00.000Z"
+    },
+    {
+      "id": "measure-kitchen-01",
+      "type": "area",
+      "point_a": [
+        3,
+        0,
+        4.5
+      ],
+      "point_b": [
+        7,
+        0,
+        6.5
+      ],
+      "distance_meters": null,
+      "created_by": "BaladShelter"
+    },
+    {
+      "id": "measure-dining-table",
+      "type": "distance",
+      "point_a": [
+        4,
+        0,
+        5.5
+      ],
+      "point_b": [
+        6.4,
+        0,
+        5.5
+      ],
+      "distance_meters": 3.505,
+      "created_by": "BaladShelter",
+      "created_at": "2024-01-23T15:00:00.000Z"
+    },
+    {
+      "id": "measure-office-desk",
+      "type": "distance",
+      "point_a": [
+        4.4,
+        0,
+        5.8
+      ],
+      "point_b": [
+        6.4,
+        0,
+        5.8
+      ],
+      "distance_meters": 2.804,
+      "created_by": "BaladShelter",
+      "created_at": "2024-01-24T09:45:00.000Z"
+    },
+    {
+      "id": "measure-lounge-width",
+      "type": "distance",
+      "point_a": [
+        2.4,
+        0,
+        6
+      ],
+      "point_b": [
+        7.6,
+        0,
+        6
+      ],
+      "distance_meters": 5.761,
+      "created_by": "BaladShelter",
+      "created_at": "2024-01-24T12:10:00.000Z"
+    }
+  ],
+  "analytics": {
+    "views_count": 342,
+    "average_dwell_time": 8.5,
+    "click_heatmap_url": "https://analytics.virtualtour.ai/heatmaps/prop-001"
+  },
+  "access": {
+    "token": "aupmr2BMKTtnVMa8_a4FoBCcRin7xqIpeFHtsdKFlzI",
+    "permissions": [
+      "view",
+      "measure"
+    ],
+    "expiry": "2025-11-29T19:12:37.197Z"
+  }
+}
