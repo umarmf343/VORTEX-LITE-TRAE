@@ -4,5 +4,18 @@
     "spaceId": "prop-001-immersive",
     "timestamp": 1761955203125,
     "receivedAt": "2025-11-01T00:00:06.021Z"
+  },
+  {
+    "event": "exit_walkthrough",
+    "spaceId": "prop-001-immersive",
+    "timestamp": 1761961083573,
+    "receivedAt": "2025-11-01T01:38:10.858Z"
+  },
+  {
+    "event": "enter_walkthrough",
+    "spaceId": "prop-001-immersive",
+    "nodeId": "node-foyer",
+    "timestamp": 1761961084115,
+    "receivedAt": "2025-11-01T01:38:11.201Z"
   }
 ]
