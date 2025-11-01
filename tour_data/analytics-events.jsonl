@@ -17,3 +17,5 @@
 {"event":"transition_started","timestamp":"2025-11-01T03:11:04.877Z","payload":{"property_id":"prop-002","from_scene_id":"scene-004","to_scene_id":"scene-005","transition_type":"walkthrough","duration_ms":1400}}
 {"event":"transition_completed","timestamp":"2025-11-01T03:11:25.454Z","payload":{"property_id":"prop-002","from_scene_id":"scene-004","to_scene_id":"scene-005","transition_type":"walkthrough","duration_ms":1400,"status":"success"}}
 {"event":"transition_started","timestamp":"2025-11-01T03:49:38.411Z","payload":{"property_id":"prop-002","from_scene_id":"scene-004","to_scene_id":"scene-005","transition_type":"walkthrough","duration_ms":1400}}
+{"event":"measurement_used","timestamp":"2025-11-01T03:54:46.070Z","payload":{"property_id":"prop-002","scene_id":"scene-004","measurement_type":"distance","unit":"ft","distance":11.1,"depth_enabled":false,"accuracy_cm":null}}
+{"event":"measurement_used","timestamp":"2025-11-01T03:54:48.981Z","payload":{"property_id":"prop-002","scene_id":"scene-004","measurement_type":"distance","unit":"ft","distance":3.55,"depth_enabled":false,"accuracy_cm":null}}

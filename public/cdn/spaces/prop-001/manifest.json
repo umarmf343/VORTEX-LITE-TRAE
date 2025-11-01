@@ -397,8 +397,8 @@
           {
             "id": "entrance",
             "name": "Entrance",
-            "imageUrl": "/panorama-samples/entrance",
-            "thumbnailUrl": "/panorama-samples/entrance",
+            "imageUrl": "/panorama-samples/entrance.jpg",
+            "thumbnailUrl": "/panorama-samples/entrance.jpg",
             "description": "Warm entry foyer with natural light",
             "sceneType": "interior",
             "tags": [
@@ -445,8 +445,8 @@
           {
             "id": "living-room",
             "name": "Living Room",
-            "imageUrl": "/panorama-samples/living-room",
-            "thumbnailUrl": "/panorama-samples/living-room",
+            "imageUrl": "/panorama-samples/living-room.jpg",
+            "thumbnailUrl": "/panorama-samples/living-room.jpg",
             "description": "Open concept living room",
             "sceneType": "interior",
             "tags": [
@@ -502,8 +502,8 @@
           {
             "id": "kitchen",
             "name": "Kitchen",
-            "imageUrl": "/panorama-samples/kitchen",
-            "thumbnailUrl": "/panorama-samples/kitchen",
+            "imageUrl": "/panorama-samples/kitchen.jpg",
+            "thumbnailUrl": "/panorama-samples/kitchen.jpg",
             "description": "Chef-inspired kitchen with breakfast nook",
             "sceneType": "interior",
             "tags": [
@@ -559,8 +559,8 @@
           {
             "id": "backyard",
             "name": "Backyard",
-            "imageUrl": "/panorama-samples/backyard",
-            "thumbnailUrl": "/panorama-samples/backyard",
+            "imageUrl": "/panorama-samples/backyard.jpg",
+            "thumbnailUrl": "/panorama-samples/backyard.jpg",
             "description": "Outdoor space with lounge seating and greenery",
             "sceneType": "exterior",
             "tags": [
@@ -1698,7 +1698,7 @@
       "view",
       "measure"
     ],
-    "expiry": "2025-12-01T03:48:34.908Z"
+    "expiry": "2025-12-01T03:53:45.162Z"
   },
   "zones": [
     {
