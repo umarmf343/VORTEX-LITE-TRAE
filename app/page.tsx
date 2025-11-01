@@ -1291,7 +1291,7 @@ export default function Page() {
             </div>
           </div>
             <Dialog open={isPropertyDialogOpen} onOpenChange={handlePropertyDialogClose}>
-              <DialogContent>
+              <DialogContent className="max-h-[85vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>
                     {propertyDialogMode === "create" ? "Add new property" : "Edit property"}
