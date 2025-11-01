@@ -1,62 +1,9 @@
 [
   {
-    "event": "exit_walkthrough",
-    "spaceId": "prop-001-immersive",
-    "timestamp": 1761955203125,
-    "receivedAt": "2025-11-01T00:00:06.021Z"
-  },
-  {
-    "event": "exit_walkthrough",
-    "spaceId": "prop-001-immersive",
-    "timestamp": 1761961083573,
-    "receivedAt": "2025-11-01T01:38:10.858Z"
-  },
-  {
     "event": "enter_walkthrough",
     "spaceId": "prop-001-immersive",
     "nodeId": "node-foyer",
-    "timestamp": 1761961084115,
-    "receivedAt": "2025-11-01T01:38:11.201Z"
-  },
-  {
-    "event": "exit_walkthrough",
-    "spaceId": "prop-001-immersive",
-    "timestamp": 1761961396610,
-    "receivedAt": "2025-11-01T01:43:16.660Z"
-  },
-  {
-    "event": "enter_walkthrough",
-    "spaceId": "prop-001-immersive",
-    "nodeId": "node-foyer",
-    "timestamp": 1761961399195,
-    "receivedAt": "2025-11-01T01:43:19.268Z"
-  },
-  {
-    "event": "exit_walkthrough",
-    "spaceId": "prop-001-immersive",
-    "timestamp": 1761961399522,
-    "receivedAt": "2025-11-01T01:43:19.928Z"
-  },
-  {
-    "event": "exit_walkthrough",
-    "spaceId": "prop-001-immersive",
-    "timestamp": 1761961510500,
-    "receivedAt": "2025-11-01T01:45:10.548Z"
-  },
-  {
-    "event": "enter_walkthrough",
-    "spaceId": "prop-001-immersive",
-    "nodeId": "node-foyer",
-    "timestamp": 1761961511480,
-    "receivedAt": "2025-11-01T01:45:11.753Z"
-  },
-  {
-    "event": "exit_walkthrough",
-    "spaceId": "prop-001-immersive",
-    "timestamp": 1761961926851,
-    "receivedAt": "2025-11-01T01:52:09.766Z"
-  }
-]    "timestamp": 1761961929351,
-    "receivedAt": "2025-11-01T01:52:09.765Z"
+    "timestamp": 1761962760617,
+    "receivedAt": "2025-11-01T02:06:05.297Z"
   }
 ]
