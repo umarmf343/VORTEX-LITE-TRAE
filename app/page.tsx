@@ -472,6 +472,19 @@ export default function Page() {
     }
   const isAdminView = ADMIN_VIEW_MODES.includes(viewMode)
 
+  const propertyDependentViews: ReadonlySet<ViewMode> = new Set([
+    "analytics",
+    "advanced-analytics",
+    "reports",
+    "booking",
+    "sharing",
+    "branding",
+    "embed",
+    "journey",
+    "3d-models",
+    "scene-types",
+  ])
+
   const adminNavigation: { label: string; view: ViewMode; icon?: ElementType }[] = [
     { label: "Properties", view: "admin", icon: Building2 },
     { label: "Compare", view: "comparison" },
@@ -1064,13 +1077,55 @@ export default function Page() {
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Dashboard</p>
                   <div className="mt-3 space-y-1">
+                    {properties.length > 0 ? (
+                      <div className="space-y-2 pb-2">
+                        <Label className="text-xs font-medium text-slate-500">Active property</Label>
+                        <Select
+                          value={selectedAnalyticsProperty?.id ?? undefined}
+                          onValueChange={(value) => {
+                            const property = properties.find((prop) => prop.id === value)
+                            if (property) {
+                              setSelectedAnalyticsProperty(property)
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="h-9 w-full justify-between">
+                            <SelectValue placeholder="Select a property" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {properties.map((property) => (
+                              <SelectItem key={property.id} value={property.id}>
+                                {property.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ) : (
+                      <p className="pb-2 text-xs text-slate-500">
+                        Add a property to unlock property-specific modules.
+                      </p>
+                    )}
                     {adminNavigation.map((item) => {
                       const Icon = item.icon
+                      const requiresProperty = propertyDependentViews.has(item.view)
+                      const isDisabled = requiresProperty && properties.length === 0
                       return (
                         <Button
                           key={item.view}
                           variant={viewMode === item.view ? "default" : "ghost"}
-                          onClick={() => setViewMode(item.view)}
+                          onClick={() => {
+                            if (isDisabled) {
+                              return
+                            }
+
+                            if (requiresProperty && !selectedAnalyticsProperty && properties[0]) {
+                              setSelectedAnalyticsProperty(properties[0])
+                            }
+
+                            setViewMode(item.view)
+                          }}
+                          disabled={isDisabled}
                           className={cn(
                             "w-full justify-start",
                             viewMode === item.view ? "shadow-sm" : "text-slate-600 hover:text-slate-900",

@@ -72,6 +72,7 @@ import {
   resolveHotspotLink,
   resolveHotspotTargetScene,
 } from "@/lib/hotspot-utils"
+import { isHotspotNavigationEnabled } from "@/lib/feature-flags"
 
 const FALLBACK_MIN_ZOOM = 1
 const FALLBACK_MAX_ZOOM = 3
@@ -138,7 +139,10 @@ export function TourPlayer({
   const [shareDialogOpen, setShareDialogOpen] = useState(false)
   const [showFloorPlan, setShowFloorPlan] = useState(false)
   const [showGallery, setShowGallery] = useState(false)
-  const [activeExperienceTab, setActiveExperienceTab] = useState<"walkthrough" | "floorplan" | "gallery">("walkthrough")
+  const hotspotNavOnly = isHotspotNavigationEnabled()
+  const [activeExperienceTab, setActiveExperienceTab] = useState<"walkthrough" | "floorplan" | "gallery">(
+    hotspotNavOnly ? "floorplan" : "walkthrough",
+  )
   const [viewerManifest, setViewerManifest] = useState<ViewerManifest | null>(null)
   const [manifestError, setManifestError] = useState<string | null>(null)
   const [selectedTourId, setSelectedTourId] = useState<string>(() => property.guidedTours?.[0]?.id ?? CUSTOM_TOUR_ID)
@@ -570,7 +574,9 @@ export function TourPlayer({
   useEffect(() => {
     setShowFloorPlan(false)
     setShowGallery(false)
-    setActiveExperienceTab("walkthrough")
+    if (!hotspotNavOnly) {
+      setActiveExperienceTab("walkthrough")
+    }
     goToScene(0)
     setSessionStart(Date.now())
     setIsFavorite(property.isFavorite ?? false)
@@ -770,7 +776,7 @@ export function TourPlayer({
 
   const handleSceneSelect = useCallback(
     (index: number) => {
-      if (activeExperienceTab !== "walkthrough") {
+      if (!hotspotNavOnly && activeExperienceTab !== "walkthrough") {
         setActiveExperienceTab("walkthrough")
       }
       void requestSceneTransitionByIndex(index)
@@ -1516,18 +1522,20 @@ export function TourPlayer({
           </div>
         </div>
         <div className="max-w-7xl mx-auto mt-4 flex flex-wrap items-center gap-2">
-          <Button
-            size="sm"
-            variant={activeExperienceTab === "walkthrough" ? "default" : "outline"}
-            className={
-              activeExperienceTab === "walkthrough"
-                ? "bg-blue-600 text-white"
-                : "border-gray-700 text-gray-300 hover:text-white"
-            }
-            onClick={() => setActiveExperienceTab("walkthrough")}
-          >
-            <NavigationIcon className="mr-2 h-4 w-4" /> Walkthrough
-          </Button>
+          {!hotspotNavOnly && (
+            <Button
+              size="sm"
+              variant={activeExperienceTab === "walkthrough" ? "default" : "outline"}
+              className={
+                activeExperienceTab === "walkthrough"
+                  ? "bg-blue-600 text-white"
+                  : "border-gray-700 text-gray-300 hover:text-white"
+              }
+              onClick={() => setActiveExperienceTab("walkthrough")}
+            >
+              <NavigationIcon className="mr-2 h-4 w-4" /> Walkthrough
+            </Button>
+          )}
           <Button
             size="sm"
             variant={activeExperienceTab === "floorplan" ? "default" : "outline"}
@@ -2501,7 +2509,9 @@ export function TourPlayer({
               <Button
                 variant="outline"
                 onClick={() => {
-                  setActiveExperienceTab("walkthrough")
+                  if (!hotspotNavOnly) {
+                    setActiveExperienceTab("walkthrough")
+                  }
                 }}
                 className="self-center sm:self-auto"
               >
@@ -2531,7 +2541,11 @@ export function TourPlayer({
               <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => setActiveExperienceTab("walkthrough")}
+                  onClick={() => {
+                    if (!hotspotNavOnly) {
+                      setActiveExperienceTab("walkthrough")
+                    }
+                  }}
                   className="self-center"
                 >
                   Close

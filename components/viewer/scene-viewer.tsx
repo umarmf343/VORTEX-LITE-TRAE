@@ -51,6 +51,7 @@ import {
   Zap,
 } from "@/lib/icons"
 import { cn } from "@/lib/utils"
+import { isHotspotNavigationEnabled } from "@/lib/feature-flags"
 import {
   evaluateOcclusion,
   getHotspotDescription,
@@ -590,8 +591,9 @@ export function SceneViewer({
       : resolvedViewModes[0] ?? "360"
     return preferred
   })
+  const hotspotNavOnly = isHotspotNavigationEnabled()
   const immersiveWalkthroughActive =
-    currentViewMode === "walkthrough" && Boolean(effectiveWalkthroughSpace)
+    !hotspotNavOnly && currentViewMode === "walkthrough" && Boolean(effectiveWalkthroughSpace)
   const sphericalRendererActive = sphericalViewModes.includes(currentViewMode) && !immersiveWalkthroughActive
   const [renderError, setRenderError] = useState<string | null>(null)
   const [transitionActive, setTransitionActive] = useState(false)
@@ -2184,7 +2186,7 @@ export function SceneViewer({
               />
             )}
 
-            {isWalkthroughMode && !immersiveWalkthroughActive && (
+            {isWalkthroughMode && !hotspotNavOnly && !immersiveWalkthroughActive && (
               <>
                 <div className="absolute top-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full bg-black/70 px-4 py-2 text-xs font-medium text-white shadow-lg backdrop-blur">
                   <NavigationIcon className="h-4 w-4 text-emerald-300" />
