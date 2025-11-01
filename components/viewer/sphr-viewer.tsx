@@ -305,7 +305,7 @@ export function SphrViewer({ space, onNodeChange, onHotspotActivate }: SphrViewe
   }
   return (
     <div
-      className="relative w-full overflow-hidden rounded-xl border border-slate-800 bg-black max-h-[85vh] min-h-[320px] aspect-[16/9] lg:aspect-[21/9]"
+      className="relative w-full overflow-hidden rounded-xl border border-slate-800 bg-black max-h-[90vh] xl:max-h-[95vh] min-h-[320px] aspect-[16/9] lg:aspect-[21/9]"
       ref={containerRef}
       style={{ minHeight: "max(320px, var(--viewer-min-h, 65vh))" }}
     >

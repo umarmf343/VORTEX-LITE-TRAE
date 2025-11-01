@@ -2098,7 +2098,7 @@ export function SceneViewer({
       {/* Viewer */}
       <div
         ref={viewerRef}
-        className={`relative flex-1 h-full min-h-[55vh] sm:min-h-[65vh] lg:min-h-0 lg:h-full overflow-hidden ${viewerCursorClass} ${viewerFlexClass} ${
+        className={`relative flex-1 h-full min-h-[55vh] sm:min-h-[65vh] lg:min-h-[75vh] lg:h-full xl:min-h-[80vh] overflow-hidden ${viewerCursorClass} ${viewerFlexClass} ${
           sphericalRendererActive || immersiveWalkthroughActive ? "bg-black" : ""
         }`}
         onClick={immersiveWalkthroughActive ? undefined : handleImageClick}

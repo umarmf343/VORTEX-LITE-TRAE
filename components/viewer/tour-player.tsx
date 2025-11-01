@@ -1530,12 +1530,12 @@ export function TourPlayer({
       {/* Main Viewer */}
       <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-4 px-4 py-4 w-full xl:px-8">
         <div
-          className="flex-1 min-h-0 lg:min-h-[480px] [--viewer-min-h:70vh] sm:[--viewer-min-h:75vh] md:[--viewer-min-h:80vh]"
+          className="flex-1 min-h-0 lg:min-h-[560px] [--viewer-min-h:70vh] sm:[--viewer-min-h:75vh] md:[--viewer-min-h:80vh] lg:[--viewer-min-h:85vh] xl:[--viewer-min-h:90vh]"
           style={{ minHeight: "max(360px, var(--viewer-min-h, 70vh))" }}
         >
           {showSphrViewer ? (
             isWebGLSupported === false ? (
-              <div className="relative h-full min-h-[55vh] sm:min-h-[65vh] md:min-h-[70vh] overflow-hidden rounded-xl border border-gray-800 bg-gray-950/60">
+              <div className="relative h-full min-h-[55vh] sm:min-h-[65vh] md:min-h-[70vh] lg:min-h-[75vh] xl:min-h-[80vh] overflow-hidden rounded-xl border border-gray-800 bg-gray-950/60">
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-8 text-center">
                   <div className="max-w-md rounded-lg border border-emerald-500/40 bg-black/70 p-6 text-slate-200 shadow-lg">
                     <h2 className="text-lg font-semibold text-white">WebGL support required</h2>
@@ -1583,7 +1583,7 @@ export function TourPlayer({
               capturePreview={capturePreviewCard}
             />
           ) : (
-            <div className="relative h-full min-h-[55vh] sm:min-h-[65vh] md:min-h-[70vh] overflow-hidden rounded-xl border border-gray-800 bg-gray-900/60">
+            <div className="relative h-full min-h-[55vh] sm:min-h-[65vh] md:min-h-[70vh] lg:min-h-[75vh] xl:min-h-[80vh] overflow-hidden rounded-xl border border-gray-800 bg-gray-900/60">
               <div
                 ref={fallbackContainerRef}
                 className={`relative h-full w-full overflow-hidden bg-black/40 ${fallbackCursorClass}`}
