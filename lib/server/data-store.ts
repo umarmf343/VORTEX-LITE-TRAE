@@ -11,14 +11,16 @@ import type {
   Hotspot,
   Lead,
   Model3DAsset,
+  PanoramaTourManifest,
   Property,
   PropertyMerge,
   SceneTransition,
   SceneTypeConfig,
+  SphrSpace,
   TechnicianProfile,
   Visitor,
 } from "@/lib/types"
-import { loadScenePayload, loadTourManifest } from "@/lib/tour-data-loader"
+import { loadPanoramaTourManifest, loadScenePayload, loadTourManifest } from "@/lib/tour-data-loader"
 import { normalizeHotspotType } from "@/lib/hotspot-utils"
 
 interface RawStats {
@@ -174,48 +176,116 @@ const mergeHotspotRecords = (existing: Hotspot, incoming: Hotspot): Hotspot => (
   metadata: { ...existing.metadata, ...incoming.metadata },
 })
 
-const mergeTourData = async (state: StoredData) => {
-  const manifest = await loadTourManifest()
-  if (!manifest) {
-    return
+const ensurePanoramaAssetUrl = (value?: string): string => {
+  if (!value) {
+    return ""
   }
-  const sceneCache = new Map<string, { hotspots: Hotspot[]; transitions: SceneTransition[] }>()
+  const trimmed = value.trim()
+  if (!trimmed) {
+    return ""
+  }
+  const [pathOnly] = trimmed.split(/[?#]/)
+  if (pathOnly && /\.[a-zA-Z0-9]+$/.test(pathOnly)) {
+    return trimmed
+  }
+  return `${trimmed}.jpg`
+}
 
-  const resolveScenePayload = async (sceneId: string) => {
-    if (!sceneCache.has(sceneId)) {
-      const payload = await loadScenePayload(sceneId)
-      sceneCache.set(sceneId, payload)
+const buildSphrSpaceFromManifest = (manifest: PanoramaTourManifest): SphrSpace => {
+  const nodes = manifest.scenes.map((scene) => {
+    const manifestHotspots = scene.hotspots?.length
+      ? scene.hotspots
+      : manifest.navigationGraph[scene.id] ?? []
+
+    return {
+      id: scene.id,
+      name: scene.name,
+      panoramaUrl: ensurePanoramaAssetUrl(scene.imageUrl),
+      initialYaw: scene.initialView?.yaw,
+      initialPitch: scene.initialView?.pitch,
+      hotspots: manifestHotspots.map((hotspot) => ({
+        id: hotspot.id,
+        title: hotspot.label ?? hotspot.id,
+        description:
+          hotspot.autoAlignmentYaw !== undefined || hotspot.autoAlignmentPitch !== undefined
+            ? "Auto-align navigation"
+            : undefined,
+        type: "navigation" as const,
+        yaw: hotspot.yaw,
+        pitch: hotspot.pitch,
+        targetNodeId: hotspot.targetSceneId,
+      })),
     }
-    return sceneCache.get(sceneId) ?? { hotspots: [], transitions: [] }
+  })
+
+  const initialScene = manifest.scenes.find((scene) => scene.id === manifest.initialSceneId)
+
+  return {
+    nodes,
+    initialNodeId: manifest.initialSceneId,
+    defaultFov: initialScene?.initialView?.fov ?? 90,
+    description: manifest.title,
+  }
+}
+
+const mergeTourData = async (state: StoredData) => {
+  const [manifest, panoramaManifest] = await Promise.all([
+    loadTourManifest(),
+    loadPanoramaTourManifest(),
+  ])
+
+  if (manifest) {
+    const sceneCache = new Map<string, { hotspots: Hotspot[]; transitions: SceneTransition[] }>()
+
+    const resolveScenePayload = async (sceneId: string) => {
+      if (!sceneCache.has(sceneId)) {
+        const payload = await loadScenePayload(sceneId)
+        sceneCache.set(sceneId, payload)
+      }
+      return sceneCache.get(sceneId) ?? { hotspots: [], transitions: [] }
+    }
+
+    for (const property of state.properties) {
+      if (!Array.isArray(property.scenes)) continue
+      for (const scene of property.scenes) {
+        const payload = await resolveScenePayload(scene.id)
+        if (!payload.hotspots.length && !payload.transitions.length) {
+          continue
+        }
+
+        const hotspotMap = new Map<string, Hotspot>()
+        const existingHotspots = Array.isArray(scene.hotspots) ? scene.hotspots : []
+        for (const hotspot of existingHotspots) {
+          const normalized = normalizeSceneHotspot(hotspot)
+          hotspotMap.set(normalized.id, normalized)
+        }
+
+        for (const incoming of payload.hotspots) {
+          const normalizedIncoming = normalizeSceneHotspot(incoming)
+          const current = hotspotMap.get(normalizedIncoming.id)
+          hotspotMap.set(
+            normalizedIncoming.id,
+            current ? mergeHotspotRecords(current, normalizedIncoming) : normalizedIncoming,
+          )
+        }
+
+        scene.hotspots = Array.from(hotspotMap.values())
+        if (payload.transitions.length) {
+          scene.transitions = payload.transitions.map((transition) => ({ ...transition }))
+        }
+      }
+    }
   }
 
-  for (const property of state.properties) {
-    if (!Array.isArray(property.scenes)) continue
-    for (const scene of property.scenes) {
-      const payload = await resolveScenePayload(scene.id)
-      if (!payload.hotspots.length && !payload.transitions.length) {
-        continue
-      }
-
-      const hotspotMap = new Map<string, Hotspot>()
-      const existingHotspots = Array.isArray(scene.hotspots) ? scene.hotspots : []
-      for (const hotspot of existingHotspots) {
-        const normalized = normalizeSceneHotspot(hotspot)
-        hotspotMap.set(normalized.id, normalized)
-      }
-
-      for (const incoming of payload.hotspots) {
-        const normalizedIncoming = normalizeSceneHotspot(incoming)
-        const current = hotspotMap.get(normalizedIncoming.id)
-        hotspotMap.set(
-          normalizedIncoming.id,
-          current ? mergeHotspotRecords(current, normalizedIncoming) : normalizedIncoming,
-        )
-      }
-
-      scene.hotspots = Array.from(hotspotMap.values())
-      if (payload.transitions.length) {
-        scene.transitions = payload.transitions.map((transition) => ({ ...transition }))
+  if (panoramaManifest) {
+    const importedSpace = buildSphrSpaceFromManifest(panoramaManifest)
+    if (importedSpace.nodes.length) {
+      for (const property of state.properties) {
+        if (property.sphrSpace?.nodes?.length) {
+          continue
+        }
+        property.sphrSpace = JSON.parse(JSON.stringify(importedSpace)) as SphrSpace
+        break
       }
     }
   }
