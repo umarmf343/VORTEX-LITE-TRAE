@@ -24,6 +24,8 @@
         {
           "id": "8db5fd50-a00f-48dd-b7f4-9b50399e12d4",
           "targetSceneId": "living-room",
+          "x": 55.6,
+          "y": 51.1,
           "yaw": 20,
           "pitch": -2,
           "label": "Enter Living Room",
@@ -54,6 +56,8 @@
         {
           "id": "b0197e96-603b-4b34-b6fc-1960f646fc2d",
           "targetSceneId": "kitchen",
+          "x": 62.5,
+          "y": 52.2,
           "yaw": 45,
           "pitch": -4,
           "label": "Walk to Kitchen",
@@ -63,6 +67,8 @@
         {
           "id": "c705d312-8f71-4999-a068-3878021a91c0",
           "targetSceneId": "entrance",
+          "x": 13.9,
+          "y": 53.3,
           "yaw": -130,
           "pitch": -6,
           "label": "Back to Entrance",
@@ -93,6 +99,8 @@
         {
           "id": "0454daca-72c2-4fd2-b5b9-9aefd92a2bd2",
           "targetSceneId": "living-room",
+          "x": 12.5,
+          "y": 52.2,
           "yaw": -135,
           "pitch": -4,
           "label": "Return to Living Room",
@@ -102,6 +110,8 @@
         {
           "id": "8de75549-d891-4b6d-81cd-da48795fdf9f",
           "targetSceneId": "backyard",
+          "x": 66.7,
+          "y": 52.8,
           "yaw": 60,
           "pitch": -5,
           "label": "Open Backyard",
@@ -132,6 +142,8 @@
         {
           "id": "67c349de-1990-41bc-a516-e7c9f268ae64",
           "targetSceneId": "kitchen",
+          "x": 19.4,
+          "y": 53.3,
           "yaw": -110,
           "pitch": -6,
           "label": "Inside Kitchen",

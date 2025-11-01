@@ -119,7 +119,7 @@ export default function EmbedPage({ params }: EmbedPageProps) {
         <p className="text-xs text-slate-400">{property.address}</p>
       </header>
       <main className="flex-1 min-h-0">
-        <TourPlayer property={property} floorPlan={floorPlan} onLeadCapture={handleLeadCapture} experienceMode="vortex" />
+        <TourPlayer property={property} floorPlan={floorPlan} onLeadCapture={handleLeadCapture} />
       </main>
     </div>
   )

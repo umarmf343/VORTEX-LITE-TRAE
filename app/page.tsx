@@ -1048,12 +1048,7 @@ export default function Page() {
               </aside>
             </div>
           ) : (
-            <TourPlayer
-              property={selectedProperty}
-              onLeadCapture={handleLeadCapture}
-              floorPlan={selectedFloorPlan}
-              experienceMode={sphrViewActive ? "sphr" : "vortex"}
-            />
+            <TourPlayer property={selectedProperty} onLeadCapture={handleLeadCapture} floorPlan={selectedFloorPlan} />
           )}
         </div>
       </div>
