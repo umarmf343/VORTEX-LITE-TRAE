@@ -33,7 +33,7 @@ import {
 } from "three"
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader"
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader"
-import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js"
+import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js"
 import { LightProbeGenerator } from "three/examples/jsm/lights/LightProbeGenerator"
 
 import type {
@@ -381,11 +381,24 @@ export class ImmersiveWalkthroughEngine {
       return
     }
 
-    const pmrem = new PMREMGenerator(this.renderer)
+    const renderer = this.renderer
+    const scene = this.scene
+    if (!renderer || !scene) {
+      return
+    }
+
+    const pmrem = new PMREMGenerator(renderer)
     pmrem.compileEquirectangularShader()
 
     try {
-      const texture = await new HDRLoader().loadAsync(this.space.hdrEnvironmentUrl!)
+      const texture = await new RGBELoader().loadAsync(this.space.hdrEnvironmentUrl!)
+
+      if (!this.renderer || !this.scene || this.renderer !== renderer || this.scene !== scene) {
+        texture.dispose()
+        return
+      }
+
+      this.hdrTexture?.dispose()
       this.hdrTexture = texture
       const envMap = pmrem.fromEquirectangular(texture).texture
       envMap.mapping = EquirectangularReflectionMapping
@@ -424,6 +437,12 @@ export class ImmersiveWalkthroughEngine {
       loader.load(
         meshUrl,
         (gltf) => {
+          const scene = this.scene
+          if (!scene) {
+            resolve()
+            return
+          }
+
           const root = gltf.scene || new Group()
           root.traverse((child) => {
             if (child instanceof Mesh) {
@@ -437,7 +456,7 @@ export class ImmersiveWalkthroughEngine {
               this.collisionMeshes.push(child)
             }
           })
-          this.scene!.add(root)
+          scene.add(root)
 
           const bounds = new Box3().setFromObject(root)
           if (!bounds.isEmpty()) {
