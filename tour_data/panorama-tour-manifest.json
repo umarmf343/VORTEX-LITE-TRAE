@@ -32,7 +32,25 @@
         }
       ],
       "createdAt": "2025-10-31T09:51:56.403Z",
-      "updatedAt": "2025-10-31T09:51:56.403Z"
+      "updatedAt": "2025-10-31T09:51:56.403Z",
+      "assets": {
+        "raw": "/panorama-samples/entrance",
+        "preview": "/panorama-samples/entrance",
+        "web": "/panorama-samples/entrance",
+        "print": "/panorama-samples/entrance"
+      },
+      "processing": {
+        "status": "READY",
+        "startedAt": "2024-01-15T00:00:00.000Z",
+        "completedAt": "2025-10-31T09:51:56.403Z",
+        "accuracyEstimate": "medium",
+        "warnings": [],
+        "errors": [],
+        "depthEnabled": false
+      },
+      "measurement": {
+        "enabled": false
+      }
     },
     {
       "id": "living-room",
@@ -71,7 +89,25 @@
         }
       ],
       "createdAt": "2025-10-31T09:51:56.403Z",
-      "updatedAt": "2025-10-31T09:51:56.403Z"
+      "updatedAt": "2025-10-31T09:51:56.403Z",
+      "assets": {
+        "raw": "/panorama-samples/living-room",
+        "preview": "/panorama-samples/living-room",
+        "web": "/panorama-samples/living-room",
+        "print": "/panorama-samples/living-room"
+      },
+      "processing": {
+        "status": "READY",
+        "startedAt": "2024-01-15T00:00:00.000Z",
+        "completedAt": "2025-10-31T09:51:56.403Z",
+        "accuracyEstimate": "medium",
+        "warnings": [],
+        "errors": [],
+        "depthEnabled": false
+      },
+      "measurement": {
+        "enabled": false
+      }
     },
     {
       "id": "kitchen",
@@ -110,7 +146,25 @@
         }
       ],
       "createdAt": "2025-10-31T09:51:56.403Z",
-      "updatedAt": "2025-10-31T09:51:56.403Z"
+      "updatedAt": "2025-10-31T09:51:56.403Z",
+      "assets": {
+        "raw": "/panorama-samples/kitchen",
+        "preview": "/panorama-samples/kitchen",
+        "web": "/panorama-samples/kitchen",
+        "print": "/panorama-samples/kitchen"
+      },
+      "processing": {
+        "status": "READY",
+        "startedAt": "2024-01-15T00:00:00.000Z",
+        "completedAt": "2025-10-31T09:51:56.403Z",
+        "accuracyEstimate": "medium",
+        "warnings": [],
+        "errors": [],
+        "depthEnabled": false
+      },
+      "measurement": {
+        "enabled": false
+      }
     },
     {
       "id": "backyard",
@@ -140,7 +194,25 @@
         }
       ],
       "createdAt": "2025-10-31T09:51:56.403Z",
-      "updatedAt": "2025-10-31T09:51:56.403Z"
+      "updatedAt": "2025-10-31T09:51:56.403Z",
+      "assets": {
+        "raw": "/panorama-samples/backyard",
+        "preview": "/panorama-samples/backyard",
+        "web": "/panorama-samples/backyard",
+        "print": "/panorama-samples/backyard"
+      },
+      "processing": {
+        "status": "READY",
+        "startedAt": "2024-01-15T00:00:00.000Z",
+        "completedAt": "2025-10-31T09:51:56.403Z",
+        "accuracyEstimate": "medium",
+        "warnings": [],
+        "errors": [],
+        "depthEnabled": false
+      },
+      "measurement": {
+        "enabled": false
+      }
     }
   ],
   "navigationGraph": {
@@ -205,6 +277,105 @@
         "autoAlignmentYaw": 0,
         "autoAlignmentPitch": 0
       }
+    ]
+  },
+  "version": 2,
+  "createdAt": "2024-01-15T00:00:00.000Z",
+  "property": {
+    "id": "prop-001",
+    "title": "Luxury Downtown Penthouse",
+    "address": "123 Park Avenue, New York, NY 10022",
+    "ownerId": "prop-001",
+    "ownerName": "BaladShelter",
+    "tags": [
+      "luxury",
+      "penthouse",
+      "city-view",
+      "smart-home"
+    ],
+    "createdAt": "2024-01-15T00:00:00.000Z",
+    "updatedAt": "2024-10-20T00:00:00.000Z"
+  },
+  "hotspots": [
+    {
+      "id": "8db5fd50-a00f-48dd-b7f4-9b50399e12d4",
+      "targetSceneId": "living-room",
+      "yaw": 20,
+      "pitch": -2,
+      "label": "Enter Living Room",
+      "autoAlignmentYaw": 0,
+      "autoAlignmentPitch": 0,
+      "sceneId": "entrance"
+    },
+    {
+      "id": "b0197e96-603b-4b34-b6fc-1960f646fc2d",
+      "targetSceneId": "kitchen",
+      "yaw": 45,
+      "pitch": -4,
+      "label": "Walk to Kitchen",
+      "autoAlignmentYaw": 10,
+      "autoAlignmentPitch": 0,
+      "sceneId": "living-room"
+    },
+    {
+      "id": "c705d312-8f71-4999-a068-3878021a91c0",
+      "targetSceneId": "entrance",
+      "yaw": -130,
+      "pitch": -6,
+      "label": "Back to Entrance",
+      "autoAlignmentYaw": 5,
+      "autoAlignmentPitch": 0,
+      "sceneId": "living-room"
+    },
+    {
+      "id": "0454daca-72c2-4fd2-b5b9-9aefd92a2bd2",
+      "targetSceneId": "living-room",
+      "yaw": -135,
+      "pitch": -4,
+      "label": "Return to Living Room",
+      "autoAlignmentYaw": 0,
+      "autoAlignmentPitch": 0,
+      "sceneId": "kitchen"
+    },
+    {
+      "id": "8de75549-d891-4b6d-81cd-da48795fdf9f",
+      "targetSceneId": "backyard",
+      "yaw": 60,
+      "pitch": -5,
+      "label": "Open Backyard",
+      "autoAlignmentYaw": -5,
+      "autoAlignmentPitch": 0,
+      "sceneId": "kitchen"
+    },
+    {
+      "id": "67c349de-1990-41bc-a516-e7c9f268ae64",
+      "targetSceneId": "kitchen",
+      "yaw": -110,
+      "pitch": -6,
+      "label": "Inside Kitchen",
+      "autoAlignmentYaw": 0,
+      "autoAlignmentPitch": 0,
+      "sceneId": "backyard"
+    }
+  ],
+  "accuracyScores": {
+    "entrance": "medium",
+    "living-room": "medium",
+    "kitchen": "medium",
+    "backyard": "medium"
+  },
+  "accessControls": {
+    "privacy": "private",
+    "tokens": [
+      "public",
+      "marketing-campaign"
+    ]
+  },
+  "analyticsHooks": {
+    "events": [
+      "scene_enter",
+      "hotspot_click",
+      "tour_complete"
     ]
   }
 }

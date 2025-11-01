@@ -388,126 +388,386 @@
     "walkthrough": {
       "default_node": "scene-001-foyer",
       "pathfinding_enabled": true,
-      "immersive_space": {
-        "spaceId": "prop-001-immersive",
-        "defaultNodeId": "node-foyer",
-        "nodes": [
+      "panorama_manifest": {
+        "id": "panoramasceneengine-tour",
+        "title": "Sample Panorama Residence",
+        "initialSceneId": "entrance",
+        "publishedAt": "2025-10-31T09:51:56.403Z",
+        "scenes": [
           {
-            "id": "node-foyer",
-            "position": [
-              0,
-              0,
-              0
+            "id": "entrance",
+            "name": "Entrance",
+            "imageUrl": "/panorama-samples/entrance",
+            "thumbnailUrl": "/panorama-samples/entrance",
+            "description": "Warm entry foyer with natural light",
+            "sceneType": "interior",
+            "tags": [
+              "foyer",
+              "entry"
             ],
-            "orientation": {
-              "yaw": 0
+            "initialView": {
+              "yaw": 15,
+              "pitch": -2,
+              "fov": 85
             },
-            "connectedTo": [
-              "node-living"
+            "hotspots": [
+              {
+                "id": "8db5fd50-a00f-48dd-b7f4-9b50399e12d4",
+                "targetSceneId": "living-room",
+                "yaw": 20,
+                "pitch": -2,
+                "label": "Enter Living Room",
+                "autoAlignmentYaw": 0,
+                "autoAlignmentPitch": 0
+              }
             ],
-            "label": "Elevator Foyer",
-            "mediaAnchor": "scene-001-foyer"
+            "createdAt": "2025-10-31T09:51:56.403Z",
+            "updatedAt": "2025-10-31T09:51:56.403Z",
+            "assets": {
+              "raw": "/panorama-samples/entrance",
+              "preview": "/panorama-samples/entrance",
+              "web": "/panorama-samples/entrance",
+              "print": "/panorama-samples/entrance"
+            },
+            "processing": {
+              "status": "READY",
+              "startedAt": "2024-01-15T00:00:00.000Z",
+              "completedAt": "2025-10-31T09:51:56.403Z",
+              "accuracyEstimate": "medium",
+              "warnings": [],
+              "errors": [],
+              "depthEnabled": false
+            },
+            "measurement": {
+              "enabled": false
+            }
           },
           {
-            "id": "node-living",
-            "position": [
-              4.5,
-              0,
-              1.2
+            "id": "living-room",
+            "name": "Living Room",
+            "imageUrl": "/panorama-samples/living-room",
+            "thumbnailUrl": "/panorama-samples/living-room",
+            "description": "Open concept living room",
+            "sceneType": "interior",
+            "tags": [
+              "family",
+              "lounge"
             ],
-            "orientation": {
-              "yaw": 0.4
+            "initialView": {
+              "yaw": 0,
+              "pitch": 0,
+              "fov": 90
             },
-            "connectedTo": [
-              "node-foyer",
-              "node-kitchen"
+            "hotspots": [
+              {
+                "id": "b0197e96-603b-4b34-b6fc-1960f646fc2d",
+                "targetSceneId": "kitchen",
+                "yaw": 45,
+                "pitch": -4,
+                "label": "Walk to Kitchen",
+                "autoAlignmentYaw": 10,
+                "autoAlignmentPitch": 0
+              },
+              {
+                "id": "c705d312-8f71-4999-a068-3878021a91c0",
+                "targetSceneId": "entrance",
+                "yaw": -130,
+                "pitch": -6,
+                "label": "Back to Entrance",
+                "autoAlignmentYaw": 5,
+                "autoAlignmentPitch": 0
+              }
             ],
-            "label": "Great Room",
-            "mediaAnchor": "scene-001"
+            "createdAt": "2025-10-31T09:51:56.403Z",
+            "updatedAt": "2025-10-31T09:51:56.403Z",
+            "assets": {
+              "raw": "/panorama-samples/living-room",
+              "preview": "/panorama-samples/living-room",
+              "web": "/panorama-samples/living-room",
+              "print": "/panorama-samples/living-room"
+            },
+            "processing": {
+              "status": "READY",
+              "startedAt": "2024-01-15T00:00:00.000Z",
+              "completedAt": "2025-10-31T09:51:56.403Z",
+              "accuracyEstimate": "medium",
+              "warnings": [],
+              "errors": [],
+              "depthEnabled": false
+            },
+            "measurement": {
+              "enabled": false
+            }
           },
           {
-            "id": "node-kitchen",
-            "position": [
-              8.2,
-              0,
-              1
+            "id": "kitchen",
+            "name": "Kitchen",
+            "imageUrl": "/panorama-samples/kitchen",
+            "thumbnailUrl": "/panorama-samples/kitchen",
+            "description": "Chef-inspired kitchen with breakfast nook",
+            "sceneType": "interior",
+            "tags": [
+              "kitchen",
+              "gourmet"
             ],
-            "orientation": {
-              "yaw": -1.2
+            "initialView": {
+              "yaw": -10,
+              "pitch": -3,
+              "fov": 88
             },
-            "connectedTo": [
-              "node-living"
+            "hotspots": [
+              {
+                "id": "0454daca-72c2-4fd2-b5b9-9aefd92a2bd2",
+                "targetSceneId": "living-room",
+                "yaw": -135,
+                "pitch": -4,
+                "label": "Return to Living Room",
+                "autoAlignmentYaw": 0,
+                "autoAlignmentPitch": 0
+              },
+              {
+                "id": "8de75549-d891-4b6d-81cd-da48795fdf9f",
+                "targetSceneId": "backyard",
+                "yaw": 60,
+                "pitch": -5,
+                "label": "Open Backyard",
+                "autoAlignmentYaw": -5,
+                "autoAlignmentPitch": 0
+              }
             ],
-            "label": "Chef's Kitchen",
-            "mediaAnchor": "scene-003"
+            "createdAt": "2025-10-31T09:51:56.403Z",
+            "updatedAt": "2025-10-31T09:51:56.403Z",
+            "assets": {
+              "raw": "/panorama-samples/kitchen",
+              "preview": "/panorama-samples/kitchen",
+              "web": "/panorama-samples/kitchen",
+              "print": "/panorama-samples/kitchen"
+            },
+            "processing": {
+              "status": "READY",
+              "startedAt": "2024-01-15T00:00:00.000Z",
+              "completedAt": "2025-10-31T09:51:56.403Z",
+              "accuracyEstimate": "medium",
+              "warnings": [],
+              "errors": [],
+              "depthEnabled": false
+            },
+            "measurement": {
+              "enabled": false
+            }
+          },
+          {
+            "id": "backyard",
+            "name": "Backyard",
+            "imageUrl": "/panorama-samples/backyard",
+            "thumbnailUrl": "/panorama-samples/backyard",
+            "description": "Outdoor space with lounge seating and greenery",
+            "sceneType": "exterior",
+            "tags": [
+              "garden",
+              "outdoor"
+            ],
+            "initialView": {
+              "yaw": 60,
+              "pitch": -4,
+              "fov": 92
+            },
+            "hotspots": [
+              {
+                "id": "67c349de-1990-41bc-a516-e7c9f268ae64",
+                "targetSceneId": "kitchen",
+                "yaw": -110,
+                "pitch": -6,
+                "label": "Inside Kitchen",
+                "autoAlignmentYaw": 0,
+                "autoAlignmentPitch": 0
+              }
+            ],
+            "createdAt": "2025-10-31T09:51:56.403Z",
+            "updatedAt": "2025-10-31T09:51:56.403Z",
+            "assets": {
+              "raw": "/panorama-samples/backyard",
+              "preview": "/panorama-samples/backyard",
+              "web": "/panorama-samples/backyard",
+              "print": "/panorama-samples/backyard"
+            },
+            "processing": {
+              "status": "READY",
+              "startedAt": "2024-01-15T00:00:00.000Z",
+              "completedAt": "2025-10-31T09:51:56.403Z",
+              "accuracyEstimate": "medium",
+              "warnings": [],
+              "errors": [],
+              "depthEnabled": false
+            },
+            "measurement": {
+              "enabled": false
+            }
           }
         ],
-        "hotspots": [
-          {
-            "id": "hotspot-art",
-            "position": [
-              0.8,
-              1.6,
-              -1.2
-            ],
-            "title": "Gallery Lighting",
-            "description": "Arrival presets wash the art wall in programmable light.",
-            "type": "info"
-          },
-          {
-            "id": "hotspot-balcony",
-            "position": [
-              5.6,
-              1.5,
-              -2.3
-            ],
-            "title": "Balcony Doors",
-            "type": "navigation",
-            "targetNodeId": "node-kitchen",
-            "description": "Step out to the 40-foot wraparound balcony."
-          }
-        ],
-        "spatialMeshUrl": "https://cdn.virtualtour.ai/models/penthouse-dollhouse-low.gltf",
-        "textureSetUrl": "https://cdn.virtualtour.ai/spaces/prop-001/textures/",
-        "hdrEnvironmentUrl": "https://cdn.virtualtour.ai/cdn/spaces/3BR_flat_01/walkthrough/sky.hdr",
-        "dracoDecoderPath": "/draco/",
-        "materialBoost": 0.15,
-        "eyeHeight": 1.7,
-        "manualWalkEnabled": true,
-        "autoTour": {
-          "enabled": true,
-          "order": [
-            "node-foyer",
-            "node-living",
-            "node-kitchen"
+        "navigationGraph": {
+          "entrance": [
+            {
+              "id": "8db5fd50-a00f-48dd-b7f4-9b50399e12d4",
+              "targetSceneId": "living-room",
+              "yaw": 20,
+              "pitch": -2,
+              "label": "Enter Living Room",
+              "autoAlignmentYaw": 0,
+              "autoAlignmentPitch": 0
+            }
           ],
-          "dwellMs": 5200
-        },
-        "captureMetadata": {
-          "resolution": "8K",
-          "depthPrecision": "millimeter",
-          "originAlignment": true
-        },
-        "lighting": {
-          "exposure": {
-            "min": 0.9,
-            "max": 1.15
-          },
-          "probePositions": [
-            [
-              2.5,
-              2.3,
-              0.8
-            ],
-            [
-              7.1,
-              2.1,
-              0.5
-            ]
+          "living-room": [
+            {
+              "id": "b0197e96-603b-4b34-b6fc-1960f646fc2d",
+              "targetSceneId": "kitchen",
+              "yaw": 45,
+              "pitch": -4,
+              "label": "Walk to Kitchen",
+              "autoAlignmentYaw": 10,
+              "autoAlignmentPitch": 0
+            },
+            {
+              "id": "c705d312-8f71-4999-a068-3878021a91c0",
+              "targetSceneId": "entrance",
+              "yaw": -130,
+              "pitch": -6,
+              "label": "Back to Entrance",
+              "autoAlignmentYaw": 5,
+              "autoAlignmentPitch": 0
+            }
+          ],
+          "kitchen": [
+            {
+              "id": "0454daca-72c2-4fd2-b5b9-9aefd92a2bd2",
+              "targetSceneId": "living-room",
+              "yaw": -135,
+              "pitch": -4,
+              "label": "Return to Living Room",
+              "autoAlignmentYaw": 0,
+              "autoAlignmentPitch": 0
+            },
+            {
+              "id": "8de75549-d891-4b6d-81cd-da48795fdf9f",
+              "targetSceneId": "backyard",
+              "yaw": 60,
+              "pitch": -5,
+              "label": "Open Backyard",
+              "autoAlignmentYaw": -5,
+              "autoAlignmentPitch": 0
+            }
+          ],
+          "backyard": [
+            {
+              "id": "67c349de-1990-41bc-a516-e7c9f268ae64",
+              "targetSceneId": "kitchen",
+              "yaw": -110,
+              "pitch": -6,
+              "label": "Inside Kitchen",
+              "autoAlignmentYaw": 0,
+              "autoAlignmentPitch": 0
+            }
           ]
         },
-        "zoneId": "zone-building-a",
-        "outdoor": true
+        "version": 2,
+        "createdAt": "2024-01-15T00:00:00.000Z",
+        "property": {
+          "id": "prop-001",
+          "title": "Luxury Downtown Penthouse",
+          "address": "123 Park Avenue, New York, NY 10022",
+          "ownerId": "prop-001",
+          "ownerName": "BaladShelter",
+          "tags": [
+            "luxury",
+            "penthouse",
+            "city-view",
+            "smart-home"
+          ],
+          "createdAt": "2024-01-15T00:00:00.000Z",
+          "updatedAt": "2024-10-20T00:00:00.000Z"
+        },
+        "hotspots": [
+          {
+            "id": "8db5fd50-a00f-48dd-b7f4-9b50399e12d4",
+            "targetSceneId": "living-room",
+            "yaw": 20,
+            "pitch": -2,
+            "label": "Enter Living Room",
+            "autoAlignmentYaw": 0,
+            "autoAlignmentPitch": 0,
+            "sceneId": "entrance"
+          },
+          {
+            "id": "b0197e96-603b-4b34-b6fc-1960f646fc2d",
+            "targetSceneId": "kitchen",
+            "yaw": 45,
+            "pitch": -4,
+            "label": "Walk to Kitchen",
+            "autoAlignmentYaw": 10,
+            "autoAlignmentPitch": 0,
+            "sceneId": "living-room"
+          },
+          {
+            "id": "c705d312-8f71-4999-a068-3878021a91c0",
+            "targetSceneId": "entrance",
+            "yaw": -130,
+            "pitch": -6,
+            "label": "Back to Entrance",
+            "autoAlignmentYaw": 5,
+            "autoAlignmentPitch": 0,
+            "sceneId": "living-room"
+          },
+          {
+            "id": "0454daca-72c2-4fd2-b5b9-9aefd92a2bd2",
+            "targetSceneId": "living-room",
+            "yaw": -135,
+            "pitch": -4,
+            "label": "Return to Living Room",
+            "autoAlignmentYaw": 0,
+            "autoAlignmentPitch": 0,
+            "sceneId": "kitchen"
+          },
+          {
+            "id": "8de75549-d891-4b6d-81cd-da48795fdf9f",
+            "targetSceneId": "backyard",
+            "yaw": 60,
+            "pitch": -5,
+            "label": "Open Backyard",
+            "autoAlignmentYaw": -5,
+            "autoAlignmentPitch": 0,
+            "sceneId": "kitchen"
+          },
+          {
+            "id": "67c349de-1990-41bc-a516-e7c9f268ae64",
+            "targetSceneId": "kitchen",
+            "yaw": -110,
+            "pitch": -6,
+            "label": "Inside Kitchen",
+            "autoAlignmentYaw": 0,
+            "autoAlignmentPitch": 0,
+            "sceneId": "backyard"
+          }
+        ],
+        "accuracyScores": {
+          "entrance": "medium",
+          "living-room": "medium",
+          "kitchen": "medium",
+          "backyard": "medium"
+        },
+        "accessControls": {
+          "privacy": "private",
+          "tokens": [
+            "public",
+            "marketing-campaign"
+          ]
+        },
+        "analyticsHooks": {
+          "events": [
+            "scene_enter",
+            "hotspot_click",
+            "tour_complete"
+          ]
+        }
       }
     },
     "dollhouse": {
