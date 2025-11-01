@@ -17,6 +17,8 @@ interface SphrViewerProps {
   onHotspotActivate?: (hotspot: SphrHotspot) => void
 }
 
+const PANORAMA_DEFAULT_INTENSITY = 0.85
+
 const sphericalToCartesian = (yawDeg: number, pitchDeg: number) => {
   const yaw = THREE.MathUtils.degToRad(yawDeg)
   const pitch = THREE.MathUtils.degToRad(pitchDeg)
@@ -93,7 +95,10 @@ export function SphrViewer({ space, onNodeChange, onHotspotActivate }: SphrViewe
 
     const geometry = new THREE.SphereGeometry(500, 60, 40)
     geometry.scale(-1, 1, 1)
-    const material = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.BackSide })
+    const material = new THREE.MeshBasicMaterial({
+      color: new THREE.Color().setScalar(PANORAMA_DEFAULT_INTENSITY),
+      side: THREE.BackSide,
+    })
     const sphere = new THREE.Mesh(geometry, material)
     scene.add(sphere)
 
