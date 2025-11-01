@@ -19,6 +19,39 @@ interface SphrViewerProps {
 
 const PANORAMA_DEFAULT_INTENSITY = 0.85
 const PANORAMA_FALLBACK_URL = "/panorama-samples/living-room.jpg"
+const PANORAMA_GUESS_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "avif"] as const
+
+const buildPanoramaCandidates = (sourceUrl?: string | null): string[] => {
+  if (!sourceUrl) {
+    return [PANORAMA_FALLBACK_URL]
+  }
+
+  const trimmed = sourceUrl.trim()
+  if (!trimmed) {
+    return [PANORAMA_FALLBACK_URL]
+  }
+
+  // Ignore query/hash when checking for a file extension.
+  const urlWithoutParams = trimmed.split(/[?#]/)[0] ?? ""
+  const hasExtension = /\.[^/.]+$/.test(urlWithoutParams)
+  const candidates: string[] = [trimmed]
+
+  if (!hasExtension && !trimmed.startsWith("data:")) {
+    const suffix = trimmed.includes("?") || trimmed.includes("#")
+      ? trimmed.slice(urlWithoutParams.length)
+      : ""
+
+    for (const extension of PANORAMA_GUESS_EXTENSIONS) {
+      candidates.push(`${urlWithoutParams}.${extension}${suffix}`)
+    }
+  }
+
+  if (!candidates.includes(PANORAMA_FALLBACK_URL)) {
+    candidates.push(PANORAMA_FALLBACK_URL)
+  }
+
+  return [...new Set(candidates)]
+}
 
 const sphericalToCartesian = (yawDeg: number, pitchDeg: number) => {
   const yaw = THREE.MathUtils.degToRad(yawDeg)
@@ -205,25 +238,30 @@ export function SphrViewer({ space, onNodeChange, onHotspotActivate }: SphrViewe
       material.needsUpdate = true
     }
 
-    const loadPanorama = (url: string, allowFallback: boolean) => {
+    const candidates = buildPanoramaCandidates(currentNode.panoramaUrl)
+
+    const loadPanorama = (index: number) => {
+      if (cancelled || index >= candidates.length) {
+        return
+      }
+
+      const candidateUrl = candidates[index]
       loader.load(
-        url,
+        candidateUrl,
         (texture) => {
           applyTexture(texture)
         },
         undefined,
         (error) => {
           if (process.env.NODE_ENV !== "production") {
-            console.warn("Failed to load panorama", url, error)
+            console.warn("Failed to load panorama", candidateUrl, error)
           }
-          if (allowFallback && url !== PANORAMA_FALLBACK_URL) {
-            loadPanorama(PANORAMA_FALLBACK_URL, false)
-          }
+          loadPanorama(index + 1)
         },
       )
     }
 
-    loadPanorama(currentNode.panoramaUrl, true)
+    loadPanorama(0)
 
     return () => {
       cancelled = true
