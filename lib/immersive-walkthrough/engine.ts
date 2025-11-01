@@ -405,6 +405,14 @@ export class ImmersiveWalkthroughEngine {
   private async loadSpatialAssets() {
     if (!this.scene) return
 
+    const meshUrl = this.space.spatialMeshUrl
+    if (!meshUrl) {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("No spatial mesh URL provided for immersive walkthrough")
+      }
+      return
+    }
+
     const loader = new GLTFLoader()
     if (this.space.dracoDecoderPath) {
       const draco = new DRACOLoader()
@@ -412,9 +420,9 @@ export class ImmersiveWalkthroughEngine {
       loader.setDRACOLoader(draco)
     }
 
-    await new Promise<void>((resolve, reject) => {
+    await new Promise<void>((resolve) => {
       loader.load(
-        this.space.spatialMeshUrl,
+        meshUrl,
         (gltf) => {
           const root = gltf.scene || new Group()
           root.traverse((child) => {
@@ -443,7 +451,12 @@ export class ImmersiveWalkthroughEngine {
           resolve()
         },
         undefined,
-        (error) => reject(error),
+        (error) => {
+          if (process.env.NODE_ENV !== "production") {
+            console.warn("Failed to load spatial assets", meshUrl, error)
+          }
+          resolve()
+        },
       )
     })
   }
