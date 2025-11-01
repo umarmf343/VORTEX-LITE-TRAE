@@ -22,6 +22,7 @@ export function PanoramaSceneEngineApp({ snapshot }: PanoramaSceneEngineProps) {
         initialSceneId={snapshot.initialSceneId}
         initialScenes={scenes}
         initialManifest={manifest}
+        property={snapshot.property}
         onPublish={(nextManifest) => setManifest(nextManifest)}
         onScenesChange={(nextScenes) => setScenes(nextScenes)}
       />

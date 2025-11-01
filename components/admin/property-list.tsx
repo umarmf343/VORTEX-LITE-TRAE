@@ -3,7 +3,7 @@ import type { Property } from "@/lib/types"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Eye, Edit, Trash2, BarChart3 } from "@/lib/icons"
-import { formatCurrency } from "@/lib/utils"
+import { cn, formatCurrency } from "@/lib/utils"
 
 interface PropertyListProps {
   properties: Property[]
@@ -38,6 +38,20 @@ export function PropertyList({ properties, onView, onEdit, onDelete, onStats }: 
             <div className="flex-1">
               <h3 className="font-semibold text-lg">{property.name}</h3>
               <p className="text-gray-600 text-sm mb-2">{property.address}</p>
+              <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                <span
+                  className={cn(
+                    "inline-flex items-center rounded-full border px-2 py-0.5 uppercase tracking-wide",
+                    property.privacy === "private"
+                      ? "border-amber-500/60 bg-amber-100 text-amber-700"
+                      : "border-emerald-500/60 bg-emerald-100 text-emerald-700",
+                  )}
+                >
+                  {property.privacy}
+                </span>
+                <span>Timezone: {property.timezone}</span>
+                <span>Units: {property.defaultUnits === "imperial" ? "Imperial" : "Metric"}</span>
+              </div>
               <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 mb-3">
                 <span>{formatCurrency(property.price)}</span>
                 <span>{property.bedrooms} bed</span>

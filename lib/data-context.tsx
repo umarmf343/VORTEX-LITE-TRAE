@@ -18,6 +18,9 @@ import type {
   PropertyStats,
   GuidedTour,
   PropertyStatsSummary,
+  PropertyPrivacy,
+  MeasurementUnits,
+  PropertyPrimaryContact,
 } from "./types"
 
 type RawProperty = Omit<Property, "createdAt" | "updatedAt" | "stats"> & {
@@ -126,6 +129,15 @@ type NewPropertyInput = {
   sqft: number
   description?: string
   thumbnail?: string
+  timezone: string
+  ownerId: string
+  ownerName: string
+  ownerEmail?: string
+  privacy: PropertyPrivacy
+  defaultLanguage: string
+  defaultUnits: MeasurementUnits
+  primaryContact: PropertyPrimaryContact
+  tags?: string[]
 }
 
 interface DataContextType {
