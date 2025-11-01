@@ -303,6 +303,16 @@ export function TourPlayer({
     [activeZoneId, availableZones, property.scenes],
   )
 
+  const handleSceneSelect = useCallback(
+    (index: number) => {
+      if (activeExperienceTab !== "walkthrough") {
+        setActiveExperienceTab("walkthrough")
+      }
+      goToScene(index)
+    },
+    [activeExperienceTab, goToScene, setActiveExperienceTab],
+  )
+
   useEffect(() => {
     let cancelled = false
 
@@ -1739,7 +1749,7 @@ export function TourPlayer({
               {property.scenes.map((scene, idx) => (
                 <button
                   key={scene.id}
-                  onClick={() => goToScene(idx)}
+                  onClick={() => handleSceneSelect(idx)}
                   className={`w-full text-left rounded-lg overflow-hidden transition-all border border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                     idx === currentSceneIndex ? "ring-2 ring-blue-500" : "hover:border-blue-500/40"
                   }`}
