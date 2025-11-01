@@ -790,11 +790,11 @@
       "immersiveWalkthrough": {
         "spaceId": "prop-001-immersive",
         "defaultNodeId": "node-foyer",
-        "spatialMeshUrl": "/cdn/spaces/3BR_flat_01/walkthrough/mesh.glb",
-        "textureSetUrl": "/cdn/spaces/3BR_flat_01/walkthrough/textures/",
-        "hdrEnvironmentUrl": "/cdn/spaces/3BR_flat_01/walkthrough/sky.hdr",
-        "navigationMeshUrl": "/cdn/spaces/3BR_flat_01/walkthrough/navmesh.glb",
-        "dracoDecoderPath": "/cdn/decoders/draco/",
+        "spatialMeshUrl": "https://cdn.virtualtour.ai/cdn/spaces/3BR_flat_01/walkthrough/mesh.glb",
+        "textureSetUrl": "https://cdn.virtualtour.ai/cdn/spaces/3BR_flat_01/walkthrough/textures/",
+        "hdrEnvironmentUrl": "https://cdn.virtualtour.ai/cdn/spaces/3BR_flat_01/walkthrough/sky.hdr",
+        "navigationMeshUrl": "https://cdn.virtualtour.ai/cdn/spaces/3BR_flat_01/walkthrough/navmesh.glb",
+        "dracoDecoderPath": "https://cdn.virtualtour.ai/cdn/decoders/draco/",
         "materialBoost": 0.15,
         "manualWalkEnabled": true,
         "nodes": [
