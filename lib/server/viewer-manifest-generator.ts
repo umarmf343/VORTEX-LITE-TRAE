@@ -41,7 +41,7 @@ const resolveOwner = (property: StoredData["properties"][number]) => {
 
 const ensureAbsoluteUrl = (url: string | undefined, spaceId: string) => {
   if (!url) {
-    return `https://cdn.virtualtour.ai/spaces/${spaceId}/assets/missing`
+    return `/spaces/${spaceId}/assets/missing.jpg`
   }
   if (url.startsWith("http://") || url.startsWith("https://")) {
     return url
@@ -49,10 +49,7 @@ const ensureAbsoluteUrl = (url: string | undefined, spaceId: string) => {
   if (url.startsWith("//")) {
     return `https:${url}`
   }
-  if (url.startsWith("/")) {
-    return `https://cdn.virtualtour.ai${url}`
-  }
-  return url
+  return url.startsWith("/") ? url : `/${url}`
 }
 
 const PANORAMA_FALLBACK_URL = "/panorama-samples/living-room.jpg"
@@ -382,15 +379,8 @@ const buildGeometry = (property: StoredData["properties"][number]) => {
         level: index,
         triangle_count: 50000 * Math.max(1, index + 1),
         tile_size: index === 0 ? 256 : 512,
-        description: `${label} geometry`
+        description: `${label} geometry`,
       })
-    })
-  } else {
-    lodLevels.push({
-      level: 0,
-      triangle_count: 75000,
-      tile_size: 256,
-      description: "Default reconstruction geometry"
     })
   }
 
@@ -403,14 +393,7 @@ const buildGeometry = (property: StoredData["properties"][number]) => {
       tile_id: `${property.id}_dollhouse_0`,
       url: ensureAbsoluteUrl(dollhouse.meshUrl, property.id),
       lod: 0,
-      bounds: [0, 0, 0, width, height, depth]
-    })
-  } else {
-    meshTiles.push({
-      tile_id: `${property.id}_mesh_0`,
-      url: `https://cdn.virtualtour.ai/spaces/${property.id}/mesh/mesh_0.glb`,
-      lod: 0,
-      bounds: [0, 0, 0, 10, 3, 10]
+      bounds: [0, 0, 0, width, height, depth],
     })
   }
 
@@ -435,11 +418,12 @@ const buildTextures = (
   })
 
   if (textures.length === 0) {
+    const fallback = property.thumbnail || property.images?.[0] || "/panorama-samples/living-room.jpg"
     textures.push({
       lod: 0,
-      url: `https://cdn.virtualtour.ai/spaces/${property.id}/textures/base_diffuse.jpg`,
-      resolution: "2048x2048",
-      format: "jpg"
+      url: ensureAbsoluteUrl(fallback, property.id),
+      resolution: deriveTextureResolution(fallback),
+      format: deriveTextureFormat(fallback),
     })
   }
 

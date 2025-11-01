@@ -63,8 +63,8 @@ interface SceneUploadPayload {
 interface SceneLinkPayload {
   sourceSceneId: string
   targetSceneId: string
-  yaw: number
-  pitch: number
+  x: number
+  y: number
   label: string
   bidirectional?: boolean
   autoAlign?: boolean
@@ -84,6 +84,27 @@ const clamp = (value: number, min: number, max: number) =>
 const normalizeYaw = (value: number) => {
   const wrapped = ((value % 360) + 360) % 360
   return wrapped > 180 ? wrapped - 360 : wrapped
+}
+
+const clampPercentage = (value: number) => clamp(value, 0, 100)
+
+const percentageToYawPitch = (xPercent: number, yPercent: number) => {
+  const clampedX = clampPercentage(xPercent)
+  const clampedY = clampPercentage(yPercent)
+  const yaw = normalizeYaw((clampedX / 100) * 360 - 180)
+  const pitch = clamp(90 - (clampedY / 100) * 180, -90, 90)
+  return { yaw, pitch }
+}
+
+const yawPitchToPercentage = (yaw: number, pitch: number) => {
+  const normalizedYaw = normalizeYaw(yaw)
+  const clampedPitch = clamp(pitch, -90, 90)
+  const x = ((normalizedYaw + 180) / 360) * 100
+  const y = ((90 - clampedPitch) / 180) * 100
+  return {
+    x: Math.round(x * 10) / 10,
+    y: Math.round(y * 10) / 10,
+  }
 }
 
 async function ensureDirectory() {
@@ -150,6 +171,37 @@ function ensureSceneStructure(
     notes: depthEnabled ? undefined : "Using visual alignment only.",
   }
 
+  const hotspots: PanoramaSceneHotspot[] = Array.isArray(scene.hotspots)
+    ? scene.hotspots.map((hotspot) => {
+        const base: PanoramaSceneHotspot = {
+          ...hotspot,
+          id: hotspot.id ?? randomUUID(),
+          targetSceneId: hotspot.targetSceneId,
+          label: hotspot.label ?? `Hotspot to ${hotspot.targetSceneId}`,
+        }
+
+        if (typeof base.x !== "number" || typeof base.y !== "number") {
+          const { x, y } = yawPitchToPercentage(base.yaw ?? 0, base.pitch ?? 0)
+          base.x = clampPercentage(typeof base.x === "number" ? base.x : x)
+          base.y = clampPercentage(typeof base.y === "number" ? base.y : y)
+        } else {
+          base.x = clampPercentage(base.x)
+          base.y = clampPercentage(base.y)
+        }
+
+        if (typeof base.yaw !== "number" || typeof base.pitch !== "number") {
+          const { yaw, pitch } = percentageToYawPitch(base.x ?? 0, base.y ?? 0)
+          base.yaw = yaw
+          base.pitch = pitch
+        } else {
+          base.yaw = normalizeYaw(base.yaw)
+          base.pitch = clamp(base.pitch, -90, 90)
+        }
+
+        return base
+      })
+    : []
+
   return {
     id: scene.id,
     name: scene.name,
@@ -162,7 +214,7 @@ function ensureSceneStructure(
     orientationHint: scene.orientationHint ?? "north",
     tags: Array.isArray(scene.tags) ? scene.tags : [],
     initialView,
-    hotspots: Array.isArray(scene.hotspots) ? scene.hotspots : [],
+    hotspots,
     createdAt: timestamp,
     updatedAt,
     assets,
@@ -216,6 +268,7 @@ function createSampleScenes(): PanoramaSceneStore {
   const entranceHotspot: PanoramaSceneHotspot = {
     id: randomUUID(),
     targetSceneId: "living-room",
+    ...yawPitchToPercentage(20, -2),
     yaw: 20,
     pitch: -2,
     label: "Enter Living Room",
@@ -226,6 +279,7 @@ function createSampleScenes(): PanoramaSceneStore {
     {
       id: randomUUID(),
       targetSceneId: "kitchen",
+      ...yawPitchToPercentage(45, -4),
       yaw: 45,
       pitch: -4,
       label: "Walk to Kitchen",
@@ -235,6 +289,7 @@ function createSampleScenes(): PanoramaSceneStore {
     {
       id: randomUUID(),
       targetSceneId: "entrance",
+      ...yawPitchToPercentage(-130, -6),
       yaw: -130,
       pitch: -6,
       label: "Back to Entrance",
@@ -246,6 +301,7 @@ function createSampleScenes(): PanoramaSceneStore {
     {
       id: randomUUID(),
       targetSceneId: "living-room",
+      ...yawPitchToPercentage(-135, -4),
       yaw: -135,
       pitch: -4,
       label: "Return to Living Room",
@@ -255,6 +311,7 @@ function createSampleScenes(): PanoramaSceneStore {
     {
       id: randomUUID(),
       targetSceneId: "backyard",
+      ...yawPitchToPercentage(60, -5),
       yaw: 60,
       pitch: -5,
       label: "Open Backyard",
@@ -266,6 +323,7 @@ function createSampleScenes(): PanoramaSceneStore {
     {
       id: randomUUID(),
       targetSceneId: "kitchen",
+      ...yawPitchToPercentage(-110, -6),
       yaw: -110,
       pitch: -6,
       label: "Inside Kitchen",
@@ -579,11 +637,16 @@ export async function linkScenes(payload: SceneLinkPayload): Promise<PanoramaSce
   findSceneOrThrow(store, payload.targetSceneId)
 
   const timestamp = new Date().toISOString()
+  const x = clampPercentage(payload.x)
+  const y = clampPercentage(payload.y)
+  const { yaw, pitch } = percentageToYawPitch(x, y)
   const hotspot: PanoramaSceneHotspot = {
     id: randomUUID(),
     targetSceneId: payload.targetSceneId,
-    yaw: normalizeYaw(payload.yaw),
-    pitch: clamp(payload.pitch, -90, 90),
+    x,
+    y,
+    yaw,
+    pitch,
     label: payload.label,
   }
 
@@ -598,11 +661,16 @@ export async function linkScenes(payload: SceneLinkPayload): Promise<PanoramaSce
 
   if (payload.bidirectional) {
     const target = findSceneOrThrow(store, payload.targetSceneId)
+    const reverseYaw = normalizeYaw(yaw + 180)
+    const reversePitch = clamp(-pitch, -90, 90)
+    const reversePercentages = yawPitchToPercentage(reverseYaw, reversePitch)
     const reverseHotspot: PanoramaSceneHotspot = {
       id: randomUUID(),
       targetSceneId: source.id,
-      yaw: normalizeYaw(payload.yaw + 180),
-      pitch: clamp(-payload.pitch, -90, 90),
+      x: reversePercentages.x,
+      y: reversePercentages.y,
+      yaw: reverseYaw,
+      pitch: reversePitch,
       label: `Back to ${source.name}`,
     }
     if (payload.autoAlign) {

@@ -7,9 +7,12 @@ import {
 
 export const dynamic = "force-dynamic"
 
-const parseNumber = (value: unknown, fallback: number) => {
+const parsePercentage = (value: unknown, fallback: number) => {
   const num = Number(value)
-  return Number.isFinite(num) ? num : fallback
+  if (!Number.isFinite(num)) {
+    return fallback
+  }
+  return Math.min(Math.max(num, 0), 100)
 }
 
 export async function POST(request: NextRequest) {
@@ -25,8 +28,8 @@ export async function POST(request: NextRequest) {
     const hotspot = await linkScenes({
       sourceSceneId: body.sourceSceneId,
       targetSceneId: body.targetSceneId,
-      yaw: parseNumber(body.yaw, 0),
-      pitch: parseNumber(body.pitch, 0),
+      x: parsePercentage(body.x, 50),
+      y: parsePercentage(body.y, 50),
       label: body.label,
       bidirectional: Boolean(body.bidirectional),
       autoAlign: Boolean(body.autoAlign),

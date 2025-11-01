@@ -617,8 +617,17 @@ export interface PanoramaSceneInitialView {
 export interface PanoramaSceneHotspot {
   id: string
   targetSceneId: string
-  yaw: number
-  pitch: number
+  /** Horizontal position on the panorama as a percentage (0-100). */
+  x?: number
+  /** Vertical position on the panorama as a percentage (0-100). */
+  y?: number
+  /**
+   * Legacy spherical coordinates. When scenes are edited through the hotspot editor we
+   * store percentage positions and derive yaw/pitch automatically, but existing manifests
+   * may still include the spherical values. Both are optional to support migration.
+   */
+  yaw?: number
+  pitch?: number
   label: string
   autoAlignmentYaw?: number
   autoAlignmentPitch?: number

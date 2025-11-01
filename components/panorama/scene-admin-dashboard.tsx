@@ -1,12 +1,15 @@
 "use client"
 
 import {
+  useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   useTransition,
   type ChangeEvent,
   type FormEvent,
+  type MouseEvent,
 } from "react"
 
 import type {
@@ -55,8 +58,8 @@ interface SceneFormState {
 interface LinkFormState {
   sourceSceneId: string
   targetSceneId: string
-  yaw: string
-  pitch: string
+  x: string
+  y: string
   label: string
   bidirectional: boolean
   autoAlign: boolean
@@ -82,8 +85,8 @@ const defaultSceneFormState: SceneFormState = {
 const defaultLinkState: LinkFormState = {
   sourceSceneId: "",
   targetSceneId: "",
-  yaw: "0",
-  pitch: "0",
+  x: "50",
+  y: "50",
   label: "",
   bidirectional: true,
   autoAlign: true,
@@ -136,6 +139,54 @@ export function SceneAdminDashboard({
     return [...scenes].sort((a, b) => a.name.localeCompare(b.name))
   }, [scenes])
 
+  const previewContainerRef = useRef<HTMLDivElement | null>(null)
+  const selectedSourceScene = useMemo(
+    () => scenes.find((scene) => scene.id === linkForm.sourceSceneId) ?? null,
+    [linkForm.sourceSceneId, scenes],
+  )
+
+  const resolvePreviewUrl = useCallback((imageUrl?: string) => {
+    if (!imageUrl) {
+      return ""
+    }
+    const trimmed = imageUrl.trim()
+    if (!trimmed) {
+      return ""
+    }
+    const [pathOnly] = trimmed.split(/[?#]/)
+    if (pathOnly && /\.[a-zA-Z0-9]+$/.test(pathOnly)) {
+      return trimmed
+    }
+    return `${trimmed}.jpg`
+  }, [])
+
+  const previewImageUrl = useMemo(() => resolvePreviewUrl(selectedSourceScene?.imageUrl), [
+    resolvePreviewUrl,
+    selectedSourceScene?.imageUrl,
+  ])
+
+  const handlePreviewClick = useCallback((event: MouseEvent<HTMLDivElement>) => {
+    if (!previewContainerRef.current) {
+      return
+    }
+    const rect = previewContainerRef.current.getBoundingClientRect()
+    if (rect.width === 0 || rect.height === 0) {
+      return
+    }
+    const xPercent = ((event.clientX - rect.left) / rect.width) * 100
+    const yPercent = ((event.clientY - rect.top) / rect.height) * 100
+    const clampedX = Math.min(Math.max(xPercent, 0), 100)
+    const clampedY = Math.min(Math.max(yPercent, 0), 100)
+    setLinkForm((prev) => ({
+      ...prev,
+      x: clampedX.toFixed(1),
+      y: clampedY.toFixed(1),
+    }))
+  }, [])
+
+  const pendingX = Number(linkForm.x) || 0
+  const pendingY = Number(linkForm.y) || 0
+
   const handleSceneFieldChange = (field: keyof SceneFormState) =>
     (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const value = event.target.value
@@ -149,6 +200,14 @@ export function SceneAdminDashboard({
   const handleLinkFieldChange = (field: keyof LinkFormState) =>
     (event: ChangeEvent<HTMLInputElement>) => {
       const value = event.target.value
+      if (field === "x" || field === "y") {
+        const numeric = Number(value)
+        if (Number.isFinite(numeric)) {
+          const clamped = Math.min(Math.max(numeric, 0), 100)
+          setLinkForm((prev) => ({ ...prev, [field]: clamped.toFixed(1) }))
+          return
+        }
+      }
       setLinkForm((prev) => ({ ...prev, [field]: value }))
     }
 
@@ -201,9 +260,13 @@ export function SceneAdminDashboard({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...linkForm,
-          yaw: Number(linkForm.yaw) || 0,
-          pitch: Number(linkForm.pitch) || 0,
+          sourceSceneId: linkForm.sourceSceneId,
+          targetSceneId: linkForm.targetSceneId,
+          x: Number(linkForm.x) || 0,
+          y: Number(linkForm.y) || 0,
+          label: linkForm.label,
+          bidirectional: linkForm.bidirectional,
+          autoAlign: linkForm.autoAlign,
         }),
       })
 
@@ -223,6 +286,10 @@ export function SceneAdminDashboard({
         setPropertyMetadata(data.property)
         onScenesChange?.(data.scenes)
         setFeedback("Navigation hotspot created")
+        setLinkForm((prev) => ({
+          ...defaultLinkState,
+          sourceSceneId: prev.sourceSceneId,
+        }))
       }
     })
   }
@@ -480,14 +547,56 @@ export function SceneAdminDashboard({
                   required
                 />
               </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="grid gap-2">
-                  <Label htmlFor="hotspot-yaw">Hotspot yaw</Label>
-                  <Input id="hotspot-yaw" value={linkForm.yaw} onChange={handleLinkFieldChange("yaw")} />
+              <div className="grid gap-3">
+                <div className="flex items-center justify-between">
+                  <Label>Hotspot position</Label>
+                  {selectedSourceScene ? (
+                    <span className="text-xs text-muted-foreground">Click to drop a marker</span>
+                  ) : null}
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="hotspot-pitch">Hotspot pitch</Label>
-                  <Input id="hotspot-pitch" value={linkForm.pitch} onChange={handleLinkFieldChange("pitch")} />
+                <div
+                  ref={previewContainerRef}
+                  className="relative aspect-video w-full overflow-hidden rounded-lg border border-dashed border-slate-700 bg-slate-950"
+                  onClick={handlePreviewClick}
+                >
+                  {selectedSourceScene && previewImageUrl ? (
+                    <>
+                      <img
+                        src={previewImageUrl}
+                        alt={`${selectedSourceScene.name} panorama preview`}
+                        className="h-full w-full object-cover opacity-90"
+                      />
+                      {selectedSourceScene.hotspots.map((hotspot) => (
+                        <span
+                          key={hotspot.id}
+                          className="pointer-events-none absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/60 bg-[rgba(0,136,255,0.7)] shadow-[0_0_10px_rgba(0,136,255,0.5)]"
+                          style={{ left: `${hotspot.x ?? 50}%`, top: `${hotspot.y ?? 50}%` }}
+                        />
+                      ))}
+                      <span
+                        className="pointer-events-none absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-[rgba(0,136,255,0.85)] shadow-[0_0_14px_rgba(0,136,255,0.65)]"
+                        style={{ left: `${pendingX}%`, top: `${pendingY}%` }}
+                      />
+                    </>
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">
+                      Select a source scene to begin placing hotspots.
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Coordinates are stored as percentages of the panorama width and height. The preview shows existing hotspots in
+                  blue and the pending marker in white.
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="grid gap-1">
+                    <Label htmlFor="hotspot-x">Horizontal (%)</Label>
+                    <Input id="hotspot-x" value={linkForm.x} onChange={handleLinkFieldChange("x")} />
+                  </div>
+                  <div className="grid gap-1">
+                    <Label htmlFor="hotspot-y">Vertical (%)</Label>
+                    <Input id="hotspot-y" value={linkForm.y} onChange={handleLinkFieldChange("y")} />
+                  </div>
                 </div>
               </div>
               <div className="flex items-center justify-between gap-4 rounded-lg border p-3">
@@ -593,6 +702,12 @@ export function SceneAdminDashboard({
                           <span>{hotspot.label}</span>
                           <span className="text-right text-[10px] uppercase tracking-wide text-muted-foreground">
                             → {hotspot.targetSceneId}
+                            <br />
+                            <span className="font-normal normal-case text-[10px] text-muted-foreground">
+                              {typeof hotspot.x === "number" ? hotspot.x.toFixed(1) : "—"}% ·
+                              {" "}
+                              {typeof hotspot.y === "number" ? hotspot.y.toFixed(1) : "—"}%
+                            </span>
                           </span>
                         </li>
                       ))}

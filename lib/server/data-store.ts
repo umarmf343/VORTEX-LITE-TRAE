@@ -229,6 +229,21 @@ const ensurePanoramaAssetUrl = (value?: string): string => {
   return `${trimmed}.jpg`
 }
 
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
+
+const normalizeYaw = (value: number) => {
+  const wrapped = ((value % 360) + 360) % 360
+  return wrapped > 180 ? wrapped - 360 : wrapped
+}
+
+const clampPercentage = (value: number) => clamp(value, 0, 100)
+
+const percentageToYawPitch = (xPercent: number, yPercent: number) => {
+  const yaw = normalizeYaw((clampPercentage(xPercent) / 100) * 360 - 180)
+  const pitch = clamp(90 - (clampPercentage(yPercent) / 100) * 180, -90, 90)
+  return { yaw, pitch }
+}
+
 const buildSphrSpaceFromManifest = (manifest: PanoramaTourManifest): SphrSpace => {
   const nodes = manifest.scenes.map((scene) => {
     const manifestHotspots = scene.hotspots?.length
@@ -249,8 +264,9 @@ const buildSphrSpaceFromManifest = (manifest: PanoramaTourManifest): SphrSpace =
             ? "Auto-align navigation"
             : undefined,
         type: "navigation" as const,
-        yaw: hotspot.yaw,
-        pitch: hotspot.pitch,
+        ...(typeof hotspot.yaw === "number" && typeof hotspot.pitch === "number"
+          ? { yaw: hotspot.yaw, pitch: hotspot.pitch }
+          : percentageToYawPitch(hotspot.x ?? 50, hotspot.y ?? 50)),
         targetNodeId: hotspot.targetSceneId,
       })),
     }
