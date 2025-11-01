@@ -458,7 +458,7 @@
           {
             "id": "penthouse-lobby",
             "name": "Skyline Lobby",
-            "panoramaUrl": "https://static.mused.org/spaceshare/IMG_20231101_074927_00_479.jpg",
+            "panoramaUrl": "/panorama-samples/entrance.jpg",
             "initialYaw": 40,
             "initialPitch": -5,
             "hotspots": [
@@ -499,7 +499,7 @@
           {
             "id": "penthouse-living",
             "name": "Grand Living Room",
-            "panoramaUrl": "https://static.mused.org/spaceshare/IMG_20231101_075039_00_482.jpg",
+            "panoramaUrl": "/panorama-samples/living-room.jpg",
             "initialYaw": -110,
             "initialPitch": -4,
             "hotspots": [
@@ -557,7 +557,7 @@
           {
             "id": "penthouse-suite",
             "name": "Owner's Suite",
-            "panoramaUrl": "https://static.mused.org/spaceshare/IMG_20231101_075124_00_485.jpg",
+            "panoramaUrl": "/panorama-samples/kitchen.jpg",
             "initialYaw": 95,
             "initialPitch": -6,
             "hotspots": [
@@ -598,7 +598,7 @@
           {
             "id": "penthouse-terrace",
             "name": "Sky Terrace",
-            "panoramaUrl": "https://static.mused.org/spaceshare/IMG_20231101_075213_00_488.jpg",
+            "panoramaUrl": "/panorama-samples/backyard.jpg",
             "initialYaw": 24,
             "initialPitch": -4,
             "hotspots": [
@@ -631,7 +631,7 @@
           {
             "id": "penthouse-dining",
             "name": "Dining Gallery",
-            "panoramaUrl": "https://static.mused.org/spaceshare/IMG_20231101_075339_00_492.jpg",
+            "panoramaUrl": "/panorama-samples/entrance.jpg",
             "initialYaw": -48,
             "initialPitch": -3,
             "hotspots": [
@@ -664,7 +664,7 @@
           {
             "id": "penthouse-kitchen",
             "name": "Chef's Kitchen",
-            "panoramaUrl": "https://static.mused.org/spaceshare/IMG_20231101_075427_00_495.jpg",
+            "panoramaUrl": "/panorama-samples/living-room.jpg",
             "initialYaw": -20,
             "initialPitch": -4,
             "hotspots": [
@@ -697,7 +697,7 @@
           {
             "id": "penthouse-office",
             "name": "Executive Study",
-            "panoramaUrl": "https://static.mused.org/spaceshare/IMG_20231101_075512_00_498.jpg",
+            "panoramaUrl": "/panorama-samples/kitchen.jpg",
             "initialYaw": 60,
             "initialPitch": -6,
             "hotspots": [
@@ -730,7 +730,7 @@
           {
             "id": "penthouse-lounge",
             "name": "Cinema Lounge",
-            "panoramaUrl": "https://static.mused.org/spaceshare/IMG_20231101_075612_00_501.jpg",
+            "panoramaUrl": "/panorama-samples/backyard.jpg",
             "initialYaw": -32,
             "initialPitch": -6,
             "hotspots": [
@@ -763,7 +763,7 @@
           {
             "id": "penthouse-ensuite",
             "name": "Spa Ensuite",
-            "panoramaUrl": "https://static.mused.org/spaceshare/IMG_20231101_075701_00_504.jpg",
+            "panoramaUrl": "/panorama-samples/entrance.jpg",
             "initialYaw": -16,
             "initialPitch": -4,
             "hotspots": [
@@ -790,11 +790,8 @@
       "immersiveWalkthrough": {
         "spaceId": "prop-001-immersive",
         "defaultNodeId": "node-foyer",
-        "spatialMeshUrl": "https://cdn.virtualtour.ai/cdn/spaces/3BR_flat_01/walkthrough/mesh.glb",
-        "textureSetUrl": "https://cdn.virtualtour.ai/cdn/spaces/3BR_flat_01/walkthrough/textures/",
-        "hdrEnvironmentUrl": "https://cdn.virtualtour.ai/cdn/spaces/3BR_flat_01/walkthrough/sky.hdr",
-        "navigationMeshUrl": "https://cdn.virtualtour.ai/cdn/spaces/3BR_flat_01/walkthrough/navmesh.glb",
-        "dracoDecoderPath": "https://cdn.virtualtour.ai/cdn/decoders/draco/",
+        "spatialMeshUrl": "/models/penthouse-dollhouse-low.gltf",
+        "hdrEnvironmentUrl": "/cdn/spaces/3BR_flat_01/walkthrough/sky.hdr",
         "materialBoost": 0.15,
         "manualWalkEnabled": true,
         "nodes": [

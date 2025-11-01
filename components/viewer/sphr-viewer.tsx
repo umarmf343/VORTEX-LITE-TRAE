@@ -18,6 +18,7 @@ interface SphrViewerProps {
 }
 
 const PANORAMA_DEFAULT_INTENSITY = 0.85
+const PANORAMA_FALLBACK_URL = "/panorama-samples/living-room.jpg"
 
 const sphericalToCartesian = (yawDeg: number, pitchDeg: number) => {
   const yaw = THREE.MathUtils.degToRad(yawDeg)
@@ -184,32 +185,45 @@ export function SphrViewer({ space, onNodeChange, onHotspotActivate }: SphrViewe
     let cancelled = false
     const loader = textureLoaderRef.current
 
-    loader.load(
-      currentNode.panoramaUrl,
-      (texture) => {
-        if (cancelled) {
-          texture.dispose()
-          return
-        }
-        texture.colorSpace = THREE.SRGBColorSpace
-        texture.minFilter = THREE.LinearFilter
-        const mesh = sphereMeshRef.current
-        if (!mesh) {
-          texture.dispose()
-          return
-        }
-        const material = mesh.material as THREE.MeshBasicMaterial
-        if (material.map) {
-          material.map.dispose()
-        }
-        material.map = texture
-        material.needsUpdate = true
-      },
-      undefined,
-      (error) => {
-        console.warn("Failed to load panorama", currentNode.panoramaUrl, error)
-      },
-    )
+    const applyTexture = (texture: THREE.Texture) => {
+      if (cancelled) {
+        texture.dispose()
+        return
+      }
+      texture.colorSpace = THREE.SRGBColorSpace
+      texture.minFilter = THREE.LinearFilter
+      const mesh = sphereMeshRef.current
+      if (!mesh) {
+        texture.dispose()
+        return
+      }
+      const material = mesh.material as THREE.MeshBasicMaterial
+      if (material.map) {
+        material.map.dispose()
+      }
+      material.map = texture
+      material.needsUpdate = true
+    }
+
+    const loadPanorama = (url: string, allowFallback: boolean) => {
+      loader.load(
+        url,
+        (texture) => {
+          applyTexture(texture)
+        },
+        undefined,
+        (error) => {
+          if (process.env.NODE_ENV !== "production") {
+            console.warn("Failed to load panorama", url, error)
+          }
+          if (allowFallback && url !== PANORAMA_FALLBACK_URL) {
+            loadPanorama(PANORAMA_FALLBACK_URL, false)
+          }
+        },
+      )
+    }
+
+    loadPanorama(currentNode.panoramaUrl, true)
 
     return () => {
       cancelled = true
