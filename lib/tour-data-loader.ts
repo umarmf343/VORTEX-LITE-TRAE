@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises"
 import { join } from "node:path"
 
-import type { Hotspot, HotspotMedia, SceneTransition } from "./types"
+import type { Hotspot, HotspotMedia, PanoramaTourManifest, SceneTransition } from "./types"
 import { normalizeHotspotType } from "./hotspot-utils"
 
 interface RawHotspotRecord {
@@ -197,6 +197,11 @@ const loadManifestDefaults = async (): Promise<TourDataManifest | null> => {
 
 export const loadTourManifest = async (): Promise<TourDataManifest | null> => {
   return loadManifestDefaults()
+}
+
+export const loadPanoramaTourManifest = async (): Promise<PanoramaTourManifest | null> => {
+  const filePath = join(TOUR_DATA_ROOT, "panorama-tour-manifest.json")
+  return readJson<PanoramaTourManifest>(filePath)
 }
 
 export const loadScenePayload = async (
