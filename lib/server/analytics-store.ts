@@ -34,6 +34,20 @@ const readEvents = async <T>(file: string): Promise<T[]> => {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       return []
     }
+
+    if (error instanceof SyntaxError) {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn(
+          `Invalid analytics data detected in ${file}, resetting to an empty array`,
+          error,
+        )
+      }
+
+      await ensureDir()
+      await fs.writeFile(file, "[]", "utf8")
+      return []
+    }
+
     throw error
   }
 }
