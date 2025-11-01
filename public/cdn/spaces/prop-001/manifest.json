@@ -467,11 +467,10 @@
             "description": "Step out to the 40-foot wraparound balcony."
           }
         ],
-        "spatialMeshUrl": "https://cdn.virtualtour.ai/cdn/spaces/3BR_flat_01/walkthrough/mesh.glb",
-        "textureSetUrl": "https://cdn.virtualtour.ai/cdn/spaces/3BR_flat_01/walkthrough/textures/",
+        "spatialMeshUrl": "https://cdn.virtualtour.ai/models/penthouse-dollhouse-low.gltf",
+        "textureSetUrl": "https://cdn.virtualtour.ai/spaces/prop-001/textures/",
         "hdrEnvironmentUrl": "https://cdn.virtualtour.ai/cdn/spaces/3BR_flat_01/walkthrough/sky.hdr",
-        "navigationMeshUrl": "https://cdn.virtualtour.ai/cdn/spaces/3BR_flat_01/walkthrough/navmesh.glb",
-        "dracoDecoderPath": "https://cdn.virtualtour.ai/cdn/decoders/draco/",
+        "dracoDecoderPath": "/draco/",
         "materialBoost": 0.15,
         "eyeHeight": 1.7,
         "manualWalkEnabled": true,
@@ -1439,7 +1438,7 @@
       "view",
       "measure"
     ],
-    "expiry": "2025-12-01T01:43:12.803Z"
+    "expiry": "2025-12-01T01:53:11.035Z"
   },
   "zones": [
     {

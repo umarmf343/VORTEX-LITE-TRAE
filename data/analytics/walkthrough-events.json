@@ -49,5 +49,14 @@
     "nodeId": "node-foyer",
     "timestamp": 1761961511480,
     "receivedAt": "2025-11-01T01:45:11.753Z"
+  },
+  {
+    "event": "exit_walkthrough",
+    "spaceId": "prop-001-immersive",
+    "timestamp": 1761961926851,
+    "receivedAt": "2025-11-01T01:52:09.766Z"
+  }
+]    "timestamp": 1761961929351,
+    "receivedAt": "2025-11-01T01:52:09.765Z"
   }
 ]
