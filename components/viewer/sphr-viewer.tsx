@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { AlertCircle, Navigation, Play, X } from "@/lib/icons"
+import { AlertCircle, NavigationIcon, Play, X } from "@/lib/icons"
 
 interface SphrViewerProps {
   space: SphrSpace
@@ -326,7 +326,7 @@ export function SphrViewer({ space, onNodeChange, onHotspotActivate }: SphrViewe
           >
             {hotspot.type === "navigation" ? (
               <span className="flex items-center gap-1">
-                <Navigation className="h-3 w-3" />
+                <NavigationIcon className="h-3 w-3" />
                 {hotspot.title}
               </span>
             ) : hotspot.type === "media" ? (
@@ -412,7 +412,7 @@ export function SphrViewer({ space, onNodeChange, onHotspotActivate }: SphrViewe
           )}
           {activeHotspot.type === "navigation" && activeHotspot.targetNodeId && (
             <Button className="mt-4 w-full" onClick={() => handleNodeSelect(activeHotspot.targetNodeId!)}>
-              <Navigation className="mr-2 h-4 w-4" /> Jump to {nodesById[activeHotspot.targetNodeId]?.name ?? "next node"}
+              <NavigationIcon className="mr-2 h-4 w-4" /> Jump to {nodesById[activeHotspot.targetNodeId]?.name ?? "next node"}
             </Button>
           )}
         </Card>

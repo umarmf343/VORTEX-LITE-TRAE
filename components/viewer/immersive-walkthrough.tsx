@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 import { ImmersiveWalkthroughEngine } from "@/lib/immersive-walkthrough/engine"
 import type { ImmersiveWalkthroughSpace, WalkthroughHotspot, WalkthroughNode } from "@/lib/types"
 import { logWalkthroughEvent } from "@/lib/analytics"
-import { MapPin, Navigation, Pause, Play, RefreshCw } from "@/lib/icons"
+import { MapPin, NavigationIcon, Pause, Play, RefreshCw } from "@/lib/icons"
 
 interface ImmersiveWalkthroughProps {
   space: ImmersiveWalkthroughSpace
@@ -227,7 +227,7 @@ export function ImmersiveWalkthrough({ space, className }: ImmersiveWalkthroughP
             className="rounded-full border border-white/10 bg-white/5 text-white hover:bg-white/10"
             onClick={handleNavigatePrevious}
           >
-            <Navigation className="mr-2 h-4 w-4 rotate-180" />Previous Point
+            <NavigationIcon className="mr-2 h-4 w-4 rotate-180" />Previous Point
           </Button>
           <Button
             size="sm"
@@ -235,7 +235,7 @@ export function ImmersiveWalkthrough({ space, className }: ImmersiveWalkthroughP
             className="rounded-full border border-white/10 bg-white/5 text-white hover:bg-white/10"
             onClick={handleNavigateNext}
           >
-            <Navigation className="mr-2 h-4 w-4" />Next Point
+            <NavigationIcon className="mr-2 h-4 w-4" />Next Point
           </Button>
           <Button
             size="sm"
@@ -275,7 +275,7 @@ export function ImmersiveWalkthrough({ space, className }: ImmersiveWalkthroughP
       {hintVisible && ready && (
         <div className="pointer-events-auto absolute top-6 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 rounded-full border border-white/10 bg-black/70 px-4 py-2 text-xs text-white shadow-lg">
           <p className="flex items-center gap-2 font-medium uppercase tracking-widest text-emerald-200">
-            <Navigation className="h-4 w-4" /> Immersive Walkthrough Controls
+            <NavigationIcon className="h-4 w-4" /> Immersive Walkthrough Controls
           </p>
           <p className="text-[11px] text-white/80 md:text-xs">
             Click and drag to look around • WASD or arrows to move • Tap nodes on the minimap to jump between rooms
