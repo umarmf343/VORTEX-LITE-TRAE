@@ -1528,9 +1528,9 @@ export function TourPlayer({
       </div>
 
       {/* Main Viewer */}
-      <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 max-w-7xl mx-auto w-full">
+      <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-4 px-4 py-4 w-full xl:px-8">
         <div
-          className="flex-1 lg:min-h-[480px] [--viewer-min-h:70vh] sm:[--viewer-min-h:75vh] md:[--viewer-min-h:80vh]"
+          className="flex-1 min-h-0 lg:min-h-[480px] [--viewer-min-h:70vh] sm:[--viewer-min-h:75vh] md:[--viewer-min-h:80vh]"
           style={{ minHeight: "max(360px, var(--viewer-min-h, 70vh))" }}
         >
           {showSphrViewer ? (
