@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ComponentType, type ElementType } from "react"
 import dynamic from "next/dynamic"
+import { useRouter } from "next/navigation"
 import { useData } from "@/lib/data-context"
 import type {
   BookingSlot,
@@ -334,6 +335,7 @@ export default function Page() {
     getFloorPlan,
     updateBranding,
   } = useData()
+  const router = useRouter()
   const [viewMode, setViewMode] = useState<ViewMode>("home")
   const [selectedProperty, setSelectedProperty] = useState<Property | undefined>(undefined)
   const [selectedAnalyticsProperty, setSelectedAnalyticsProperty] = useState<Property | undefined>(
@@ -934,9 +936,9 @@ export default function Page() {
                   </div>
                   <Button
                     className="w-full gap-2"
-                    onClick={() => {
-                      setSelectedProperty(property)
-                      setViewMode("tour")
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      router.push(`/embed/${encodeURIComponent(property.id)}`)
                     }}
                   >
                     View Virtual Tour
