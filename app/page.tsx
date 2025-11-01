@@ -11,8 +11,10 @@ import type {
   Lead,
   LeadCapturePayload,
   Model3DAsset,
+  MeasurementUnits,
   Property,
   PropertyMerge,
+  PropertyPrivacy,
   SceneTypeConfig,
   TechnicianProfile,
   Visitor,
@@ -22,6 +24,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Dialog,
   DialogContent,
@@ -330,7 +339,36 @@ export default function Page() {
     sqft: "",
     description: "",
     thumbnail: "",
+    timezone: "America/Los_Angeles",
+    ownerId: "",
+    ownerName: "",
+    ownerEmail: "",
+    privacy: "private" as PropertyPrivacy,
+    defaultLanguage: "en",
+    defaultUnits: "imperial" as MeasurementUnits,
+    primaryContactName: "",
+    primaryContactEmail: "",
+    primaryContactPhone: "",
+    tags: "",
   })
+  const timezoneOptions = [
+    "America/Los_Angeles",
+    "America/New_York",
+    "Europe/London",
+    "Asia/Dubai",
+    "UTC",
+  ] as const
+  const languageOptions = [
+    { value: "en", label: "English" },
+    { value: "es", label: "Spanish" },
+    { value: "fr", label: "French" },
+    { value: "ar", label: "Arabic" },
+  ] as const
+  const unitOptions: { value: MeasurementUnits; label: string }[] = [
+    { value: "imperial", label: "Imperial" },
+    { value: "metric", label: "Metric" },
+  ]
+  const privacyOptions: PropertyPrivacy[] = ["public", "private"]
   const [isPropertyDialogOpen, setPropertyDialogOpen] = useState(false)
   const [propertyDialogMode, setPropertyDialogMode] = useState<"create" | "edit">("create")
   const [propertyDraft, setPropertyDraft] = useState(createEmptyPropertyDraft)
@@ -480,6 +518,17 @@ export default function Page() {
       sqft: property.sqft.toString(),
       description: property.description,
       thumbnail: property.thumbnail || "",
+      timezone: property.timezone,
+      ownerId: property.ownerId,
+      ownerName: property.ownerName,
+      ownerEmail: property.ownerEmail || "",
+      privacy: property.privacy,
+      defaultLanguage: property.defaultLanguage,
+      defaultUnits: property.defaultUnits,
+      primaryContactName: property.primaryContact.name,
+      primaryContactEmail: property.primaryContact.email,
+      primaryContactPhone: property.primaryContact.phone || "",
+      tags: property.tags?.join(", ") ?? "",
     })
     setPropertyDialogOpen(true)
   }
@@ -500,6 +549,41 @@ export default function Page() {
       return
     }
 
+    const ownerId = propertyDraft.ownerId.trim()
+    const ownerName = propertyDraft.ownerName.trim()
+    const defaultLanguage = propertyDraft.defaultLanguage.trim() || "en"
+    const primaryContactName = propertyDraft.primaryContactName.trim()
+    const primaryContactEmail = propertyDraft.primaryContactEmail.trim()
+
+    if (!ownerId || !ownerName) {
+      toast({
+        variant: "destructive",
+        title: "Missing owner details",
+        description: "Owner account id and name are required to create a property.",
+      })
+      return
+    }
+
+    if (!primaryContactName || !primaryContactEmail) {
+      toast({
+        variant: "destructive",
+        title: "Primary contact required",
+        description: "Provide a contact name and email so stakeholders can be notified.",
+      })
+      return
+    }
+
+    const tags = propertyDraft.tags
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean)
+
+    const primaryContact = {
+      name: primaryContactName,
+      email: primaryContactEmail,
+      phone: propertyDraft.primaryContactPhone.trim() || undefined,
+    }
+
     try {
       setIsSavingProperty(true)
       if (propertyDialogMode === "create") {
@@ -512,6 +596,15 @@ export default function Page() {
           sqft,
           description: propertyDraft.description.trim(),
           thumbnail: propertyDraft.thumbnail.trim() || undefined,
+          timezone: propertyDraft.timezone,
+          ownerId,
+          ownerName,
+          ownerEmail: propertyDraft.ownerEmail.trim() || undefined,
+          privacy: propertyDraft.privacy,
+          defaultLanguage,
+          defaultUnits: propertyDraft.defaultUnits,
+          primaryContact,
+          tags,
         })
         toast({
           title: "Property created",
@@ -529,6 +622,15 @@ export default function Page() {
           sqft,
           description: propertyDraft.description.trim(),
           thumbnail: propertyDraft.thumbnail.trim() || propertyBeingEdited.thumbnail,
+          timezone: propertyDraft.timezone,
+          ownerId,
+          ownerName,
+          ownerEmail: propertyDraft.ownerEmail.trim() || undefined,
+          privacy: propertyDraft.privacy,
+          defaultLanguage,
+          defaultUnits: propertyDraft.defaultUnits,
+          primaryContact,
+          tags,
         })
 
         if (!updated) {
@@ -558,6 +660,7 @@ export default function Page() {
       setIsSavingProperty(false)
     }
   }
+
 
   const handleDeleteProperty = async (propertyId: string) => {
     const property = properties.find((item) => item.id === propertyId)
@@ -1262,6 +1365,190 @@ export default function Page() {
                         value={propertyDraft.thumbnail}
                         onChange={(event) => setPropertyDraft((draft) => ({ ...draft, thumbnail: event.target.value }))}
                         placeholder="/placeholder.jpg"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>Timezone</Label>
+                      <Select
+                        value={propertyDraft.timezone}
+                        onValueChange={(value) =>
+                          setPropertyDraft((draft) => ({ ...draft, timezone: value }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select timezone" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {timezoneOptions.map((zone) => (
+                            <SelectItem key={zone} value={zone}>
+                              {zone}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="property-owner-id">Owner account id</Label>
+                      <Input
+                        id="property-owner-id"
+                        value={propertyDraft.ownerId}
+                        onChange={(event) =>
+                          setPropertyDraft((draft) => ({ ...draft, ownerId: event.target.value }))
+                        }
+                        required
+                        placeholder="owner-ops"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="property-owner-name">Owner name</Label>
+                      <Input
+                        id="property-owner-name"
+                        value={propertyDraft.ownerName}
+                        onChange={(event) =>
+                          setPropertyDraft((draft) => ({ ...draft, ownerName: event.target.value }))
+                        }
+                        required
+                        placeholder="Portfolio Operations"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="property-owner-email">Owner email</Label>
+                      <Input
+                        id="property-owner-email"
+                        type="email"
+                        value={propertyDraft.ownerEmail}
+                        onChange={(event) =>
+                          setPropertyDraft((draft) => ({ ...draft, ownerEmail: event.target.value }))
+                        }
+                        placeholder="ops-team@example.com"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>Privacy</Label>
+                      <Select
+                        value={propertyDraft.privacy}
+                        onValueChange={(value) =>
+                          setPropertyDraft((draft) => ({
+                            ...draft,
+                            privacy: value as PropertyPrivacy,
+                          }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select privacy" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {privacyOptions.map((option) => (
+                            <SelectItem key={option} value={option}>
+                              {option === "public" ? "Public" : "Private"}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Default language</Label>
+                      <Select
+                        value={propertyDraft.defaultLanguage}
+                        onValueChange={(value) =>
+                          setPropertyDraft((draft) => ({ ...draft, defaultLanguage: value }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select language" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {languageOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Default units</Label>
+                      <Select
+                        value={propertyDraft.defaultUnits}
+                        onValueChange={(value) =>
+                          setPropertyDraft((draft) => ({
+                            ...draft,
+                            defaultUnits: value as MeasurementUnits,
+                          }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select units" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {unitOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="property-tags">Tags</Label>
+                      <Input
+                        id="property-tags"
+                        value={propertyDraft.tags}
+                        onChange={(event) =>
+                          setPropertyDraft((draft) => ({ ...draft, tags: event.target.value }))
+                        }
+                        placeholder="luxury, penthouse, downtown"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="property-contact-name">Primary contact name</Label>
+                      <Input
+                        id="property-contact-name"
+                        value={propertyDraft.primaryContactName}
+                        onChange={(event) =>
+                          setPropertyDraft((draft) => ({
+                            ...draft,
+                            primaryContactName: event.target.value,
+                          }))
+                        }
+                        required
+                        placeholder="Jamie Rivera"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="property-contact-email">Primary contact email</Label>
+                      <Input
+                        id="property-contact-email"
+                        type="email"
+                        value={propertyDraft.primaryContactEmail}
+                        onChange={(event) =>
+                          setPropertyDraft((draft) => ({
+                            ...draft,
+                            primaryContactEmail: event.target.value,
+                          }))
+                        }
+                        required
+                        placeholder="jamie.rivera@example.com"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="property-contact-phone">Primary contact phone</Label>
+                      <Input
+                        id="property-contact-phone"
+                        value={propertyDraft.primaryContactPhone}
+                        onChange={(event) =>
+                          setPropertyDraft((draft) => ({
+                            ...draft,
+                            primaryContactPhone: event.target.value,
+                          }))
+                        }
+                        placeholder="+1 (555) 010-2025"
                       />
                     </div>
                   </div>

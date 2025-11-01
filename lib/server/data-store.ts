@@ -10,9 +10,12 @@ import type {
   FloorPlan,
   Hotspot,
   Lead,
+  MeasurementUnits,
   Model3DAsset,
   Property,
   PropertyMerge,
+  PropertyPrimaryContact,
+  PropertyPrivacy,
   SceneTransition,
   SceneTypeConfig,
   TechnicianProfile,
@@ -20,6 +23,8 @@ import type {
 } from "@/lib/types"
 import { loadScenePayload, loadTourManifest } from "@/lib/tour-data-loader"
 import { normalizeHotspotType } from "@/lib/hotspot-utils"
+import { recordAnalyticsEvent } from "@/lib/server/analytics-events"
+import { upsertScenePropertyMetadata } from "@/lib/server/panorama-scene-engine"
 
 interface RawStats {
   totalVisits: number
@@ -106,6 +111,7 @@ const loadState = async (): Promise<StoredData> => {
     await ensureDirectory()
     const state = await readJsonFile(STATE_FILE)
     await mergeTourData(state)
+    state.properties.forEach(ensurePropertyDefaults)
     return state
   } catch (error: unknown) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
@@ -113,6 +119,7 @@ const loadState = async (): Promise<StoredData> => {
     }
     const mock = await readJsonFile(MOCK_FILE)
     await mergeTourData(mock)
+    mock.properties.forEach(ensurePropertyDefaults)
     await writeState(mock)
     return mock
   }
@@ -141,6 +148,34 @@ const defaultBranding = (propertyId: string): CSSCustomization => ({
   whiteLabel: false,
   removeBranding: false,
 })
+
+const ensurePropertyDefaults = (property: RawProperty) => {
+  if (!property.timezone) {
+    property.timezone = "America/Los_Angeles"
+  }
+  property.ownerId = property.ownerId || "owner-default"
+  property.ownerName = property.ownerName || "Portfolio Admin"
+  if (!property.privacy) {
+    property.privacy = "private"
+  }
+  property.defaultLanguage = property.defaultLanguage || "en"
+  property.defaultUnits = property.defaultUnits || "imperial"
+  property.tags = Array.isArray(property.tags) ? property.tags : []
+  if (!property.primaryContact) {
+    property.primaryContact = {
+      name: property.branding.companyName || "Operations Team",
+      email: property.branding.contactEmail || "info@baladshelter.com",
+    }
+  } else {
+    property.primaryContact = {
+      name: property.primaryContact.name || property.branding.companyName || "Operations Team",
+      email:
+        property.primaryContact.email || property.branding.contactEmail || "info@baladshelter.com",
+      phone: property.primaryContact.phone,
+    }
+  }
+  property.ownerEmail = property.ownerEmail || property.branding.contactEmail
+}
 
 export const getDataSnapshot = async (): Promise<StoredData> => {
   const state = await getState()
@@ -230,6 +265,15 @@ export interface CreatePropertyInput {
   sqft: number
   description?: string
   thumbnail?: string
+  timezone: string
+  ownerId: string
+  ownerName: string
+  ownerEmail?: string
+  privacy: PropertyPrivacy
+  defaultLanguage: string
+  defaultUnits: MeasurementUnits
+  primaryContact: PropertyPrimaryContact
+  tags?: string[]
 }
 
 const createBaseStats = (): RawStats => ({
@@ -244,6 +288,7 @@ const createBaseStats = (): RawStats => ({
 export const createProperty = async (input: CreatePropertyInput): Promise<RawProperty> => {
   const id = `prop-${randomUUID()}`
   const now = isoNow()
+  const normalizedTags = input.tags?.map((tag) => tag.trim()).filter(Boolean) ?? []
   const property: RawProperty = {
     id,
     name: input.name,
@@ -259,6 +304,14 @@ export const createProperty = async (input: CreatePropertyInput): Promise<RawPro
     thumbnail: input.thumbnail || "/placeholder.jpg",
     createdAt: now,
     updatedAt: now,
+    timezone: input.timezone,
+    primaryContact: input.primaryContact,
+    ownerId: input.ownerId,
+    ownerName: input.ownerName,
+    ownerEmail: input.ownerEmail,
+    privacy: input.privacy,
+    defaultLanguage: input.defaultLanguage,
+    defaultUnits: input.defaultUnits,
     branding: {
       primaryColor: "#1f2937",
       secondaryColor: "#f97316",
@@ -272,7 +325,7 @@ export const createProperty = async (input: CreatePropertyInput): Promise<RawPro
     floorPlanId: undefined,
     dayNightImages: undefined,
     isFavorite: false,
-    tags: [],
+    tags: normalizedTags,
     sceneTransition: "fade",
     supportedViewModes: ["walkthrough", "360"],
     matterportModelId: undefined,
@@ -283,11 +336,37 @@ export const createProperty = async (input: CreatePropertyInput): Promise<RawPro
     campusMap: undefined,
   }
 
+  ensurePropertyDefaults(property)
+
   await updateState((state) => {
     state.properties.push(property)
     if (!state.brandingSettings[id]) {
       state.brandingSettings[id] = defaultBranding(id)
     }
+  })
+
+  await upsertScenePropertyMetadata({
+    id: property.id,
+    title: property.name,
+    address: property.address,
+    ownerId: property.ownerId,
+    ownerName: property.ownerName,
+    ownerEmail: property.ownerEmail,
+    privacy: property.privacy,
+    defaultLanguage: property.defaultLanguage,
+    defaultUnits: property.defaultUnits,
+    timezone: property.timezone,
+    tags: property.tags,
+    primaryContact: property.primaryContact,
+    createdAt: property.createdAt,
+    updatedAt: property.updatedAt,
+  })
+
+  await recordAnalyticsEvent("property_created", {
+    property_id: property.id,
+    owner_id: property.ownerId,
+    privacy: property.privacy,
+    default_units: property.defaultUnits,
   })
 
   return property
@@ -305,13 +384,40 @@ export const updateProperty = async (
     if (!property) {
       return
     }
+    if (updates.tags) {
+      property.tags = updates.tags.filter((tag): tag is string => Boolean(tag))
+    }
     Object.assign(property, updates)
     if (updates.stats) {
       property.stats = { ...property.stats, ...updates.stats }
     }
     property.updatedAt = isoNow()
+    ensurePropertyDefaults(property)
     updated = property
   })
+  if (updated) {
+    await upsertScenePropertyMetadata({
+      id: updated.id,
+      title: updated.name,
+      address: updated.address,
+      ownerId: updated.ownerId,
+      ownerName: updated.ownerName,
+      ownerEmail: updated.ownerEmail,
+      privacy: updated.privacy,
+      defaultLanguage: updated.defaultLanguage,
+      defaultUnits: updated.defaultUnits,
+      timezone: updated.timezone,
+      tags: updated.tags,
+      primaryContact: updated.primaryContact,
+      createdAt: updated.createdAt,
+      updatedAt: updated.updatedAt,
+    })
+    await recordAnalyticsEvent("property_updated", {
+      property_id: updated.id,
+      privacy: updated.privacy,
+      default_units: updated.defaultUnits,
+    })
+  }
   return updated
 }
 
@@ -334,6 +440,9 @@ export const deleteProperty = async (id: string): Promise<boolean> => {
       )
     }
   })
+  if (deleted) {
+    await recordAnalyticsEvent("property_deleted", { property_id: id })
+  }
   return deleted
 }
 

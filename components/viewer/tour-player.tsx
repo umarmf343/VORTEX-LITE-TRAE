@@ -61,6 +61,7 @@ import { ZoomControls } from "./zoom-controls"
 import { useHdPhotoModule } from "@/hooks/use-hd-photo-module"
 import { SharePanel } from "./share-panel"
 import { SceneTransitionEngine } from "@/lib/scene-transition-engine"
+import { trackAnalyticsEvent } from "@/lib/analytics-events-client"
 import {
   getHotspotLabel,
   getPrimaryMedia,
@@ -633,19 +634,43 @@ export function TourPlayer({
       onStart: (transition: SceneTransition) => {
         setTransitionError(null)
         setTransitionState({ type: transition.type, progress: 0 })
+        void trackAnalyticsEvent("transition_started", {
+          property_id: property.id,
+          from_scene_id: transition.fromSceneId,
+          to_scene_id: transition.toSceneId,
+          transition_type: transition.type,
+          duration_ms: transition.duration,
+        })
       },
       onProgress: (progress: number, transition: SceneTransition) => {
         setTransitionState({ type: transition.type, progress })
       },
-      onComplete: () => {
+      onComplete: (transition: SceneTransition) => {
         setTransitionState(null)
+        void trackAnalyticsEvent("transition_completed", {
+          property_id: property.id,
+          from_scene_id: transition.fromSceneId,
+          to_scene_id: transition.toSceneId,
+          transition_type: transition.type,
+          duration_ms: transition.duration,
+          status: "success",
+        })
       },
-      onError: (error: Error) => {
+      onError: (error: Error, transition: SceneTransition) => {
         setTransitionError(error.message)
         setTransitionState(null)
+        void trackAnalyticsEvent("transition_completed", {
+          property_id: property.id,
+          from_scene_id: transition.fromSceneId,
+          to_scene_id: transition.toSceneId,
+          transition_type: transition.type,
+          duration_ms: transition.duration,
+          status: "error",
+          message: error.message,
+        })
       },
     }),
-    [setTransitionError, setTransitionState],
+    [property.id],
   )
 
   const preloadSceneAssets = useCallback(
@@ -696,11 +721,29 @@ export function TourPlayer({
         return
       }
       const engine = transitionEngineRef.current
+      const transitionMeta = currentScene.transitions?.find((entry) => entry.toSceneId === targetScene.id)
+      const transitionType = override?.type ?? transitionMeta?.type ?? "walkthrough"
+      const transitionDuration = override?.duration ?? transitionMeta?.duration ?? 0
       if (!engine) {
+        void trackAnalyticsEvent("transition_started", {
+          property_id: property.id,
+          from_scene_id: currentScene.id,
+          to_scene_id: targetScene.id,
+          transition_type: transitionType,
+          duration_ms: transitionDuration,
+        })
         goToScene(index)
+        void trackAnalyticsEvent("transition_completed", {
+          property_id: property.id,
+          from_scene_id: currentScene.id,
+          to_scene_id: targetScene.id,
+          transition_type: transitionType,
+          duration_ms: 0,
+          status: "success",
+          fallback: true,
+        })
         return
       }
-      const transitionMeta = currentScene.transitions?.find((entry) => entry.toSceneId === targetScene.id)
       const base: Partial<SceneTransition> | undefined = transitionMeta
         ? {
             type: transitionMeta.type,
@@ -722,7 +765,7 @@ export function TourPlayer({
         goToScene(index)
       }
     },
-    [currentScene, goToScene, property.scenes],
+    [currentScene, goToScene, property.id, property.scenes],
   )
   const capturePreviewCard = useMemo(() => {
     if (!capturePreview) {
@@ -1003,15 +1046,31 @@ export function TourPlayer({
     [currentSceneIndex, findSceneIndexForHotspot, getOrientationFromHotspot, goToScene, property.scenes],
   )
 
-  const handleMeasurementCaptured = useCallback((sceneId: string, measurement: Measurement) => {
-    setMeasurementsByScene((prev) => {
-      const existing = prev[sceneId] ?? []
-      return {
-        ...prev,
-        [sceneId]: [...existing, measurement],
-      }
-    })
-  }, [])
+  const handleMeasurementCaptured = useCallback(
+    (sceneId: string, measurement: Measurement) => {
+      setMeasurementsByScene((prev) => {
+        const existing = prev[sceneId] ?? []
+        return {
+          ...prev,
+          [sceneId]: [...existing, measurement],
+        }
+      })
+      const sceneMeta = property.scenes.find((scene) => scene.id === sceneId)
+      void trackAnalyticsEvent("measurement_used", {
+        property_id: property.id,
+        scene_id: sceneId,
+        measurement_type: measurement.measurementType,
+        unit: measurement.unit,
+        distance: measurement.distance,
+        area_square_meters: measurement.areaSquareMeters,
+        height: measurement.height,
+        depth_enabled: sceneMeta?.measurement?.enabled ?? false,
+        accuracy_cm: sceneMeta?.measurement?.accuracyCm ?? null,
+        points_count: measurement.points2d?.length ?? undefined,
+      })
+    },
+    [property.id, property.scenes],
+  )
   const handleHdCapture = useCallback(
     (options: { kind: "panorama" | "still" }) => {
       void captureHdStill({
@@ -1158,8 +1217,15 @@ export function TourPlayer({
 
   const handleHotspotClick = (hotspot: Hotspot) => {
     activateHotspot(hotspot)
+    const targetSceneId = resolveHotspotTargetScene(hotspot) ?? hotspot.targetSceneId ?? null
+    void trackAnalyticsEvent("hotspot_clicked", {
+      property_id: property.id,
+      scene_id: currentScene.id,
+      hotspot_id: hotspot.id,
+      hotspot_type: hotspot.type,
+      target_scene_id: targetSceneId,
+    })
     if (isNavigationHotspot(hotspot)) {
-      const targetSceneId = resolveHotspotTargetScene(hotspot) ?? hotspot.targetSceneId
       if (!targetSceneId) {
         return
       }
@@ -1303,8 +1369,36 @@ export function TourPlayer({
         dwellTime: 0,
         totalEngagement: sceneEngagement.current,
       })
+      const sourceNodeId = sphrActiveNodeRef.current ?? hotspot.id
+      void trackAnalyticsEvent("hotspot_clicked", {
+        property_id: property.id,
+        scene_id: sourceNodeId,
+        hotspot_id: hotspot.id,
+        hotspot_type: hotspot.type,
+        target_scene_id: hotspot.targetNodeId ?? null,
+        surface: "sphr",
+      })
+      if (hotspot.type === "navigation" && hotspot.targetNodeId) {
+        void trackAnalyticsEvent("transition_started", {
+          property_id: property.id,
+          from_scene_id: sourceNodeId,
+          to_scene_id: hotspot.targetNodeId,
+          transition_type: "sphr-navigation",
+          duration_ms: 0,
+          surface: "sphr",
+        })
+        void trackAnalyticsEvent("transition_completed", {
+          property_id: property.id,
+          from_scene_id: sourceNodeId,
+          to_scene_id: hotspot.targetNodeId,
+          transition_type: "sphr-navigation",
+          duration_ms: 0,
+          status: "success",
+          surface: "sphr",
+        })
+      }
     },
-    [onEngagementTrack],
+    [onEngagementTrack, property.id],
   )
 
   const handleLeadSubmit = (e: React.FormEvent) => {

@@ -70,9 +70,12 @@ export async function POST(request: NextRequest) {
       description: body.description,
       ambientSound: body.ambientSound,
       sceneType: body.sceneType ?? "interior",
-      floor: body.floor,
+      floor: body.floor ? String(body.floor) : undefined,
+      orientationHint: body.orientationHint?.toString().trim() || undefined,
       tags: parseTags(body.tags),
       initialView: parseInitialView(body.initialView),
+      depthMapUrl: body.depthMapUrl?.toString().trim() || undefined,
+      pointCloudUrl: body.pointCloudUrl?.toString().trim() || undefined,
     }
 
     const scene = await uploadScene(payload)
