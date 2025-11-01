@@ -1213,6 +1213,9 @@ export function SceneViewer({
     }
 
     const handleWheel = (event: WheelEvent) => {
+      if (!event.ctrlKey) {
+        return
+      }
       event.preventDefault()
       const currentContext = threeContextRef.current
       if (!currentContext) return
@@ -2095,7 +2098,7 @@ export function SceneViewer({
       {/* Viewer */}
       <div
         ref={viewerRef}
-        className={`flex-1 relative overflow-hidden min-h-[55vh] sm:min-h-[65vh] lg:min-h-0 ${viewerCursorClass} ${viewerFlexClass} ${
+        className={`relative flex-1 h-full min-h-[55vh] sm:min-h-[65vh] lg:min-h-0 lg:h-full overflow-hidden ${viewerCursorClass} ${viewerFlexClass} ${
           sphericalRendererActive || immersiveWalkthroughActive ? "bg-black" : ""
         }`}
         onClick={immersiveWalkthroughActive ? undefined : handleImageClick}
