@@ -6,3 +6,7 @@
 {"event":"transition_completed","timestamp":"2025-11-01T02:37:47.898Z","payload":{"property_id":"prop-002","from_scene_id":"scene-004","to_scene_id":"scene-005","transition_type":"walkthrough","duration_ms":1400,"status":"success"}}
 {"event":"transition_started","timestamp":"2025-11-01T02:37:47.899Z","payload":{"property_id":"prop-002","from_scene_id":"scene-004","to_scene_id":"scene-006","transition_type":"walkthrough","duration_ms":1400}}
 {"event":"transition_completed","timestamp":"2025-11-01T02:37:53.536Z","payload":{"property_id":"prop-002","from_scene_id":"scene-004","to_scene_id":"scene-006","transition_type":"walkthrough","duration_ms":1400,"status":"success"}}
+{"event":"transition_started","timestamp":"2025-11-01T02:56:26.067Z","payload":{"property_id":"prop-002","from_scene_id":"scene-004","to_scene_id":"scene-005","transition_type":"walkthrough","duration_ms":1400}}
+{"event":"transition_started","timestamp":"2025-11-01T02:56:33.440Z","payload":{"property_id":"prop-002","from_scene_id":"scene-004","to_scene_id":"scene-005","transition_type":"walkthrough","duration_ms":1400}}
+{"event":"transition_completed","timestamp":"2025-11-01T02:56:33.440Z","payload":{"property_id":"prop-002","from_scene_id":"scene-004","to_scene_id":"scene-005","transition_type":"walkthrough","duration_ms":1400,"status":"success"}}
+{"event":"transition_completed","timestamp":"2025-11-01T02:56:35.073Z","payload":{"property_id":"prop-002","from_scene_id":"scene-004","to_scene_id":"scene-005","transition_type":"walkthrough","duration_ms":1400,"status":"success"}}
