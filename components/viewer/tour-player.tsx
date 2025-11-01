@@ -770,8 +770,8 @@ export function TourPlayer({
     })
   }, [fallbackZoom])
   const mediaHotspots = useMemo(
-    () => currentScene.hotspots.filter((hotspot) => isMediaHotspot(hotspot)),
-    [currentScene.hotspots],
+    () => currentScene?.hotspots?.filter((hotspot) => isMediaHotspot(hotspot)) ?? [],
+    [currentScene?.hotspots],
   )
   const selectedGuidedTour = useMemo(
     () => guidedTours.find((tour) => tour.id === selectedTourId),
