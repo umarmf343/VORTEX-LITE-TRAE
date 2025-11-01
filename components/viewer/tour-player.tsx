@@ -743,7 +743,7 @@ export function TourPlayer({
     setIsFallbackDragging(false)
     fallbackPointerIdRef.current = null
     fallbackBoundsRef.current = null
-  }, [isTraditional3DViewerActive, currentScene.id])
+  }, [isTraditional3DViewerActive, currentScene?.id])
 
   useEffect(() => {
     const container = fallbackContainerRef.current
