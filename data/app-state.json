@@ -2387,6 +2387,46 @@
       ],
       "guidedTours": [],
       "zones": []
+    },
+    {
+      "id": "prop-3f2cbb18-fc92-47ad-a33c-5fba0bc6c160",
+      "name": "Test",
+      "address": "wari",
+      "price": 20000,
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "sqft": 450,
+      "description": "jk jss",
+      "images": [],
+      "thumbnail": "/placeholder.jpg",
+      "createdAt": "2025-11-01T01:18:22.250Z",
+      "updatedAt": "2025-11-01T01:18:22.250Z",
+      "branding": {
+        "primaryColor": "#1f2937",
+        "secondaryColor": "#f97316",
+        "logo": "/placeholder-logo.svg",
+        "companyName": "BaladShelter",
+        "contactEmail": "info@baladshelter.com",
+        "contactPhone": "+1 (555) 010-0000"
+      },
+      "scenes": [],
+      "stats": {
+        "totalVisits": 0,
+        "uniqueVisitors": 0,
+        "avgDuration": 0,
+        "conversionRate": 0,
+        "leadsGenerated": 0,
+        "lastUpdated": "2025-11-01T01:18:22.250Z"
+      },
+      "isFavorite": false,
+      "tags": [],
+      "sceneTransition": "fade",
+      "supportedViewModes": [
+        "walkthrough",
+        "360"
+      ],
+      "guidedTours": [],
+      "zones": []
     }
   ],
   "leads": [
@@ -2898,6 +2938,12 @@
     },
     "prop-be9c1607-b595-4076-8499-4d904da1b6a0": {
       "propertyId": "prop-be9c1607-b595-4076-8499-4d904da1b6a0",
+      "customCSS": "",
+      "whiteLabel": false,
+      "removeBranding": false
+    },
+    "prop-3f2cbb18-fc92-47ad-a33c-5fba0bc6c160": {
+      "propertyId": "prop-3f2cbb18-fc92-47ad-a33c-5fba0bc6c160",
       "customCSS": "",
       "whiteLabel": false,
       "removeBranding": false
