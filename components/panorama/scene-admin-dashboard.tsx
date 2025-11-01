@@ -13,6 +13,7 @@ import type {
   PanoramaScene,
   PanoramaTourManifest,
 } from "@/lib/types"
+import type { PanoramaSceneEngineSnapshot } from "@/lib/server/panorama-scene-engine"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -27,9 +28,12 @@ interface SceneAdminDashboardProps {
   initialSceneId: string
   initialScenes: PanoramaScene[]
   initialManifest: PanoramaTourManifest | null
+  property: PanoramaSceneEngineSnapshot["property"]
   onPublish?: (manifest: PanoramaTourManifest) => void
   onScenesChange?: (scenes: PanoramaScene[]) => void
 }
+
+type ScenePropertyMetadata = PanoramaSceneEngineSnapshot["property"]
 
 interface SceneFormState {
   id: string
@@ -42,6 +46,10 @@ interface SceneFormState {
   fov: string
   description: string
   tags: string
+  floor: string
+  orientationHint: string
+  depthMapUrl: string
+  pointCloudUrl: string
 }
 
 interface LinkFormState {
@@ -65,6 +73,10 @@ const defaultSceneFormState: SceneFormState = {
   fov: "90",
   description: "",
   tags: "",
+  floor: "",
+  orientationHint: "",
+  depthMapUrl: "",
+  pointCloudUrl: "",
 }
 
 const defaultLinkState: LinkFormState = {
@@ -82,11 +94,13 @@ export function SceneAdminDashboard({
   initialSceneId,
   initialScenes,
   initialManifest,
+  property,
   onPublish,
   onScenesChange,
 }: SceneAdminDashboardProps) {
   const [scenes, setScenes] = useState<PanoramaScene[]>(initialScenes)
   const [manifest, setManifest] = useState<PanoramaTourManifest | null>(initialManifest)
+  const [propertyMetadata, setPropertyMetadata] = useState<ScenePropertyMetadata>(property)
   const [sceneForm, setSceneForm] = useState<SceneFormState>(defaultSceneFormState)
   const [linkForm, setLinkForm] = useState<LinkFormState>({
     ...defaultLinkState,
@@ -103,6 +117,10 @@ export function SceneAdminDashboard({
   useEffect(() => {
     setManifest(initialManifest)
   }, [initialManifest])
+
+  useEffect(() => {
+    setPropertyMetadata(property)
+  }, [property])
 
   useEffect(() => {
     setLinkForm((previous) => {
@@ -199,8 +217,10 @@ export function SceneAdminDashboard({
       if (snapshot.ok) {
         const data = (await snapshot.json()) as {
           scenes: PanoramaScene[]
+          property: ScenePropertyMetadata
         }
         setScenes(data.scenes)
+        setPropertyMetadata(data.property)
         onScenesChange?.(data.scenes)
         setFeedback("Navigation hotspot created")
       }
@@ -237,6 +257,20 @@ export function SceneAdminDashboard({
         <p className="text-sm text-muted-foreground">
           Upload equirectangular panoramas, wire navigation hotspots, and publish an interactive walkthrough.
         </p>
+        <div className="text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">Property:</span> {propertyMetadata.title} · {propertyMetadata.address}
+        </div>
+        <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+          <span>Owner: {propertyMetadata.ownerName}</span>
+          <span>Privacy: {propertyMetadata.privacy}</span>
+          <span>Timezone: {propertyMetadata.timezone}</span>
+          <span>Units: {propertyMetadata.defaultUnits}</span>
+          {propertyMetadata.primaryContact ? (
+            <span>
+              Contact: {propertyMetadata.primaryContact.name} ({propertyMetadata.primaryContact.email})
+            </span>
+          ) : null}
+        </div>
         <div className="text-sm text-muted-foreground">
           <span className="font-medium text-foreground">Current tour:</span> {title} · {scenes.length} scenes
         </div>
@@ -311,6 +345,26 @@ export function SceneAdminDashboard({
                   </SelectContent>
                 </Select>
               </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label htmlFor="scene-floor">Floor</Label>
+                  <Input
+                    id="scene-floor"
+                    placeholder="e.g., 1"
+                    value={sceneForm.floor}
+                    onChange={handleSceneFieldChange("floor")}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="scene-orientation">Orientation hint</Label>
+                  <Input
+                    id="scene-orientation"
+                    placeholder="Faces entry door"
+                    value={sceneForm.orientationHint}
+                    onChange={handleSceneFieldChange("orientationHint")}
+                  />
+                </div>
+              </div>
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="grid gap-2">
                   <Label htmlFor="scene-yaw">Initial yaw</Label>
@@ -335,6 +389,29 @@ export function SceneAdminDashboard({
                   rows={3}
                 />
               </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label htmlFor="scene-depth-map">Depth map URL (optional)</Label>
+                  <Input
+                    id="scene-depth-map"
+                    placeholder="/properties/prop-001/scenes/living-room/depth.exr"
+                    value={sceneForm.depthMapUrl}
+                    onChange={handleSceneFieldChange("depthMapUrl")}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="scene-point-cloud">Point cloud URL (optional)</Label>
+                  <Input
+                    id="scene-point-cloud"
+                    placeholder="/properties/prop-001/scenes/living-room/pointcloud.las"
+                    value={sceneForm.pointCloudUrl}
+                    onChange={handleSceneFieldChange("pointCloudUrl")}
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Depth or point cloud data unlocks high-accuracy measurements once processing completes.
+              </p>
               <div className="grid gap-2">
                 <Label htmlFor="scene-tags">Tags</Label>
                 <Input
@@ -462,10 +539,48 @@ export function SceneAdminDashboard({
                 <div className="mt-2 text-sm text-muted-foreground">
                   Initial view · yaw {scene.initialView.yaw.toFixed(1)}° / pitch {scene.initialView.pitch.toFixed(1)}° · fov {scene.initialView.fov.toFixed(0)}°
                 </div>
+                <div className="mt-2 text-xs text-muted-foreground">
+                  Floor: {scene.floor || "—"} · Orientation: {scene.orientationHint || "Not specified"}
+                </div>
+                <div className="mt-2 text-xs">
+                  <span
+                    className={cn(
+                      "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase",
+                      scene.processing.status === "READY"
+                        ? "bg-emerald-100 text-emerald-700"
+                        : scene.processing.status === "PROCESSING"
+                          ? "bg-amber-100 text-amber-700"
+                          : "bg-rose-100 text-rose-700",
+                    )}
+                  >
+                    {scene.processing.status}
+                  </span>
+                  <span className="ml-2 text-muted-foreground">
+                    Accuracy: {scene.processing.accuracyEstimate ?? "unknown"}
+                  </span>
+                </div>
+                <div className="mt-2 text-xs text-muted-foreground">
+                  Measurement: {scene.measurement.enabled
+                    ? `Enabled${scene.measurement.accuracyCm ? ` (~${scene.measurement.accuracyCm}cm)` : ""}`
+                    : "Visual estimation only"}
+                </div>
                 <div className="mt-2 text-sm">
                   <a className="text-primary underline" href={scene.imageUrl} target="_blank" rel="noreferrer">
                     Preview panorama
                   </a>
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    · <a href={scene.assets.preview} target="_blank" rel="noreferrer">LOD preview</a>
+                    {scene.assets.depthMap ? (
+                      <>
+                        {" "}· <a href={scene.assets.depthMap} target="_blank" rel="noreferrer">Depth</a>
+                      </>
+                    ) : null}
+                    {scene.assets.pointCloud ? (
+                      <>
+                        {" "}· <a href={scene.assets.pointCloud} target="_blank" rel="noreferrer">Point cloud</a>
+                      </>
+                    ) : null}
+                  </span>
                 </div>
                 <div className="mt-3 space-y-1 text-xs text-muted-foreground">
                   <p className="font-semibold text-foreground">Hotspots</p>

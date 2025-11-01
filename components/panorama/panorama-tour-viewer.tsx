@@ -82,6 +82,11 @@ export function PanoramaTourViewer({ manifest }: PanoramaTourViewerProps) {
         <div>
           <CardTitle>Panorama walkthrough preview</CardTitle>
           <p className="text-sm text-muted-foreground">Use hotspots to move between rooms in the published manifest.</p>
+          <div className="mt-1 text-xs text-muted-foreground">
+            {manifest.property.title} · {manifest.property.address} · {manifest.property.privacy.toUpperCase()} · Timezone:
+            {" "}
+            {manifest.property.timezone}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Select
@@ -117,6 +122,9 @@ export function PanoramaTourViewer({ manifest }: PanoramaTourViewerProps) {
           <div>
             {manifest.scenes.length} scenes · {Object.values(manifest.navigationGraph).reduce((acc, items) => acc + items.length, 0)}
             {" "}hotspots
+          </div>
+          <div>
+            Accuracy map: {Object.entries(manifest.accuracyScores).map(([sceneId, score]) => `${sceneId}:${score}`).join(" · ")}
           </div>
           <div>Published {new Date(manifest.publishedAt).toLocaleString()}</div>
         </div>

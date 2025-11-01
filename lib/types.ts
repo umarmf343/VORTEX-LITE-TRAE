@@ -161,6 +161,16 @@ export interface PropertySharingConfig {
   shortLinkDomain?: string
 }
 
+export type PropertyPrivacy = "public" | "private"
+
+export type MeasurementUnits = "metric" | "imperial"
+
+export interface PropertyPrimaryContact {
+  name: string
+  email: string
+  phone?: string
+}
+
 export interface Property {
   id: string
   name: string
@@ -174,6 +184,14 @@ export interface Property {
   thumbnail: string
   createdAt: Date
   updatedAt: Date
+  timezone: string
+  primaryContact: PropertyPrimaryContact
+  ownerId: string
+  ownerName: string
+  ownerEmail?: string
+  privacy: PropertyPrivacy
+  defaultLanguage: string
+  defaultUnits: MeasurementUnits
   branding: BrandingConfig
   scenes: Scene[]
   stats: PropertyStats
@@ -683,6 +701,31 @@ export interface PanoramaSceneHotspot {
 
 export type PanoramaSceneType = "interior" | "exterior"
 
+export interface PanoramaSceneAssets {
+  raw: string
+  preview: string
+  web: string
+  print: string
+  depthMap?: string
+  pointCloud?: string
+}
+
+export interface PanoramaSceneProcessingState {
+  status: "PENDING" | "PROCESSING" | "READY" | "FAILED"
+  startedAt: string
+  completedAt?: string
+  accuracyEstimate?: "low" | "medium" | "high"
+  warnings?: string[]
+  errors?: string[]
+  depthEnabled?: boolean
+}
+
+export interface PanoramaSceneMeasurementState {
+  enabled: boolean
+  accuracyCm?: number
+  notes?: string
+}
+
 export interface PanoramaScene {
   id: string
   name: string
@@ -692,20 +735,55 @@ export interface PanoramaScene {
   ambientSound?: string
   sceneType: PanoramaSceneType
   floor?: string
+  orientationHint?: string
   tags?: string[]
   initialView: PanoramaSceneInitialView
   hotspots: PanoramaSceneHotspot[]
   createdAt: string
   updatedAt: string
+  assets: PanoramaSceneAssets
+  processing: PanoramaSceneProcessingState
+  measurement: PanoramaSceneMeasurementState
+}
+
+export interface PanoramaManifestHotspot extends PanoramaSceneHotspot {
+  sceneId: string
 }
 
 export interface PanoramaTourManifest {
   id: string
+  version: number
   title: string
+  property: {
+    id: string
+    title: string
+    address: string
+    ownerId: string
+    ownerName: string
+    ownerEmail?: string
+    privacy: PropertyPrivacy
+    defaultLanguage: string
+    defaultUnits: MeasurementUnits
+    timezone: string
+    tags?: string[]
+    primaryContact?: PropertyPrimaryContact
+    createdAt: string
+    updatedAt: string
+  }
   initialSceneId: string
+  createdAt: string
   publishedAt: string
   scenes: PanoramaScene[]
+  hotspots: PanoramaManifestHotspot[]
   navigationGraph: Record<string, PanoramaSceneHotspot[]>
+  accuracyScores: Record<string, string>
+  accessControls: {
+    privacy: PropertyPrivacy
+    tokens?: string[]
+  }
+  analyticsHooks: {
+    events: string[]
+  }
 }
 
 export interface BrandingConfig {
