@@ -5,15 +5,15 @@ import path from "path"
 import { getDataSnapshot, type StoredData } from "@/lib/server/data-store"
 import type {
   Hotspot,
-  ImmersiveWalkthroughSpace,
   MeasurementAccuracy,
   MeasurementAnnotationMeta,
   MeasurementKind,
+  PanoramaSceneHotspot,
+  PanoramaTourManifest,
   ShareViewMode,
   ViewerManifest,
   ViewerManifestEmbedParameter,
   ViewerManifestHotspotType,
-  WalkthroughNode,
 } from "@/lib/types"
 import { getPrimaryMedia, normalizeHotspotType as normalizeInteractiveHotspotType } from "@/lib/hotspot-utils"
 
@@ -33,7 +33,10 @@ const resolveOwner = (property: StoredData["properties"][number]) => {
   if (property.branding?.contactEmail) {
     return property.branding.contactEmail
   }
-  return property.owner ?? property.id
+  if (property.ownerName) {
+    return property.ownerName
+  }
+  return property.ownerId ?? property.id
 }
 
 const ensureAbsoluteUrl = (url: string | undefined, spaceId: string) => {
@@ -50,6 +53,30 @@ const ensureAbsoluteUrl = (url: string | undefined, spaceId: string) => {
     return `https://cdn.virtualtour.ai${url}`
   }
   return url
+}
+
+const PANORAMA_FALLBACK_URL = "/panorama-samples/living-room.jpg"
+
+const ensurePanoramaAssetUrl = (
+  source: string | null | undefined,
+  property: StoredData["properties"][number],
+): string => {
+  const fallback =
+    source && source.trim().length > 0
+      ? source.trim()
+      : property.thumbnail || property.images?.[0] || PANORAMA_FALLBACK_URL
+
+  const trimmed = fallback.trim()
+  if (!trimmed) {
+    return PANORAMA_FALLBACK_URL
+  }
+
+  const [pathOnly] = trimmed.split(/[?#]/)
+  if (pathOnly && /\.[a-zA-Z0-9]+$/.test(pathOnly)) {
+    return trimmed
+  }
+
+  return `${trimmed}.jpg`
 }
 
 const deriveTextureFormat = (url: string | undefined): ViewerManifest["textures"][number]["format"] => {
@@ -78,6 +105,271 @@ const deriveTextureResolution = (url: string | undefined) => {
 }
 
 const toRadians = (degrees: number) => (degrees * Math.PI) / 180
+
+const normalizePanoramaHotspots = (
+  sceneId: string,
+  hotspots: PanoramaSceneHotspot[] | null | undefined,
+) => {
+  const normalized: PanoramaSceneHotspot[] = []
+  if (!Array.isArray(hotspots)) {
+    return normalized
+  }
+
+  hotspots.forEach((hotspot, index) => {
+    if (!hotspot || typeof hotspot !== "object") {
+      return
+    }
+    const target = hotspot.targetSceneId
+    if (!target) {
+      return
+    }
+
+    const id = hotspot.id && hotspot.id.trim().length > 0 ? hotspot.id : `${sceneId}-hotspot-${index}`
+    const yaw = Number.isFinite(hotspot.yaw) ? hotspot.yaw : 0
+    const pitch = Number.isFinite(hotspot.pitch) ? hotspot.pitch : 0
+    const label = hotspot.label && hotspot.label.trim().length > 0 ? hotspot.label : id
+
+    normalized.push({
+      id,
+      targetSceneId: target,
+      yaw,
+      pitch,
+      label,
+      autoAlignmentYaw: hotspot.autoAlignmentYaw,
+      autoAlignmentPitch: hotspot.autoAlignmentPitch,
+    })
+  })
+
+  return normalized
+}
+
+const normalizePanoramaManifest = (
+  manifest: PanoramaTourManifest,
+  property: StoredData["properties"][number],
+): PanoramaTourManifest | null => {
+  const cloned = JSON.parse(JSON.stringify(manifest)) as PanoramaTourManifest
+  const fallbackCreatedAt = property.createdAt ?? new Date().toISOString()
+  const fallbackUpdatedAt = property.updatedAt ?? fallbackCreatedAt
+
+  cloned.id = cloned.id || `${property.id}-panorama`
+  cloned.version = cloned.version ?? 2
+  cloned.title = cloned.title || property.name || "Panorama Walkthrough"
+  cloned.createdAt = cloned.createdAt || fallbackCreatedAt
+  cloned.publishedAt = cloned.publishedAt || fallbackUpdatedAt
+  cloned.initialSceneId = cloned.initialSceneId || cloned.scenes?.[0]?.id || ""
+  cloned.property = cloned.property ?? {
+    id: property.id,
+    title: property.name,
+    address: property.address,
+    ownerId: property.ownerId ?? property.id,
+    ownerName: property.ownerName ?? resolveOwner(property),
+    ownerEmail: property.ownerEmail ?? property.branding?.contactEmail,
+    privacy: property.privacy ?? "private",
+    defaultLanguage: property.defaultLanguage ?? "en",
+    defaultUnits: property.defaultUnits ?? "imperial",
+    timezone: property.timezone ?? "America/Los_Angeles",
+    tags: property.tags ?? [],
+    primaryContact: property.primaryContact,
+    createdAt: property.createdAt ?? fallbackCreatedAt,
+    updatedAt: property.updatedAt ?? fallbackUpdatedAt,
+  }
+
+  if (!Array.isArray(cloned.scenes) || cloned.scenes.length === 0) {
+    return null
+  }
+
+  const defaultFov = property.sphrSpace?.defaultFov ?? 90
+  const navigationGraph: Record<string, PanoramaSceneHotspot[]> = {}
+  const manifestHotspots: Array<PanoramaSceneHotspot & { sceneId: string }> = []
+
+  cloned.scenes = cloned.scenes.map((scene, index) => {
+    const sceneId = scene.id || `scene-${index}`
+    const createdAt = scene.createdAt || cloned.createdAt
+    const updatedAt = scene.updatedAt || cloned.publishedAt
+    const initialView = scene.initialView ?? { yaw: 0, pitch: 0, fov: defaultFov }
+    const imageUrl = ensurePanoramaAssetUrl(scene.imageUrl ?? property.images?.[0], property)
+    const thumbnailUrl = ensurePanoramaAssetUrl(scene.thumbnailUrl ?? imageUrl, property)
+
+    const hotspots = normalizePanoramaHotspots(sceneId, scene.hotspots)
+    navigationGraph[sceneId] = hotspots
+    hotspots.forEach((hotspot) => {
+      manifestHotspots.push({ ...hotspot, sceneId })
+    })
+
+    return {
+      ...scene,
+      id: sceneId,
+      sceneType: scene.sceneType ?? "interior",
+      imageUrl,
+      thumbnailUrl,
+      createdAt,
+      updatedAt,
+      initialView: {
+        yaw: initialView.yaw ?? 0,
+        pitch: initialView.pitch ?? 0,
+        fov: initialView.fov ?? defaultFov,
+      },
+      assets: scene.assets ?? {
+        raw: imageUrl,
+        preview: thumbnailUrl,
+        web: imageUrl,
+        print: imageUrl,
+      },
+      processing: scene.processing ?? {
+        status: "READY",
+        startedAt: createdAt,
+        completedAt: updatedAt,
+        accuracyEstimate: "medium",
+        warnings: [],
+        errors: [],
+        depthEnabled: false,
+      },
+      measurement: scene.measurement ?? { enabled: false },
+      hotspots,
+    }
+  })
+
+  cloned.navigationGraph =
+    cloned.navigationGraph && Object.keys(cloned.navigationGraph).length > 0
+      ? cloned.navigationGraph
+      : navigationGraph
+  cloned.hotspots = cloned.hotspots && cloned.hotspots.length > 0 ? cloned.hotspots : manifestHotspots
+  cloned.accuracyScores =
+    cloned.accuracyScores && Object.keys(cloned.accuracyScores).length > 0
+      ? cloned.accuracyScores
+      : Object.fromEntries(cloned.scenes.map((scene) => [scene.id, "medium"]))
+  cloned.accessControls = cloned.accessControls ?? {
+    privacy: property.privacy ?? "private",
+    tokens: property.sharing?.tokens?.map((token) => token.id) ?? [],
+  }
+  cloned.analyticsHooks = cloned.analyticsHooks ?? {
+    events: ["scene_enter", "hotspot_click", "tour_complete"],
+  }
+
+  if (!cloned.initialSceneId && cloned.scenes.length > 0) {
+    cloned.initialSceneId = cloned.scenes[0].id
+  }
+
+  if (!cloned.initialSceneId) {
+    return null
+  }
+
+  return cloned
+}
+
+const buildPanoramaManifestFromSpace = (
+  property: StoredData["properties"][number],
+): PanoramaTourManifest | null => {
+  const space = property.sphrSpace
+  if (!space?.nodes?.length) {
+    return null
+  }
+
+  const createdAt = property.createdAt ?? new Date().toISOString()
+  const updatedAt = property.updatedAt ?? createdAt
+  const defaultFov = space.defaultFov ?? 90
+
+  const scenes = space.nodes.map((node, index) => {
+    const sceneId = node.id || `node-${index}`
+    const hotspots = (node.hotspots ?? []).filter((hotspot) => hotspot.type === "navigation" && hotspot.targetNodeId)
+
+    const normalizedHotspots: PanoramaSceneHotspot[] = hotspots.map((hotspot, hotspotIndex) => ({
+      id: hotspot.id || `${sceneId}-hotspot-${hotspotIndex}`,
+      targetSceneId: hotspot.targetNodeId!,
+      yaw: hotspot.yaw ?? 0,
+      pitch: hotspot.pitch ?? 0,
+      label: hotspot.title ?? hotspot.id ?? `Navigate to ${hotspot.targetNodeId}`,
+      autoAlignmentYaw: undefined,
+      autoAlignmentPitch: undefined,
+    }))
+
+    const panoramaUrl = ensurePanoramaAssetUrl(node.panoramaUrl, property)
+
+    return {
+      id: sceneId,
+      name: node.name || `Node ${index + 1}`,
+      imageUrl: panoramaUrl,
+      thumbnailUrl: panoramaUrl,
+      description: undefined,
+      sceneType: "interior" as const,
+      initialView: {
+        yaw: node.initialYaw ?? 0,
+        pitch: node.initialPitch ?? 0,
+        fov: defaultFov,
+      },
+      hotspots: normalizedHotspots,
+      createdAt,
+      updatedAt,
+      assets: {
+        raw: panoramaUrl,
+        preview: panoramaUrl,
+        web: panoramaUrl,
+        print: panoramaUrl,
+      },
+      processing: {
+        status: "READY" as const,
+        startedAt: createdAt,
+        completedAt: updatedAt,
+        accuracyEstimate: "medium" as const,
+        warnings: [],
+        errors: [],
+        depthEnabled: false,
+      },
+      measurement: { enabled: false },
+      tags: [],
+    }
+  })
+
+  const manifest: PanoramaTourManifest = {
+    id: `${property.id}-panorama`,
+    version: 2,
+    title: property.name || "Panorama Walkthrough",
+    property: {
+      id: property.id,
+      title: property.name,
+      address: property.address,
+      ownerId: property.ownerId ?? property.id,
+      ownerName: property.ownerName ?? resolveOwner(property),
+      ownerEmail: property.ownerEmail ?? property.branding?.contactEmail,
+      privacy: property.privacy ?? "private",
+      defaultLanguage: property.defaultLanguage ?? "en",
+      defaultUnits: property.defaultUnits ?? "imperial",
+      timezone: property.timezone ?? "America/Los_Angeles",
+      tags: property.tags ?? [],
+      primaryContact: property.primaryContact,
+      createdAt,
+      updatedAt,
+    },
+    initialSceneId: space.initialNodeId || scenes[0]?.id || "",
+    createdAt,
+    publishedAt: updatedAt,
+    scenes,
+    hotspots: [],
+    navigationGraph: {},
+    accuracyScores: {},
+    accessControls: {
+      privacy: property.privacy ?? "private",
+      tokens: property.sharing?.tokens?.map((token) => token.id) ?? [],
+    },
+    analyticsHooks: {
+      events: ["scene_enter", "hotspot_click", "tour_complete"],
+    },
+  }
+
+  return normalizePanoramaManifest(manifest, property)
+}
+
+const resolvePanoramaManifest = (
+  property: StoredData["properties"][number],
+): PanoramaTourManifest | null => {
+  if (property.panoramaWalkthrough) {
+    const normalized = normalizePanoramaManifest(property.panoramaWalkthrough, property)
+    if (normalized) {
+      return normalized
+    }
+  }
+  return buildPanoramaManifestFromSpace(property)
+}
 
 const buildGeometry = (property: StoredData["properties"][number]) => {
   const lodLevels: ViewerManifest["geometry"]["lod_levels"] = []
@@ -208,100 +500,6 @@ const buildNavigation = (
   return { camera_nodes: cameraNodes, connections }
 }
 
-const createNodeFromNavigation = (
-  node: ViewerManifest["navigation"]["camera_nodes"][number],
-  connections: ViewerManifest["navigation"]["connections"],
-  eyeHeight: number,
-): WalkthroughNode => {
-  const connected = connections
-    .filter((connection) => connection.from === node.id)
-    .map((connection) => connection.to)
-  const nodeY = node.position[1] ?? eyeHeight
-  return {
-    id: node.id,
-    position: [node.position[0] ?? 0, nodeY - eyeHeight, node.position[2] ?? 0],
-    orientation: {
-      yaw: node.rotation?.[1] ?? 0,
-      pitch: node.rotation?.[0] ?? 0,
-      roll: node.rotation?.[2] ?? 0,
-    },
-    connectedTo: connected,
-    transitionDurationMs: 1400,
-    mediaAnchor: node.thumbnail,
-  }
-}
-
-const buildImmersiveSpace = (
-  property: StoredData["properties"][number],
-  navigation: ViewerManifest["navigation"],
-  defaultNode: string,
-): ImmersiveWalkthroughSpace | undefined => {
-  const base = property.immersiveWalkthrough
-  const eyeHeight = base?.eyeHeight ?? 1.7
-  const navigationNodes = navigation.camera_nodes.map((node) =>
-    createNodeFromNavigation(node, navigation.connections, eyeHeight),
-  )
-
-  const baseNodes = base?.nodes ?? []
-  const normalizedNodes: WalkthroughNode[] = baseNodes.length
-    ? baseNodes.map((node) => {
-        const fallback = navigationNodes.find((candidate) => candidate.id === node.id)
-        return {
-          ...fallback,
-          ...node,
-          position: node.position ?? fallback?.position ?? [0, 0, 0],
-          orientation: node.orientation ?? fallback?.orientation,
-          connectedTo: node.connectedTo ?? fallback?.connectedTo ?? [],
-        }
-      })
-    : navigationNodes
-
-  if (!normalizedNodes.length) {
-    return undefined
-  }
-
-  const ensureAsset = (url: string | undefined, fallback: string) => ensureAbsoluteUrl(url ?? fallback, property.id)
-
-  const immersiveSpace: ImmersiveWalkthroughSpace = {
-    spaceId: base?.spaceId ?? `${property.id}_immersive`,
-    defaultNodeId: base?.defaultNodeId ?? defaultNode,
-    nodes: normalizedNodes,
-    hotspots: base?.hotspots ?? [],
-    spatialMeshUrl: ensureAsset(
-      base?.spatialMeshUrl,
-      `https://cdn.virtualtour.ai/spaces/${property.id}/mesh/immersive.glb`,
-    ),
-    textureSetUrl: base?.textureSetUrl
-      ? ensureAsset(base.textureSetUrl, base.textureSetUrl)
-      : `https://cdn.virtualtour.ai/spaces/${property.id}/textures/`,
-    hdrEnvironmentUrl: base?.hdrEnvironmentUrl
-      ? ensureAsset(base.hdrEnvironmentUrl, base.hdrEnvironmentUrl)
-      : undefined,
-    navigationMeshUrl: base?.navigationMeshUrl
-      ? ensureAsset(base.navigationMeshUrl, base.navigationMeshUrl)
-      : undefined,
-    dracoDecoderPath: base?.dracoDecoderPath ?? "/draco/",
-    materialBoost: base?.materialBoost,
-    pointerSensitivity: base?.pointerSensitivity,
-    eyeHeight,
-    manualWalkEnabled: base?.manualWalkEnabled ?? false,
-    autoTour: base?.autoTour,
-    captureMetadata:
-      base?.captureMetadata ??
-      ({
-        resolution: "8K",
-        depthPrecision: "millimeter",
-        originAlignment: true,
-      } satisfies ImmersiveWalkthroughSpace["captureMetadata"]),
-    bounds: base?.bounds,
-    lighting: base?.lighting,
-    zoneId: base?.zoneId ?? property.zones?.find((zone) => zone.spaceIds.includes(property.id))?.zoneId,
-    outdoor: base?.outdoor ?? property.zones?.some((zone) => zone.outdoor) ?? false,
-  }
-
-  return immersiveSpace
-}
-
 const buildViews = (
   property: StoredData["properties"][number],
   navigation: ViewerManifest["navigation"],
@@ -310,13 +508,12 @@ const buildViews = (
   const defaultNode = navigation.camera_nodes[0]?.id ?? `${property.id}_origin`
   const dollhouse = property.dollhouseModel
   const floorPlan = state.floorPlans?.find((plan) => plan.id === property.floorPlanId)
-  const immersiveSpace = buildImmersiveSpace(property, navigation, defaultNode)
 
   return {
     walkthrough: {
       default_node: defaultNode,
       pathfinding_enabled: navigation.connections.length > 0,
-      immersive_space: immersiveSpace
+      panorama_manifest: resolvePanoramaManifest(property)
     },
     dollhouse: {
       model_url: ensureAbsoluteUrl(dollhouse?.meshUrl, property.id),

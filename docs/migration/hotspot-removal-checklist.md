@@ -6,14 +6,14 @@
 - [ ] Maintain ability to toggle legacy runtime for rollback.
 
 ## Code removals
-- [ ] Delete `lib/immersive-walkthrough/engine.ts` and associated helpers.
-- [ ] Remove `components/viewer/immersive-walkthrough.tsx` usage.
-- [ ] Drop references to `ImmersiveWalkthroughSpace` types.
+- [x] Delete `lib/immersive-walkthrough/engine.ts` and associated helpers.
+- [x] Remove `components/viewer/immersive-walkthrough.tsx` usage.
+- [x] Drop references to `ImmersiveWalkthroughSpace` types.
 - [ ] Remove spline/pathfinding imports and bundles.
 
 ## Manifest updates
 - [x] Document hotspot-centric schema (`docs/hotspot-navigation-manifest.md`).
-- [ ] Update manifest generator to emit new shape.
+- [x] Update manifest generator to emit new shape.
 - [ ] Strip deprecated walkthrough fields during publish.
 
 ## Analytics

@@ -1,110 +1,178 @@
 # Hotspot Navigation Manifest Schema
 
-This document defines the property manifest shape for the hotspot navigation system. The manifest is the single source of truth for authoring data surfaced in the viewer runtime and admin tooling.
+This document defines the structure of the panorama manifest consumed by the hotspot navigation system. The manifest represents the complete authoring state for the viewer runtime and admin tooling.
 
 ## Top-level fields
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `version` | `string` | Semantic version identifying the manifest schema revision. |
-| `published_at` | `string` (ISO-8601) | Timestamp applied when the manifest is published to CDN/storage. |
-| `asset_base_url` | `string` | Root URL used to resolve all asset references. The viewer MUST resolve images, HDR files, and auxiliary assets relative to this base path. |
-| `scenes` | `HotspotScene[]` | Ordered list of all scenes available to the viewer. |
+| `id` | `string` | Unique identifier for the manifest, usually derived from the property ID. |
+| `version` | `number` | Schema/content revision number. Increment when the manifest contract changes. |
+| `title` | `string` | Human readable name displayed in admin interfaces. |
+| `property` | `PanoramaManifestProperty` | Snapshot of the property metadata associated with the manifest. |
+| `initialSceneId` | `string` | Scene that should load first when the viewer boots. |
+| `createdAt` | `string` (ISO-8601) | Timestamp applied when the manifest was assembled. |
+| `publishedAt` | `string` (ISO-8601) | Timestamp applied when the manifest was deployed to CDN/storage. |
+| `scenes` | `PanoramaScene[]` | Ordered list of every authored panorama scene. |
+| `hotspots` | `PanoramaManifestHotspot[]` | Flattened array of hotspots with their owning `sceneId`. |
+| `navigationGraph` | `Record<string, PanoramaSceneHotspot[]>` | Convenience lookup keyed by `sceneId`. |
+| `accuracyScores` | `Record<string, string>` | Optional QA metadata for analytics. |
+| `accessControls` | `{ privacy: PropertyPrivacy; tokens?: string[] }` | Controls used by sharing/embed flows. |
+| `analyticsHooks` | `{ events: string[] }` | Declares which analytics events the viewer should emit. |
 
 ## Scene object
 
 ```
-interface HotspotScene {
-  scene_id: string
-  display_name: string
-  image_url: string
-  preview_url: string
-  initial_view: {
-    yaw: number
-    pitch: number
-    fov: number
+interface PanoramaScene {
+  id: string
+  name: string
+  imageUrl: string
+  thumbnailUrl?: string
+  sceneType: "interior" | "exterior"
+  description?: string
+  tags?: string[]
+  initialView: { yaw: number; pitch: number; fov: number }
+  hotspots: PanoramaSceneHotspot[]
+  createdAt: string
+  updatedAt: string
+  assets: {
+    raw: string
+    preview: string
+    web: string
+    print: string
   }
-  hotspots: SceneHotspot[]
+  processing: {
+    status: "PENDING" | "PROCESSING" | "READY" | "FAILED"
+    startedAt: string
+    completedAt?: string
+    accuracyEstimate?: "low" | "medium" | "high"
+    warnings?: string[]
+    errors?: string[]
+    depthEnabled?: boolean
+  }
+  measurement: { enabled: boolean; accuracyCm?: number }
 }
 ```
 
-* `image_url` SHOULD point at the production-resolution panorama.
-* `preview_url` MUST resolve to a lightweight asset used for fast initial rendering.
-* `initial_view` controls the default yaw/pitch/fov for the viewer when a scene is loaded.
-* `hotspots` is an authoritative list describing every hotspot exposed in the runtime.
+* `imageUrl` and `thumbnailUrl` SHOULD be absolute URLs the viewer can load directly.
+* `assets` is provided for downstream compatibility. For simple deployments the same equirectangular asset may satisfy all entries.
+* `processing` reflects ingestion/QC state in the admin surface.
+* `measurement` toggles measurement overlays within the viewer.
 
 ## Hotspot object
 
 ```
-interface SceneHotspot {
-  hotspot_id: string
-  position: { yaw: number; pitch: number } | { x: number; y: number; z?: number }
+interface PanoramaSceneHotspot {
+  id: string
+  targetSceneId: string
+  yaw: number
+  pitch: number
   label: string
-  type: "navigation" | "info" | "media"
-  target_scene_id?: string
-  transition?: "fade" | "teleport"
-  visible: boolean
-  created_by: string
-  created_at: string
+  autoAlignmentYaw?: number
+  autoAlignmentPitch?: number
 }
 ```
 
-* `position` MUST include yaw/pitch. If depth data is available the optional `{ x, y, z }` variant MAY be provided.
-* `target_scene_id` is **required** when `type === "navigation"`.
-* `transition` defaults to `"fade"` when omitted.
-* `visible` toggles runtime visibility; hidden hotspots are still persisted for audit history.
-* `created_at` is stored in ISO-8601 format.
+* All hotspots currently behave as navigation points. Future revisions may introduce additional hotspot types.
+* `autoAlignmentYaw` and `autoAlignmentPitch` allow the viewer to smooth camera orientation during transitions.
 
 ## Deprecated fields
 
-Any fields powering the previous continuous walkthrough are considered deprecated. The manifest generator MUST omit them during publish, or set them to `null` for archival use only.
+Any fields powering the retired continuous walkthrough are considered deprecated. The manifest generator MUST omit them during publish, or set them to `null` for archival use only.
 
 Deprecated examples include (non-exhaustive):
 
 - `immersive_walkthrough`
 - `walk_nodes`
 - `spline_paths`
-- `navigation_graph`
 
 Consumer code MUST ignore these keys.
 
 ## Validation checklist
 
-1. All scene IDs referenced by navigation hotspots exist in the manifest.
-2. Every hotspot has a unique `hotspot_id` scoped to its scene.
-3. Preview assets resolve relative to `asset_base_url`.
-4. `initial_view` contains yaw/pitch/fov values.
-5. `visible` defaults to `true` when omitted.
-6. Deprecated walkthrough fields are removed before publish.
+1. All scene IDs referenced by `navigationGraph` exist in `scenes`.
+2. Every hotspot ID is unique within its parent scene.
+3. Every scene exposes yaw/pitch/fov values in `initialView`.
+4. All timestamps use ISO-8601 formatting.
+5. Deprecated walkthrough fields are removed before publish.
 
 ## Example manifest
 
 ```
 {
-  "version": "2.0.0",
-  "published_at": "2024-06-01T17:43:12.394Z",
-  "asset_base_url": "https://cdn.example.com/properties/central-loft/",
+  "id": "prop-001-panorama",
+  "version": 2,
+  "title": "Luxury Downtown Penthouse",
+  "initialSceneId": "entrance",
+  "createdAt": "2024-01-15T00:00:00.000Z",
+  "publishedAt": "2024-10-20T00:00:00.000Z",
+  "property": {
+    "id": "prop-001",
+    "title": "Luxury Downtown Penthouse",
+    "address": "123 Park Avenue, New York, NY 10022",
+    "ownerId": "owner-default",
+    "ownerName": "Portfolio Admin",
+    "ownerEmail": "info@baladshelter.com",
+    "privacy": "private",
+    "defaultLanguage": "en",
+    "defaultUnits": "imperial",
+    "timezone": "America/Los_Angeles",
+    "tags": ["luxury", "penthouse"],
+    "primaryContact": {
+      "name": "BaladShelter",
+      "email": "info@baladshelter.com"
+    },
+    "createdAt": "2024-01-15T00:00:00.000Z",
+    "updatedAt": "2024-10-20T00:00:00.000Z"
+  },
   "scenes": [
     {
-      "scene_id": "entry",
-      "display_name": "Entry",
-      "image_url": "panos/entry.webp",
-      "preview_url": "panos/entry-preview.webp",
-      "initial_view": { "yaw": 15, "pitch": -4, "fov": 75 },
+      "id": "entrance",
+      "name": "Entrance",
+      "imageUrl": "/panorama-samples/entrance.jpg",
+      "thumbnailUrl": "/panorama-samples/entrance.jpg",
+      "sceneType": "interior",
+      "initialView": { "yaw": 15, "pitch": -2, "fov": 85 },
       "hotspots": [
-        {
-          "hotspot_id": "entry-to-kitchen",
-          "position": { "yaw": 34, "pitch": -6 },
-          "label": "Enter Kitchen",
-          "type": "navigation",
-          "target_scene_id": "kitchen",
-          "transition": "fade",
-          "visible": true,
-          "created_by": "editor@acme.com",
-          "created_at": "2024-05-30T19:22:01.441Z"
-        }
-      ]
+        { "id": "to-living", "targetSceneId": "living-room", "yaw": 20, "pitch": -2, "label": "Enter Living Room" }
+      ],
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "updatedAt": "2024-10-20T00:00:00.000Z",
+      "assets": {
+        "raw": "/panorama-samples/entrance.jpg",
+        "preview": "/panorama-samples/entrance.jpg",
+        "web": "/panorama-samples/entrance.jpg",
+        "print": "/panorama-samples/entrance.jpg"
+      },
+      "processing": {
+        "status": "READY",
+        "startedAt": "2024-01-15T00:00:00.000Z",
+        "completedAt": "2024-10-20T00:00:00.000Z",
+        "accuracyEstimate": "medium",
+        "warnings": [],
+        "errors": [],
+        "depthEnabled": false
+      },
+      "measurement": { "enabled": false }
     }
-  ]
+  ],
+  "hotspots": [
+    {
+      "id": "to-living",
+      "sceneId": "entrance",
+      "targetSceneId": "living-room",
+      "yaw": 20,
+      "pitch": -2,
+      "label": "Enter Living Room"
+    }
+  ],
+  "navigationGraph": {
+    "entrance": [
+      { "id": "to-living", "targetSceneId": "living-room", "yaw": 20, "pitch": -2, "label": "Enter Living Room" }
+    ]
+  },
+  "accuracyScores": { "entrance": "medium" },
+  "accessControls": { "privacy": "private", "tokens": ["public"] },
+  "analyticsHooks": { "events": ["scene_enter", "hotspot_click", "tour_complete"] }
 }
 ```

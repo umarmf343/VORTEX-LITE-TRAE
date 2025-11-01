@@ -879,7 +879,7 @@ export default function Page() {
 
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-white mb-2">Featured Properties</h2>
-            <p className="text-slate-400">Explore our premium real estate listings with immersive 360° virtual tours</p>
+            <p className="text-slate-400">Explore our premium real estate listings with hotspot-driven 360° virtual tours</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -985,7 +985,7 @@ export default function Page() {
               ) : null}
               {!sphrAvailable && (
                 <span className="basis-full text-xs text-slate-300">
-                  Import SPHR nodes to unlock the immersive viewer option.
+                  Import SPHR nodes to unlock the panorama viewer option.
                 </span>
               )}
             </div>

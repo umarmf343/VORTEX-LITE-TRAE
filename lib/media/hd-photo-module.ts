@@ -192,7 +192,7 @@ export class HDPhotoModule {
     const description =
       options.description ??
       (kind === "panorama"
-        ? "High-resolution equirectangular export generated from the immersive walkthrough renderer."
+        ? "High-resolution equirectangular export generated from the hotspot panorama renderer."
         : "Supersampled still image optimised for marketing delivery.")
 
     const baseUrl = `https://cdn.domain/media/spaces/${this.state.spaceId}/photos`
