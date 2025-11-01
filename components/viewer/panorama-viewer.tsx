@@ -77,6 +77,7 @@ export function PanoramaViewer({ space, activeSceneId, onSceneChange, className 
   const [cursorPulse, setCursorPulse] = useState(false)
   const cursorPulseTimeoutRef = useRef<number | null>(null)
   const [transitionPhase, setTransitionPhase] = useState<"idle" | "fade-out" | "fade-in">("idle")
+  const [showInstructions, setShowInstructions] = useState(true)
 
   const nodesById = useMemo(() => {
     return space.nodes.reduce<Record<string, SphrSpaceNode>>((acc, node) => {
@@ -362,6 +363,9 @@ export function PanoramaViewer({ space, activeSceneId, onSceneChange, className 
   const handleHotspotClick = useCallback(
     (hotspot: SphrHotspot) => {
       triggerCursorPulse()
+      if (showInstructions) {
+        setShowInstructions(false)
+      }
       if (hotspot.type === "navigation" && hotspot.targetNodeId) {
         const target = nodesById[hotspot.targetNodeId]
         if (target) {
@@ -373,7 +377,14 @@ export function PanoramaViewer({ space, activeSceneId, onSceneChange, className 
         return
       }
     },
-    [isControlled, navigateToNode, nodesById, onSceneChange, triggerCursorPulse],
+    [
+      isControlled,
+      navigateToNode,
+      nodesById,
+      onSceneChange,
+      showInstructions,
+      triggerCursorPulse,
+    ],
   )
 
   const registerHotspotRef = useCallback((id: string) => (node: HTMLButtonElement | null) => {
@@ -395,8 +406,11 @@ export function PanoramaViewer({ space, activeSceneId, onSceneChange, className 
       const rect = event.currentTarget.getBoundingClientRect()
       setCursorPosition({ x: event.clientX - rect.left, y: event.clientY - rect.top })
       triggerCursorPulse()
+      if (showInstructions) {
+        setShowInstructions(false)
+      }
     },
-    [triggerCursorPulse],
+    [showInstructions, triggerCursorPulse],
   )
 
   return (
@@ -451,6 +465,17 @@ export function PanoramaViewer({ space, activeSceneId, onSceneChange, className 
           transitionPhase === "fade-out" ? "opacity-80" : "opacity-0",
         )}
       />
+
+      {showInstructions ? (
+        <div className="pointer-events-none absolute inset-x-0 bottom-6 z-30 flex justify-center px-4">
+          <div className="max-w-md rounded-full border border-white/10 bg-slate-950/80 px-6 py-3 text-center text-sm font-medium text-slate-100 shadow-[0_20px_45px_-15px_rgba(15,23,42,0.65)] backdrop-blur">
+            <p>Click anywhere inside the panorama to look around.</p>
+            <p className="mt-1 text-xs font-normal text-slate-300">
+              Glowing markers reveal interactive hotspots—select one to transition to the linked scene with a gentle fade.
+            </p>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
