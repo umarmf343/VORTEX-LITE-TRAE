@@ -3,6 +3,29 @@
   "version": 1,
   "title": "Sample Panorama Residence",
   "initialSceneId": "entrance",
+  "property": {
+    "id": "prop-sample-panorama",
+    "title": "Sample Panorama Residence",
+    "address": "123 Panorama Way, Immersion City",
+    "ownerId": "owner-sample",
+    "ownerName": "Experience Director",
+    "ownerEmail": "director@baladshelter.com",
+    "privacy": "private",
+    "defaultLanguage": "en",
+    "defaultUnits": "imperial",
+    "timezone": "America/Los_Angeles",
+    "tags": [
+      "sample",
+      "residential"
+    ],
+    "primaryContact": {
+      "name": "Jamie Rivera",
+      "email": "jamie.rivera@baladshelter.com",
+      "phone": "+1 (555) 010-2025"
+    },
+    "createdAt": "2025-11-01T19:27:17.789Z",
+    "updatedAt": "2025-11-01T19:27:17.789Z"
+  },
   "scenes": [
     {
       "id": "entrance",
@@ -11,6 +34,8 @@
       "thumbnailUrl": "/panorama-samples/entrance",
       "description": "Warm entry foyer with natural light",
       "sceneType": "interior",
+      "floor": "1",
+      "orientationHint": "north",
       "tags": [
         "foyer",
         "entry"
@@ -34,7 +59,28 @@
         }
       ],
       "createdAt": "2025-10-31T09:51:56.403Z",
-      "updatedAt": "2025-10-31T09:51:56.403Z"
+      "updatedAt": "2025-10-31T09:51:56.403Z",
+      "assets": {
+        "raw": "/panorama-samples/entrance",
+        "preview": "/properties/prop-sample-panorama/scenes/entrance/processed/preview/entrance.jpg",
+        "web": "/properties/prop-sample-panorama/scenes/entrance/processed/web/entrance.jpg",
+        "print": "/properties/prop-sample-panorama/scenes/entrance/processed/print/entrance.jpg"
+      },
+      "processing": {
+        "status": "READY",
+        "startedAt": "2025-10-31T09:51:56.403Z",
+        "completedAt": "2025-10-31T09:51:56.403Z",
+        "accuracyEstimate": "medium",
+        "warnings": [
+          "Depth data missing — measurement accuracy limited"
+        ],
+        "errors": [],
+        "depthEnabled": false
+      },
+      "measurement": {
+        "enabled": false,
+        "notes": "Using visual alignment only."
+      }
     },
     {
       "id": "living-room",
@@ -43,6 +89,8 @@
       "thumbnailUrl": "/panorama-samples/living-room",
       "description": "Open concept living room",
       "sceneType": "interior",
+      "floor": "1",
+      "orientationHint": "north",
       "tags": [
         "family",
         "lounge"
@@ -77,7 +125,28 @@
         }
       ],
       "createdAt": "2025-10-31T09:51:56.403Z",
-      "updatedAt": "2025-10-31T09:51:56.403Z"
+      "updatedAt": "2025-10-31T09:51:56.403Z",
+      "assets": {
+        "raw": "/panorama-samples/living-room",
+        "preview": "/properties/prop-sample-panorama/scenes/living-room/processed/preview/living-room.jpg",
+        "web": "/properties/prop-sample-panorama/scenes/living-room/processed/web/living-room.jpg",
+        "print": "/properties/prop-sample-panorama/scenes/living-room/processed/print/living-room.jpg"
+      },
+      "processing": {
+        "status": "READY",
+        "startedAt": "2025-10-31T09:51:56.403Z",
+        "completedAt": "2025-10-31T09:51:56.403Z",
+        "accuracyEstimate": "medium",
+        "warnings": [
+          "Depth data missing — measurement accuracy limited"
+        ],
+        "errors": [],
+        "depthEnabled": false
+      },
+      "measurement": {
+        "enabled": false,
+        "notes": "Using visual alignment only."
+      }
     },
     {
       "id": "kitchen",
@@ -86,6 +155,8 @@
       "thumbnailUrl": "/panorama-samples/kitchen",
       "description": "Chef-inspired kitchen with breakfast nook",
       "sceneType": "interior",
+      "floor": "1",
+      "orientationHint": "north",
       "tags": [
         "kitchen",
         "gourmet"
@@ -120,7 +191,28 @@
         }
       ],
       "createdAt": "2025-10-31T09:51:56.403Z",
-      "updatedAt": "2025-10-31T09:51:56.403Z"
+      "updatedAt": "2025-10-31T09:51:56.403Z",
+      "assets": {
+        "raw": "/panorama-samples/kitchen",
+        "preview": "/properties/prop-sample-panorama/scenes/kitchen/processed/preview/kitchen.jpg",
+        "web": "/properties/prop-sample-panorama/scenes/kitchen/processed/web/kitchen.jpg",
+        "print": "/properties/prop-sample-panorama/scenes/kitchen/processed/print/kitchen.jpg"
+      },
+      "processing": {
+        "status": "READY",
+        "startedAt": "2025-10-31T09:51:56.403Z",
+        "completedAt": "2025-10-31T09:51:56.403Z",
+        "accuracyEstimate": "medium",
+        "warnings": [
+          "Depth data missing — measurement accuracy limited"
+        ],
+        "errors": [],
+        "depthEnabled": false
+      },
+      "measurement": {
+        "enabled": false,
+        "notes": "Using visual alignment only."
+      }
     },
     {
       "id": "backyard",
@@ -129,6 +221,8 @@
       "thumbnailUrl": "/panorama-samples/backyard",
       "description": "Outdoor space with lounge seating and greenery",
       "sceneType": "exterior",
+      "floor": "1",
+      "orientationHint": "north",
       "tags": [
         "garden",
         "outdoor"
@@ -152,7 +246,28 @@
         }
       ],
       "createdAt": "2025-10-31T09:51:56.403Z",
-      "updatedAt": "2025-10-31T09:51:56.403Z"
+      "updatedAt": "2025-10-31T09:51:56.403Z",
+      "assets": {
+        "raw": "/panorama-samples/backyard",
+        "preview": "/properties/prop-sample-panorama/scenes/backyard/processed/preview/backyard.jpg",
+        "web": "/properties/prop-sample-panorama/scenes/backyard/processed/web/backyard.jpg",
+        "print": "/properties/prop-sample-panorama/scenes/backyard/processed/print/backyard.jpg"
+      },
+      "processing": {
+        "status": "READY",
+        "startedAt": "2025-10-31T09:51:56.403Z",
+        "completedAt": "2025-10-31T09:51:56.403Z",
+        "accuracyEstimate": "medium",
+        "warnings": [
+          "Depth data missing — measurement accuracy limited"
+        ],
+        "errors": [],
+        "depthEnabled": false
+      },
+      "measurement": {
+        "enabled": false,
+        "notes": "Using visual alignment only."
+      }
     }
   ]
 }
