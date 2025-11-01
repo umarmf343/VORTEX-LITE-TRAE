@@ -471,7 +471,7 @@
         "textureSetUrl": "https://cdn.virtualtour.ai/cdn/spaces/3BR_flat_01/walkthrough/textures/",
         "hdrEnvironmentUrl": "https://cdn.virtualtour.ai/cdn/spaces/3BR_flat_01/walkthrough/sky.hdr",
         "navigationMeshUrl": "https://cdn.virtualtour.ai/cdn/spaces/3BR_flat_01/walkthrough/navmesh.glb",
-        "dracoDecoderPath": "/cdn/decoders/draco/",
+        "dracoDecoderPath": "https://cdn.virtualtour.ai/cdn/decoders/draco/",
         "materialBoost": 0.15,
         "eyeHeight": 1.7,
         "manualWalkEnabled": true,
@@ -1439,7 +1439,7 @@
       "view",
       "measure"
     ],
-    "expiry": "2025-12-01T01:37:58.831Z"
+    "expiry": "2025-12-01T01:43:12.803Z"
   },
   "zones": [
     {

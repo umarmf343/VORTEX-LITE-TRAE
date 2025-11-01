@@ -17,5 +17,37 @@
     "nodeId": "node-foyer",
     "timestamp": 1761961084115,
     "receivedAt": "2025-11-01T01:38:11.201Z"
+  },
+  {
+    "event": "exit_walkthrough",
+    "spaceId": "prop-001-immersive",
+    "timestamp": 1761961396610,
+    "receivedAt": "2025-11-01T01:43:16.660Z"
+  },
+  {
+    "event": "enter_walkthrough",
+    "spaceId": "prop-001-immersive",
+    "nodeId": "node-foyer",
+    "timestamp": 1761961399195,
+    "receivedAt": "2025-11-01T01:43:19.268Z"
+  },
+  {
+    "event": "exit_walkthrough",
+    "spaceId": "prop-001-immersive",
+    "timestamp": 1761961399522,
+    "receivedAt": "2025-11-01T01:43:19.928Z"
+  },
+  {
+    "event": "exit_walkthrough",
+    "spaceId": "prop-001-immersive",
+    "timestamp": 1761961510500,
+    "receivedAt": "2025-11-01T01:45:10.548Z"
+  },
+  {
+    "event": "enter_walkthrough",
+    "spaceId": "prop-001-immersive",
+    "nodeId": "node-foyer",
+    "timestamp": 1761961511480,
+    "receivedAt": "2025-11-01T01:45:11.753Z"
   }
 ]
