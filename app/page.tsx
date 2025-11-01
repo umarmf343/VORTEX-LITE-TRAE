@@ -42,7 +42,6 @@ import {
   Share2,
   Code,
   Map,
-  Globe,
   ExternalLink,
   AlertCircle,
   NavigationIcon,
@@ -868,23 +867,9 @@ export default function Page() {
                   SPHR Immersive
                 </Button>
               ) : null}
-              <Button
-                variant={tourExperience === "matterport" ? "default" : "outline"}
-                onClick={() => setTourExperience("matterport")}
-                disabled={!matterportAvailable}
-                className="gap-2"
-              >
-                <Globe className="h-4 w-4" />
-                Matterport Showcase
-              </Button>
               {!sphrAvailable && (
                 <span className="basis-full text-xs text-slate-300">
                   Import SPHR nodes to unlock the immersive viewer option.
-                </span>
-              )}
-              {!matterportAvailable && (
-                <span className="basis-full text-xs text-slate-300">
-                  Link a Matterport model ID to unlock the showcase view.
                 </span>
               )}
             </div>
