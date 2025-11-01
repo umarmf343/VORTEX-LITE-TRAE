@@ -78,6 +78,7 @@ type ViewMode =
   | "journey"
   | "3d-models"
   | "scene-types"
+  | "tour-builder"
 
 const ADMIN_VIEW_MODES: readonly ViewMode[] = [
   "admin",
@@ -96,6 +97,7 @@ const ADMIN_VIEW_MODES: readonly ViewMode[] = [
   "capture",
   "embed",
   "journey",
+  "tour-builder",
 ] as const
 
 type LazyComponentFactory<Props> = () => Promise<ComponentType<Props>>
@@ -288,6 +290,15 @@ const SceneTypes = createAdminModule<{
 }>(
   () => import("@/components/admin/scene-types").then((mod) => mod.SceneTypes),
   "scene types",
+)
+
+const PanoramaTourBuilder = createAdminModule<{
+  propertyId?: string
+  propertyName?: string
+}>(
+  () =>
+    import("@/components/admin/panorama-tour-builder").then((mod) => mod.PanoramaTourBuilder),
+  "panorama tour workspace",
 )
 
 export default function Page() {
@@ -483,10 +494,12 @@ export default function Page() {
     "journey",
     "3d-models",
     "scene-types",
+    "tour-builder",
   ])
 
   const adminNavigation: { label: string; view: ViewMode; icon?: ElementType }[] = [
     { label: "Properties", view: "admin", icon: Building2 },
+    { label: "Tour Builder", view: "tour-builder", icon: NavigationIcon },
     { label: "Compare", view: "comparison" },
     { label: "Merge", view: "merge" },
     { label: "Analytics", view: "analytics", icon: BarChart3 },
@@ -1334,6 +1347,26 @@ export default function Page() {
                     scenes={propertySceneTypes}
                     onAddSceneType={addSceneTypeConfig}
                     onRemoveSceneType={removeSceneTypeConfig}
+                  />
+                </div>
+              )}
+
+              {viewMode === "tour-builder" && (
+                <div className="space-y-6">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h2 className="text-xl font-bold">Virtual Tour Builder - {selectedAnalyticsProperty.name}</h2>
+                      <p className="text-sm text-slate-600">
+                        Upload panoramas, drop hotspots, and publish the walkthrough manifest for this property.
+                      </p>
+                    </div>
+                    <Button variant="outline" onClick={() => setViewMode("admin")}>
+                      ← Back to Properties
+                    </Button>
+                  </div>
+                  <PanoramaTourBuilder
+                    propertyId={selectedAnalyticsProperty.id}
+                    propertyName={selectedAnalyticsProperty.name}
                   />
                 </div>
               )}
