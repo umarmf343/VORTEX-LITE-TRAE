@@ -104,7 +104,7 @@ export function MatterportEmbed({
         <AlertCircle className="mb-3 h-8 w-8 text-amber-400" />
         <p className="max-w-md text-sm">
           This property does not have a Matterport showcase linked yet. Add a <code>matterportModelId</code> to the property to
-          unlock the immersive experience.
+          unlock the embedded experience.
         </p>
       </Card>
     )

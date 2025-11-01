@@ -177,6 +177,9 @@ const ensurePropertyDefaults = (property: RawProperty) => {
     }
   }
   property.ownerEmail = property.ownerEmail || property.branding.contactEmail
+  if (property.panoramaWalkthrough === undefined) {
+    property.panoramaWalkthrough = null
+  }
 }
 
 export const getDataSnapshot = async (): Promise<StoredData> => {
@@ -314,13 +317,16 @@ const mergeTourData = async (state: StoredData) => {
 
   if (panoramaManifest) {
     const importedSpace = buildSphrSpaceFromManifest(panoramaManifest)
-    if (importedSpace.nodes.length) {
-      for (const property of state.properties) {
-        if (property.sphrSpace?.nodes?.length) {
-          continue
-        }
+    for (const property of state.properties) {
+      if (!property.sphrSpace?.nodes?.length && importedSpace.nodes.length) {
         property.sphrSpace = JSON.parse(JSON.stringify(importedSpace)) as SphrSpace
-        break
+      }
+      property.panoramaWalkthrough = JSON.parse(JSON.stringify(panoramaManifest)) as PanoramaTourManifest
+    }
+  } else {
+    for (const property of state.properties) {
+      if (property.panoramaWalkthrough === undefined) {
+        property.panoramaWalkthrough = null
       }
     }
   }
@@ -402,6 +408,7 @@ export const createProperty = async (input: CreatePropertyInput): Promise<RawPro
     matterportExperienceLabel: undefined,
     guidedTours: [],
     sphrSpace: undefined,
+    panoramaWalkthrough: null,
     zones: [],
     campusMap: undefined,
   }

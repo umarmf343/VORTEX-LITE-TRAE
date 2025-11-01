@@ -19,7 +19,7 @@ const TourPlayer = dynamic(
     loading: () => (
       <div className="flex h-full w-full items-center justify-center bg-slate-950 text-slate-200">
         <Loader2 className="h-6 w-6 animate-spin" />
-        <span className="ml-3 text-sm">Loading immersive tour…</span>
+        <span className="ml-3 text-sm">Loading panorama tour…</span>
       </div>
     ),
   },

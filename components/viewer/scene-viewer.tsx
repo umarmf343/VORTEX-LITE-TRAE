@@ -16,7 +16,6 @@ import type {
   DollhouseModel,
   DollhouseFloorMetadata,
   DollhouseRoomMetadata,
-  ImmersiveWalkthroughSpace,
 } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import {
@@ -83,7 +82,6 @@ import WebGLCapabilities from "three/examples/jsm/capabilities/WebGL.js"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 import { ZoomControls } from "./zoom-controls"
 import { DollhouseViewer } from "./dollhouse-viewer"
-import { ImmersiveWalkthrough } from "./immersive-walkthrough"
 
 type WebGLContextType = "webgl2" | "webgl" | "experimental-webgl"
 
@@ -182,7 +180,7 @@ const allViewModes: SceneViewMode[] = [
   "dollhouse",
   "floor-plan",
 ]
-const sphericalViewModes: SceneViewMode[] = ["360", "first-person", "orbit"]
+const sphericalViewModes: SceneViewMode[] = ["360", "first-person", "orbit", "walkthrough"]
 const immersiveViewModes: SceneViewMode[] = ["first-person", "walkthrough"]
 
 const DEFAULT_FOV = 75
@@ -386,7 +384,6 @@ interface SceneViewerProps {
     sceneId: string,
     metadata?: { floor: number; roomId: string; roomName: string },
   ) => void
-  immersiveWalkthrough?: ImmersiveWalkthroughSpace | null
   onCaptureStill?: (options: { kind: "panorama" | "still" }) => void
   capturePreview?: {
     url: string
@@ -420,7 +417,6 @@ export function SceneViewer({
   walkthroughMeta,
   dollhouseModel,
   onDollhouseNavigate,
-  immersiveWalkthrough,
   onCaptureStill,
   capturePreview,
 }: SceneViewerProps) {
@@ -511,76 +507,6 @@ export function SceneViewer({
     [activeDataLayers, onDataLayerToggle, visibleLayerIds],
   )
   const effectiveDollhouseModel = scene.dollhouseModel ?? dollhouseModel ?? null
-  const effectiveWalkthroughSpace = useMemo<ImmersiveWalkthroughSpace | null>(() => {
-    const base = immersiveWalkthrough ?? null
-    const override = scene.immersiveWalkthroughOverride
-    if (!base && !override) {
-      return null
-    }
-    if (!base && override) {
-      if (!override.nodes || !override.spatialMeshUrl) {
-        return null
-      }
-      const nodes = override.nodes
-      const defaultNodeId = override.defaultNodeId ?? nodes[0]?.id ?? `${scene.id}-origin`
-      return {
-        spaceId: override.spaceId ?? `${scene.id}-immersive`,
-        defaultNodeId,
-        nodes,
-        hotspots: override.hotspots ?? [],
-        spatialMeshUrl: override.spatialMeshUrl,
-        textureSetUrl: override.textureSetUrl,
-        hdrEnvironmentUrl: override.hdrEnvironmentUrl,
-        navigationMeshUrl: override.navigationMeshUrl,
-        dracoDecoderPath: override.dracoDecoderPath,
-        materialBoost: override.materialBoost,
-        pointerSensitivity: override.pointerSensitivity,
-        eyeHeight: override.eyeHeight,
-        manualWalkEnabled: override.manualWalkEnabled,
-        autoTour: override.autoTour,
-        captureMetadata: override.captureMetadata,
-        bounds: override.bounds,
-        lighting: override.lighting,
-      }
-    }
-    if (!base) {
-      return null
-    }
-    if (!override) {
-      return base
-    }
-    const overridesById = new Map((override.nodes ?? []).map((node) => [node.id, node]))
-    const mergedNodes = base.nodes.map((node) => {
-      const patch = overridesById.get(node.id)
-      if (!patch) return node
-      return {
-        ...node,
-        ...patch,
-        position: patch.position ?? node.position,
-        orientation: patch.orientation ?? node.orientation,
-        connectedTo: patch.connectedTo ?? node.connectedTo,
-      }
-    })
-    return {
-      ...base,
-      ...override,
-      nodes: mergedNodes,
-      hotspots: override.hotspots ?? base.hotspots,
-      spatialMeshUrl: override.spatialMeshUrl ?? base.spatialMeshUrl,
-      textureSetUrl: override.textureSetUrl ?? base.textureSetUrl,
-      hdrEnvironmentUrl: override.hdrEnvironmentUrl ?? base.hdrEnvironmentUrl,
-      navigationMeshUrl: override.navigationMeshUrl ?? base.navigationMeshUrl,
-      dracoDecoderPath: override.dracoDecoderPath ?? base.dracoDecoderPath,
-      materialBoost: override.materialBoost ?? base.materialBoost,
-      pointerSensitivity: override.pointerSensitivity ?? base.pointerSensitivity,
-      eyeHeight: override.eyeHeight ?? base.eyeHeight,
-      manualWalkEnabled: override.manualWalkEnabled ?? base.manualWalkEnabled,
-      autoTour: override.autoTour ?? base.autoTour,
-      captureMetadata: override.captureMetadata ?? base.captureMetadata,
-      bounds: override.bounds ?? base.bounds,
-      lighting: override.lighting ?? base.lighting,
-    }
-  }, [immersiveWalkthrough, scene.immersiveWalkthroughOverride, scene.id])
   const resolvedViewModes = useMemo<SceneViewMode[]>(() => {
     const baseModes = availableViewModes?.length ? availableViewModes : allViewModes
     return baseModes.filter((mode) => (mode === "dollhouse" ? Boolean(effectiveDollhouseModel) : true))
@@ -592,9 +518,7 @@ export function SceneViewer({
     return preferred
   })
   const hotspotNavOnly = isHotspotNavigationEnabled()
-  const immersiveWalkthroughActive =
-    !hotspotNavOnly && currentViewMode === "walkthrough" && Boolean(effectiveWalkthroughSpace)
-  const sphericalRendererActive = sphericalViewModes.includes(currentViewMode) && !immersiveWalkthroughActive
+  const sphericalRendererActive = sphericalViewModes.includes(currentViewMode)
   const [renderError, setRenderError] = useState<string | null>(null)
   const [transitionActive, setTransitionActive] = useState(false)
   const [transitionKey, setTransitionKey] = useState(0)
@@ -943,7 +867,7 @@ export function SceneViewer({
   }, [saveFeedback])
 
   useEffect(() => {
-    if (!immersiveModeActive || immersiveWalkthroughActive) {
+    if (!immersiveModeActive) {
       keyStateRef.current = {}
       return
     }
@@ -973,7 +897,7 @@ export function SceneViewer({
       window.removeEventListener("keyup", handleKeyUp)
       keyStateRef.current = {}
     }
-  }, [immersiveModeActive, immersiveWalkthroughActive, currentViewMode, onWalkthroughStep])
+  }, [immersiveModeActive, currentViewMode, onWalkthroughStep])
 
   useEffect(() => {
     if (!enableGyroscope || !vrMode || !sphericalViewModes.includes(currentViewMode)) return
@@ -2086,14 +2010,10 @@ export function SceneViewer({
       ? "cursor-not-allowed"
       : measuring || showAnnotationInput
         ? "cursor-crosshair"
-        : sphericalRendererActive
+        : sphericalRendererActive || isDollhouseMode
           ? "cursor-grab"
-          : isDollhouseMode
-            ? "cursor-grab"
-            : immersiveWalkthroughActive
-              ? "cursor-default"
-              : "cursor-crosshair"
-  const viewerFlexClass = !sphericalRendererActive && !immersiveWalkthroughActive && vrMode ? "flex" : ""
+          : "cursor-crosshair"
+  const viewerFlexClass = !sphericalRendererActive && vrMode ? "flex" : ""
 
   return (
     <div className="w-full h-full flex flex-col bg-black">
@@ -2101,12 +2021,12 @@ export function SceneViewer({
       <div
         ref={viewerRef}
         className={`relative flex-1 h-full min-h-[55vh] sm:min-h-[65vh] lg:min-h-[75vh] lg:h-full xl:min-h-[80vh] overflow-hidden ${viewerCursorClass} ${viewerFlexClass} ${
-          sphericalRendererActive || immersiveWalkthroughActive ? "bg-black" : ""
+          sphericalRendererActive ? "bg-black" : ""
         }`}
-        onClick={immersiveWalkthroughActive ? undefined : handleImageClick}
-        onDoubleClick={immersiveWalkthroughActive ? undefined : handleViewerDoubleClick}
-        onMouseMove={immersiveWalkthroughActive ? undefined : handlePointerMove}
-        onMouseLeave={immersiveWalkthroughActive ? undefined : handlePointerLeave}
+        onClick={handleImageClick}
+        onDoubleClick={handleViewerDoubleClick}
+        onMouseMove={handlePointerMove}
+        onMouseLeave={handlePointerLeave}
       >
         {onCaptureStill ? (
           <div className="pointer-events-none absolute top-4 right-4 z-30 flex w-full max-w-xs flex-col items-end gap-3">
@@ -2164,9 +2084,7 @@ export function SceneViewer({
           </>
         ) : (
           <>
-            {immersiveWalkthroughActive && effectiveWalkthroughSpace ? (
-              <ImmersiveWalkthrough space={effectiveWalkthroughSpace} />
-            ) : !sphericalRendererActive ? (
+            {!sphericalRendererActive ? (
               vrMode ? (
                 <div className="flex w-full h-full">
                   <div className="w-1/2 overflow-hidden">{renderViewMode()}</div>
@@ -2186,7 +2104,7 @@ export function SceneViewer({
               />
             )}
 
-            {isWalkthroughMode && !hotspotNavOnly && !immersiveWalkthroughActive && (
+            {isWalkthroughMode && !hotspotNavOnly && (
               <>
                 <div className="absolute top-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full bg-black/70 px-4 py-2 text-xs font-medium text-white shadow-lg backdrop-blur">
                   <NavigationIcon className="h-4 w-4 text-emerald-300" />
@@ -2229,7 +2147,7 @@ export function SceneViewer({
             )}
 
             {/* Hotspots */}
-            {!immersiveWalkthroughActive && scene.hotspots.map((hotspot) => {
+            {scene.hotspots.map((hotspot) => {
               const projected = projectedHotspots[hotspot.id]
               if (sphericalViewModes.includes(currentViewMode) && (!projected || !projected.visible)) {
                 return null

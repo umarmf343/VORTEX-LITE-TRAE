@@ -206,7 +206,7 @@ export interface Property {
   guidedTours?: GuidedTour[]
   sphrSpace?: SphrSpace
   dollhouseModel?: DollhouseModel
-  immersiveWalkthrough?: ImmersiveWalkthroughSpace
+  panoramaWalkthrough?: PanoramaTourManifest | null
   captureNodes?: CaptureScanNode[]
   hdPhotoCollection?: HDPhotoCollection
   zones?: PropertyZone[]
@@ -229,7 +229,6 @@ export interface Scene {
   defaultViewMode?: SceneViewMode
   dataLayers?: DataLayer[]
   dollhouseModel?: DollhouseModel
-  immersiveWalkthroughOverride?: Partial<ImmersiveWalkthroughSpace>
   captureNodeId?: string
   zoneId?: string
 }
@@ -563,80 +562,6 @@ export interface TourPoint {
   durationSeconds?: number
   highlight?: string
   mediaUrl?: string
-}
-
-export interface WalkthroughNodeOrientation {
-  yaw: number
-  pitch?: number
-  roll?: number
-}
-
-export interface WalkthroughNode {
-  id: string
-  position: [number, number, number]
-  orientation?: WalkthroughNodeOrientation
-  connectedTo?: string[]
-  navigationTags?: string[]
-  tags?: string[]
-  floor?: number
-  roomId?: string
-  label?: string
-  transitionDurationMs?: number
-  mediaAnchor?: string
-}
-
-export type WalkthroughHotspotType = "info" | "media" | "link" | "navigation"
-
-export interface WalkthroughHotspot {
-  id: string
-  position: [number, number, number]
-  orientation?: WalkthroughNodeOrientation
-  title: string
-  description?: string
-  type: WalkthroughHotspotType
-  targetNodeId?: string
-  mediaUrl?: string
-  metadata?: Record<string, unknown>
-}
-
-export interface WalkthroughAutoTourConfig {
-  enabled?: boolean
-  dwellMs?: number
-  order?: string[]
-  tags?: string[]
-}
-
-export interface WalkthroughCaptureMetadata {
-  resolution: string
-  depthPrecision: string
-  originAlignment: boolean
-  captureDate?: string
-  operator?: string
-}
-
-export interface ImmersiveWalkthroughSpace {
-  spaceId: string
-  defaultNodeId: string
-  nodes: WalkthroughNode[]
-  hotspots?: WalkthroughHotspot[]
-  spatialMeshUrl: string
-  textureSetUrl?: string
-  hdrEnvironmentUrl?: string
-  navigationMeshUrl?: string
-  dracoDecoderPath?: string
-  materialBoost?: number
-  pointerSensitivity?: number
-  eyeHeight?: number
-  manualWalkEnabled?: boolean
-  autoTour?: WalkthroughAutoTourConfig
-  captureMetadata?: WalkthroughCaptureMetadata
-  bounds?: { width: number; depth: number; height: number }
-  lighting?: {
-    exposure?: { min: number; max: number }
-    probePositions?: Array<[number, number, number]>
-  }
-  zoneId?: string
-  outdoor?: boolean
 }
 
 export interface GuidedTour {
@@ -1352,7 +1277,7 @@ export interface ViewerManifestPerformanceProfile {
 export interface ViewerManifestWalkthroughView {
   default_node: string
   pathfinding_enabled: boolean
-  immersive_space?: ImmersiveWalkthroughSpace
+  panorama_manifest?: PanoramaTourManifest | null
 }
 
 export interface ViewerManifestDollhouseView {

@@ -1650,8 +1650,8 @@ export function TourPlayer({
                   <div className="max-w-md rounded-lg border border-emerald-500/40 bg-black/70 p-6 text-slate-200 shadow-lg">
                     <h2 className="text-lg font-semibold text-white">WebGL support required</h2>
                     <p className="mt-2 text-sm text-slate-300">
-                      The SPHR immersive viewer mirrors the Three.js experience from the source project and needs WebGL 2 to
-                      render interactive panoramas. Try a compatible browser or fall back to the classic walkthrough mode.
+                      The hotspot panorama viewer renders 360° imagery with WebGL 2 for smooth scene navigation. Try a
+                      compatible browser or fall back to the classic walkthrough mode.
                     </p>
                   </div>
                 </div>
@@ -1688,7 +1688,6 @@ export function TourPlayer({
               walkthroughMeta={walkthroughMeta}
               dollhouseModel={property.dollhouseModel}
               onDollhouseNavigate={handleDollhouseNavigate}
-              immersiveWalkthrough={property.immersiveWalkthrough}
               onCaptureStill={handleHdCapture}
               capturePreview={capturePreviewCard}
             />
@@ -1837,7 +1836,7 @@ export function TourPlayer({
                   />
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-2">
                     <p className="text-[11px] text-gray-200">
-                      Drag inside the viewer to explore this immersive 360° capture.
+                      Drag inside the viewer to explore this interactive 360° capture.
                     </p>
                   </div>
                 </div>
@@ -2230,7 +2229,7 @@ export function TourPlayer({
                   </>
                 ) : (
                   <span>
-                    Save a viewpoint inside the immersive viewer to begin building your personalised walkthrough script.
+                    Save a viewpoint inside the panorama viewer to begin building your personalised walkthrough script.
                   </span>
                 )}
                 {!isCustomTourSelected && (

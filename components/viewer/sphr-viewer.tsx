@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { AlertCircle, NavigationIcon, Play, X } from "@/lib/icons"
+import { NavigationIcon, Play, X } from "@/lib/icons"
 
 interface SphrViewerProps {
   space: SphrSpace
@@ -79,6 +79,13 @@ export function SphrViewer({ space, onNodeChange, onHotspotActivate }: SphrViewe
 
   const [activeNodeId, setActiveNodeId] = useState<string>(() => space.initialNodeId)
   const [activeHotspot, setActiveHotspot] = useState<SphrHotspot | null>(null)
+  const [cursorPosition, setCursorPosition] = useState<{ x: number; y: number } | null>(null)
+  const [hoveredHotspotId, setHoveredHotspotId] = useState<string | null>(null)
+  const [cursorPulse, setCursorPulse] = useState(false)
+  const cursorPulseTimeoutRef = useRef<number | null>(null)
+  const [transitionPhase, setTransitionPhase] = useState<"idle" | "fade-out" | "fade-in">("idle")
+  const navigationTimeoutRef = useRef<number | null>(null)
+  const fadeTimeoutRef = useRef<number | null>(null)
 
   const nodesById = useMemo(() => {
     return space.nodes.reduce<Record<string, SphrSpaceNode>>((acc, node) => {
@@ -95,6 +102,24 @@ export function SphrViewer({ space, onNodeChange, onHotspotActivate }: SphrViewe
       return space.initialNodeId
     })
   }, [space.initialNodeId, space.nodes])
+
+  useEffect(() => {
+    setTransitionPhase("fade-in")
+    fadeTimeoutRef.current = window.setTimeout(() => {
+      setTransitionPhase("idle")
+    }, 260)
+    return () => {
+      if (cursorPulseTimeoutRef.current) {
+        window.clearTimeout(cursorPulseTimeoutRef.current)
+      }
+      if (navigationTimeoutRef.current) {
+        window.clearTimeout(navigationTimeoutRef.current)
+      }
+      if (fadeTimeoutRef.current) {
+        window.clearTimeout(fadeTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const currentNode = useMemo(() => {
     return nodesById[activeNodeId] ?? space.nodes[0]
@@ -236,6 +261,13 @@ export function SphrViewer({ space, onNodeChange, onHotspotActivate }: SphrViewe
       }
       material.map = texture
       material.needsUpdate = true
+      setTransitionPhase("fade-in")
+      if (fadeTimeoutRef.current) {
+        window.clearTimeout(fadeTimeoutRef.current)
+      }
+      fadeTimeoutRef.current = window.setTimeout(() => {
+        setTransitionPhase("idle")
+      }, 240)
     }
 
     const candidates = buildPanoramaCandidates(currentNode.panoramaUrl)
@@ -296,6 +328,10 @@ export function SphrViewer({ space, onNodeChange, onHotspotActivate }: SphrViewe
   }, [currentNode, onNodeChange])
 
   useEffect(() => {
+    setHoveredHotspotId(null)
+  }, [currentNode])
+
+  useEffect(() => {
     updateHotspotsRef.current = () => {
       const camera = cameraRef.current
       const renderer = rendererRef.current
@@ -332,16 +368,44 @@ export function SphrViewer({ space, onNodeChange, onHotspotActivate }: SphrViewe
     updateHotspotsRef.current()
   }, [currentNode])
 
+  const triggerCursorPulse = useCallback(() => {
+    if (cursorPulseTimeoutRef.current) {
+      window.clearTimeout(cursorPulseTimeoutRef.current)
+    }
+    setCursorPulse(true)
+    cursorPulseTimeoutRef.current = window.setTimeout(() => {
+      setCursorPulse(false)
+    }, 220)
+  }, [])
+
+  const navigateToNode = useCallback(
+    (nodeId: string) => {
+      if (nodeId === activeNodeId) {
+        return
+      }
+      setActiveHotspot(null)
+      setTransitionPhase("fade-out")
+      if (navigationTimeoutRef.current) {
+        window.clearTimeout(navigationTimeoutRef.current)
+      }
+      navigationTimeoutRef.current = window.setTimeout(() => {
+        setActiveNodeId(nodeId)
+      }, 180)
+    },
+    [activeNodeId],
+  )
+
   const handleHotspotClick = useCallback(
     (hotspot: SphrHotspot) => {
       onHotspotActivate?.(hotspot)
+      triggerCursorPulse()
       if (hotspot.type === "navigation" && hotspot.targetNodeId) {
-        setActiveNodeId(hotspot.targetNodeId)
+        navigateToNode(hotspot.targetNodeId)
         return
       }
       setActiveHotspot(hotspot)
     },
-    [onHotspotActivate],
+    [navigateToNode, onHotspotActivate, triggerCursorPulse],
   )
 
   const handleCloseHotspot = useCallback(() => {
@@ -349,14 +413,33 @@ export function SphrViewer({ space, onNodeChange, onHotspotActivate }: SphrViewe
   }, [])
 
   const handleNodeSelect = useCallback((nodeId: string) => {
-    setActiveNodeId(nodeId)
+    navigateToNode(nodeId)
     setActiveHotspot(null)
+  }, [navigateToNode])
+
+  const handlePointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect()
+    setCursorPosition({ x: event.clientX - rect.left, y: event.clientY - rect.top })
   }, [])
+
+  const handlePointerLeave = useCallback(() => {
+    setCursorPosition(null)
+    setHoveredHotspotId(null)
+  }, [])
+
+  const handlePointerDown = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      const rect = event.currentTarget.getBoundingClientRect()
+      setCursorPosition({ x: event.clientX - rect.left, y: event.clientY - rect.top })
+      triggerCursorPulse()
+    },
+    [triggerCursorPulse],
+  )
 
   if (!currentNode) {
     return (
       <div className="flex h-full items-center justify-center rounded-xl border border-gray-800 bg-gray-950/70 text-gray-300">
-        No immersive nodes configured for this property.
+        No panorama nodes configured for this property.
       </div>
     )
   }
@@ -365,47 +448,70 @@ export function SphrViewer({ space, onNodeChange, onHotspotActivate }: SphrViewe
       className="relative w-full overflow-hidden rounded-xl border border-slate-800 bg-black max-h-[90vh] xl:max-h-[95vh] min-h-[320px] aspect-[16/9] lg:aspect-[21/9]"
       ref={containerRef}
       style={{ minHeight: "max(320px, var(--viewer-min-h, 65vh))" }}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
+      onPointerDown={handlePointerDown}
+      data-testid="sphr-viewer-root"
     >
       <div ref={overlayRef} className="pointer-events-none absolute inset-0">
         {currentNode.hotspots.map((hotspot) => (
           <button
             key={hotspot.id}
             ref={registerHotspotRef(hotspot.id)}
-            className={cn(
-              "pointer-events-auto rounded-full border border-white/40 px-3 py-1 text-xs font-semibold text-white shadow-lg transition", 
-              hotspot.type === "navigation"
-                ? "bg-emerald-500/80 hover:bg-emerald-400"
-                : hotspot.type === "media"
-                  ? "bg-indigo-500/80 hover:bg-indigo-400"
-                  : "bg-slate-900/80 hover:bg-slate-800",
-            )}
+            className="group pointer-events-auto flex flex-col items-center gap-2"
             onClick={() => handleHotspotClick(hotspot)}
+            onMouseEnter={() => setHoveredHotspotId(hotspot.id)}
+            onMouseLeave={() => setHoveredHotspotId((current) => (current === hotspot.id ? null : current))}
+            onFocus={() => setHoveredHotspotId(hotspot.id)}
+            onBlur={() => setHoveredHotspotId((current) => (current === hotspot.id ? null : current))}
           >
-            {hotspot.type === "navigation" ? (
-              <span className="flex items-center gap-1">
-                <NavigationIcon className="h-3 w-3" />
-                {hotspot.title}
-              </span>
-            ) : hotspot.type === "media" ? (
-              <span className="flex items-center gap-1">
-                <Play className="h-3 w-3" />
-                {hotspot.title}
-              </span>
-            ) : (
-              <span className="flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" />
-                {hotspot.title}
-              </span>
-            )}
+            <span className="sr-only">{hotspot.title}</span>
+            <span
+              className={cn(
+                "relative flex h-5 w-5 items-center justify-center rounded-full border-2 border-white/40 shadow-[0_0_12px_rgba(59,130,246,0.35)] transition-all duration-200",
+                hotspot.type === "navigation"
+                  ? "bg-emerald-400/70 border-emerald-200/70 shadow-[0_0_16px_rgba(16,185,129,0.55)]"
+                  : hotspot.type === "media"
+                    ? "bg-indigo-400/70 border-indigo-200/70 shadow-[0_0_16px_rgba(99,102,241,0.55)]"
+                    : "bg-sky-400/70 border-sky-200/70 shadow-[0_0_16px_rgba(56,189,248,0.55)]",
+                hoveredHotspotId === hotspot.id ? "scale-110" : "scale-100",
+              )}
+            >
+              <span className="h-2 w-2 rounded-full bg-white/90" />
+            </span>
+            <span className="pointer-events-none rounded-full bg-black/70 px-2 py-1 text-xs font-medium text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
+              {hotspot.title}
+            </span>
           </button>
         ))}
       </div>
+      {cursorPosition && (
+        <div className="pointer-events-none absolute inset-0 z-30">
+          <div
+            className="h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/50 bg-white/10 shadow-[0_0_20px_rgba(148,163,184,0.45)] backdrop-blur-sm transition-all duration-150"
+            style={{
+              left: `${cursorPosition.x}px`,
+              top: `${cursorPosition.y}px`,
+              transform: `translate(-50%, -50%) scale(${cursorPulse ? 1.25 : hoveredHotspotId ? 1.1 : 1})`,
+              opacity: 0.9,
+            }}
+            data-testid="cursor-indicator"
+          />
+        </div>
+      )}
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-0 z-20 bg-black transition-opacity duration-300",
+          transitionPhase === "fade-out" ? "opacity-80" : "opacity-0",
+        )}
+        data-testid="scene-fade-overlay"
+      />
 
       <div className="pointer-events-none absolute left-4 top-4 flex max-w-xs flex-col gap-3">
         <Card className="pointer-events-auto bg-slate-900/85 p-4 text-slate-100">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <p className="text-xs uppercase tracking-wide text-slate-400">Immersive Navigation</p>
+              <p className="text-xs uppercase tracking-wide text-slate-400">Panorama Navigation</p>
               <h2 className="text-lg font-semibold text-white">{currentNode.name}</h2>
             </div>
             <Badge variant="outline" className="border-emerald-400/60 text-emerald-300">

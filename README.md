@@ -1,6 +1,6 @@
 # VORTEX Lite TRAE
 
-VORTEX Lite TRAE is a Next.js 16 application that showcases immersive 3D virtual tour functionality with a modern React 19 front-end. The project uses Tailwind CSS 4 for styling, Radix UI for accessible primitives, and a collection of custom components for building rich media experiences.
+VORTEX Lite TRAE is a Next.js 16 application that showcases hotspot-driven 360° virtual tour functionality with a modern React 19 front-end. The project uses Tailwind CSS 4 for styling, Radix UI for accessible primitives, and a collection of custom components for building rich media experiences.
 
 ## Getting Started
 
