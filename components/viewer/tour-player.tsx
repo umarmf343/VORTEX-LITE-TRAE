@@ -303,16 +303,6 @@ export function TourPlayer({
     [activeZoneId, availableZones, property.scenes],
   )
 
-  const handleSceneSelect = useCallback(
-    (index: number) => {
-      if (activeExperienceTab !== "walkthrough") {
-        setActiveExperienceTab("walkthrough")
-      }
-      goToScene(index)
-    },
-    [activeExperienceTab, goToScene, setActiveExperienceTab],
-  )
-
   useEffect(() => {
     let cancelled = false
 
@@ -776,6 +766,16 @@ export function TourPlayer({
       }
     },
     [currentScene, goToScene, property.id, property.scenes],
+  )
+
+  const handleSceneSelect = useCallback(
+    (index: number) => {
+      if (activeExperienceTab !== "walkthrough") {
+        setActiveExperienceTab("walkthrough")
+      }
+      void requestSceneTransitionByIndex(index)
+    },
+    [activeExperienceTab, requestSceneTransitionByIndex, setActiveExperienceTab],
   )
   const capturePreviewCard = useMemo(() => {
     if (!capturePreview) {
