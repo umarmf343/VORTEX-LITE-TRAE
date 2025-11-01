@@ -1077,12 +1077,9 @@ export function SceneViewer({
     if (!container) return
 
     const hasWebGL2 = WebGLCapabilities.isWebGL2Available()
-    const contextPriority: WebGLContextType[] = hasWebGL2 ? ["webgl2"] : []
-
-    if (!hasWebGL2) {
-      setRenderError("WebGL 2 is not available in this browser or device.")
-      return
-    }
+    const contextPriority: WebGLContextType[] = hasWebGL2
+      ? ["webgl2", "webgl", "experimental-webgl"]
+      : ["webgl", "experimental-webgl"]
 
     let renderer: WebGLRenderer | null = null
     let rendererError: unknown = null
@@ -1095,7 +1092,10 @@ export function SceneViewer({
       console.error("Failed to create WebGLRenderer", rendererError)
       const defaultMessage = "Unable to initialize the 3D viewer on this device."
       const errorMessage = rendererError instanceof Error ? rendererError.message : null
-      setRenderError(errorMessage ? `${defaultMessage} (${errorMessage})` : defaultMessage)
+      const compatibilityMessage = hasWebGL2
+        ? defaultMessage
+        : "This browser does not support the WebGL features required for 3D viewing."
+      setRenderError(errorMessage ? `${compatibilityMessage} (${errorMessage})` : compatibilityMessage)
       return
     }
 
