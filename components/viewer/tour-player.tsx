@@ -25,7 +25,6 @@ import { SphrViewer } from "./sphr-viewer"
 import { PhotoGallery } from "./photo-gallery"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import {
   Select,
@@ -37,7 +36,6 @@ import {
 } from "@/components/ui/select"
 import { formatCurrency } from "@/lib/utils"
 import {
-  AlertCircle,
   ChevronLeft,
   ChevronRight,
   Phone,
@@ -52,7 +50,6 @@ import {
   MapIcon,
   MapPin,
   Image as ImageIcon,
-  Navigation,
   Video,
   MousePointerClick,
   Ruler,
@@ -1640,39 +1637,6 @@ export function TourPlayer({
 
         {/* Side Panel */}
         <div className="w-full lg:w-80 flex flex-col gap-4">
-          <Card className="p-4 bg-gray-900 border-gray-800">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="space-y-2">
-                <div className="text-sm font-semibold text-white">Immersive Viewer</div>
-                <p className="text-xs text-gray-400">
-                  Toggle the interactive 3D experience on devices that support WebGL 2 rendering. When the SPHR mode is active,
-                  the classic toggle is locked to keep the immersive viewer in sync.
-                </p>
-                {isWebGLSupported === null && (
-                  <div className="text-xs text-gray-300">Detecting device compatibility…</div>
-                )}
-                {isWebGLSupported === false && (
-                  <div className="flex items-center gap-2 text-xs text-amber-300">
-                    <AlertCircle className="h-4 w-4" />
-                    WebGL 2 isn&apos;t available on this device.
-                  </div>
-                )}
-                {showSphrViewer && (
-                  <div className="flex items-center gap-2 text-xs text-emerald-300">
-                    <Navigation className="h-4 w-4" />
-                    SPHR immersive mode is active for this property.
-                  </div>
-                )}
-              </div>
-              <Switch
-                checked={isTraditional3DViewerActive}
-                onCheckedChange={setIs3DEnabled}
-                disabled={showSphrViewer || isWebGLSupported !== true}
-                aria-label="Toggle 3D viewer"
-              />
-            </div>
-          </Card>
-
           {/* Scene Thumbnails */}
           <Card className="p-4 bg-gray-900 border-gray-800">
             <h3 className="font-semibold text-white mb-3">Scenes</h3>
