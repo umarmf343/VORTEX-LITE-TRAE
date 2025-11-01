@@ -33,7 +33,7 @@ import {
   RotateCcw,
   RotateCw,
   MapPin,
-  Navigation,
+  NavigationIcon,
   MousePointerClick,
   ArrowLeftRight,
   X,
@@ -1922,7 +1922,7 @@ export function SceneViewer({
       return <ImageIcon className="h-4 w-4" aria-hidden="true" />
     }
     if (type === "navigation_point") {
-      return <Navigation className="h-4 w-4" aria-hidden="true" />
+      return <NavigationIcon className="h-4 w-4" aria-hidden="true" />
     }
     if (type === "external_link") {
       return <ExternalLink className="h-4 w-4" aria-hidden="true" />
@@ -2187,7 +2187,7 @@ export function SceneViewer({
             {isWalkthroughMode && !immersiveWalkthroughActive && (
               <>
                 <div className="absolute top-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full bg-black/70 px-4 py-2 text-xs font-medium text-white shadow-lg backdrop-blur">
-                  <Navigation className="h-4 w-4 text-emerald-300" />
+                  <NavigationIcon className="h-4 w-4 text-emerald-300" />
                   <span className="uppercase tracking-wide text-emerald-200">Walkthrough Mode</span>
                   <span className="text-white/80">
                     Step {walkthroughStep} of {Math.max(1, walkthroughTotalScenes)}
@@ -2209,11 +2209,11 @@ export function SceneViewer({
                         <span>Click &amp; drag to look around</span>
                       </div>
                       <div className="flex items-center gap-2 rounded-full bg-black/60 px-3 py-2 shadow-lg backdrop-blur">
-                        <Navigation className="h-4 w-4 text-emerald-300" />
+                        <NavigationIcon className="h-4 w-4 text-emerald-300" />
                         <span>{walkthroughForwardInstruction}</span>
                       </div>
                       <div className="flex items-center gap-2 rounded-full bg-black/60 px-3 py-2 shadow-lg backdrop-blur">
-                        <Navigation className="h-4 w-4 rotate-180 text-rose-300" />
+                        <NavigationIcon className="h-4 w-4 rotate-180 text-rose-300" />
                         <span>{walkthroughBackwardInstruction}</span>
                       </div>
                     </div>

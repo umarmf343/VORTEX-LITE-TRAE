@@ -55,6 +55,7 @@ import {
   Ruler,
   Layers,
   Globe,
+  NavigationIcon,
 } from "@/lib/icons"
 import { ZoomControls } from "./zoom-controls"
 import { useHdPhotoModule } from "@/hooks/use-hd-photo-module"
@@ -1421,7 +1422,7 @@ export function TourPlayer({
             }
             onClick={() => setActiveExperienceTab("walkthrough")}
           >
-            <Navigation className="mr-2 h-4 w-4" /> Walkthrough
+            <NavigationIcon className="mr-2 h-4 w-4" /> Walkthrough
           </Button>
           <Button
             size="sm"
@@ -1733,7 +1734,7 @@ export function TourPlayer({
               <div>
                 <div className="flex items-center justify-between gap-2 text-white font-semibold">
                   <span className="flex items-center gap-2">
-                    <Navigation className="w-4 h-4 text-emerald-400" />
+                    <NavigationIcon className="w-4 h-4 text-emerald-400" />
                     Smooth Navigation
                   </span>
                   <span className="text-[11px] text-gray-400 uppercase">Scene {currentSceneIndex + 1}</span>
