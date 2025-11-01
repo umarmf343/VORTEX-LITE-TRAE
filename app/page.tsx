@@ -45,7 +45,7 @@ import {
   Globe,
   ExternalLink,
   AlertCircle,
-  Navigation,
+  NavigationIcon,
   Loader2,
 } from "@/lib/icons"
 import { useToast } from "@/components/ui/use-toast"
@@ -864,7 +864,7 @@ export default function Page() {
                   onClick={() => setTourExperience("sphr")}
                   className="gap-2"
                 >
-                  <Navigation className="h-4 w-4" />
+                  <NavigationIcon className="h-4 w-4" />
                   SPHR Immersive
                 </Button>
               ) : null}
